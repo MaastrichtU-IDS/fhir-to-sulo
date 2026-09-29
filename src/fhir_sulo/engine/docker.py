@@ -13,6 +13,7 @@ No host path is mounted, so nothing depends on which user started the VM.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import shutil
@@ -20,13 +21,49 @@ import subprocess
 from dataclasses import dataclass
 from typing import Any, Mapping, Optional
 
-DEFAULT_TAG = "fhir-sulo/shexmap:1.0.0-alpha.33"
+ENGINE_VERSION = "1.0.0-alpha.33"
+TAG_PREFIX = "fhir-sulo/shexmap"
 BRIDGE_DIR = "/srv/engine/bridge"
 
 _REPO_ROOT = os.path.dirname(
     os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 )
 DEFAULT_CONTEXT = os.path.join(_REPO_ROOT, "tools", "engine")
+
+
+def context_digest(context: str = DEFAULT_CONTEXT) -> str:
+    """A short hash of everything that goes into the image.
+
+    The tag carries it, so the tag is content-addressed. It has to be:
+    several agent worktrees share one Docker daemon, ``ensure_built()``
+    is a no-op when the tag exists, and a plain version tag is therefore
+    shared mutable state -- whoever built last wins, and everyone else runs
+    an image that does not match their source tree. That was not a
+    hypothetical; it silently reverted the bridge under a passing test run.
+    """
+    digest = hashlib.sha256()
+    for name in ("package.json", "package-lock.json", "Dockerfile"):
+        path = os.path.join(context, name)
+        if os.path.exists(path):
+            with open(path, "rb") as handle:
+                digest.update(name.encode())
+                digest.update(handle.read())
+    bridge = os.path.join(context, "bridge")
+    for name in sorted(os.listdir(bridge)) if os.path.isdir(bridge) else ():
+        path = os.path.join(bridge, name)
+        if os.path.isfile(path):
+            with open(path, "rb") as handle:
+                digest.update(name.encode())
+                digest.update(handle.read())
+    return digest.hexdigest()[:12]
+
+
+def default_tag(context: str = DEFAULT_CONTEXT) -> str:
+    return f"{TAG_PREFIX}:{ENGINE_VERSION}-{context_digest(context)}"
+
+
+#: Kept for callers that only want to name the family of images.
+DEFAULT_TAG = f"{TAG_PREFIX}:{ENGINE_VERSION}"
 
 
 class EngineUnavailable(RuntimeError):
@@ -41,9 +78,13 @@ class EngineInvocationError(RuntimeError):
 class EngineImage:
     """A built, pinned engine image and the calls it answers."""
 
-    tag: str = DEFAULT_TAG
+    tag: str = ""
     context: str = DEFAULT_CONTEXT
     timeout_seconds: int = 300
+
+    def __post_init__(self) -> None:
+        if not self.tag:
+            object.__setattr__(self, "tag", default_tag(self.context))
 
     # -- availability -------------------------------------------------------
 
@@ -144,4 +185,10 @@ class EngineImage:
 
 
 def default_image(tag: Optional[str] = None) -> EngineImage:
-    return EngineImage(tag=tag or os.environ.get("FHIR_SULO_ENGINE_IMAGE", DEFAULT_TAG))
+    """The image for *this* working tree's bridge and lockfile.
+
+    ``FHIR_SULO_ENGINE_IMAGE`` overrides it, which is how a CI job can pin a
+    prebuilt image; otherwise the tag is derived from the build context so two
+    worktrees with different bridges cannot share, and silently swap, one tag.
+    """
+    return EngineImage(tag=tag or os.environ.get("FHIR_SULO_ENGINE_IMAGE", ""))

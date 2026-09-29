@@ -1,134 +1,154 @@
-"""Host side of the test-only ShExMap engine harness.
+"""Host side of the map test harness: a thin adapter onto the production driver.
 
-There is no node/npm on this host, so the pinned engine runs in Docker.  Colima
-shares only the VM owner's home directory, so a bind mount into a scratchpad
-silently yields an empty directory (DR-301 operational note): the repository
-tree is shipped in with ``docker cp`` instead.
+This used to be a test-only Node script plus a container of its own. Both are
+gone. `run_job` now builds a `fhir_sulo.engine.maprun.MapJob` and runs it
+through the pinned image the driver owns, so Agent 3's acceptance tests
+exercise the code that ships:
 
-TEMPORARY, TEST-ONLY.  Agent 4 owns the production materialization driver
-(DR-301 decision 3, CD-2); this exists so the Gate 2/3 acceptance tests can run
-before that driver lands.
+* the production multi-pass bridge (`tools/engine/bridge/run-map.js`), which
+  validates once and materializes every declared pass;
+* the driver's `Guards`, set explicitly, never inherited (CD-2);
+* the driver's per-quad provenance, which is what makes
+  `test_host_emits_no_triples.py` checkable rather than assertable.
+
+The legacy result-document shape is preserved on purpose: `require_clean`,
+`quads`, `triples` and `objects_of` are used across six test modules, and
+repointing the engine is not a reason to rewrite Agent 3's assertions.
 """
 
 from __future__ import annotations
 
 import json
 import os
-import shutil
-import subprocess
-import tempfile
 import unittest
 from pathlib import Path
 from typing import Any, Dict, List, Mapping, Optional
 
-REPO = Path(__file__).resolve().parents[4]
-CONTAINER = os.environ.get("FHIR_SULO_ENGINE_CONTAINER", "shexmaps")
-IMAGE = "node:20-bookworm-slim"
-# Each PROCESS gets its own tree inside the container.  A shared /w/repo was
-# a real defect: `fixtures/expected/build.py` runs as a subprocess from one of
-# the tests and re-syncs the same path, so a parent that had already synced
-# could go on believing its cached copy was current while another process had
-# replaced it.  That produced ENOENT-on-a-fixture failures and, worse, ran
-# schemas the host had already edited. Per-process paths make it impossible.
-CONTAINER_REPO = "/w/repo-%d" % os.getpid()
+from fhir_sulo.engine.docker import EngineImage, EngineUnavailable
+from fhir_sulo.engine.driver import Guards, MaterializationFailure, union_passes
+from fhir_sulo.engine.maprun import MapJob, MapPass, _interpret
+from fhir_sulo.engine.rdfterms import Quad
+from fhir_sulo.pipeline.manifest import discover, host_consumed_variables
 
-_PREPARED = False
+REPO = Path(__file__).resolve().parents[4]
+
+_IMAGE: Optional[EngineImage] = None
 
 
 def docker_available() -> bool:
-    exe = shutil.which("docker")
-    if not exe:
-        return False
-    return subprocess.run([exe, "info"], capture_output=True).returncode == 0
+    return EngineImage.docker_present()
 
 
-def _run(*args: str, check: bool = True) -> subprocess.CompletedProcess:
-    proc = subprocess.run(["docker", *args], capture_output=True, text=True)
-    if check and proc.returncode != 0:
-        raise RuntimeError(
-            "docker %s failed (%s)\n%s\n%s" % (args[0], proc.returncode, proc.stdout, proc.stderr)
-        )
-    return proc
-
-
-def ensure_container() -> None:
-    """Create the container and ``npm ci`` the pinned lockfile, once per session."""
-    global _PREPARED
-    if _PREPARED:
-        return
-    alive = subprocess.run(
-        ["docker", "exec", CONTAINER, "test", "-d", "/w/node_modules/shex"],
-        capture_output=True,
-    ).returncode == 0
-    if not alive:
-        subprocess.run(["docker", "rm", "-f", CONTAINER], capture_output=True)
-        _run("run", "-d", "--name", CONTAINER, "-w", "/w", IMAGE, "sleep", "infinity")
-        _run("cp", str(REPO / "tools/engine/package.json"), "%s:/w/package.json" % CONTAINER)
-        _run("cp", str(REPO / "tools/engine/package-lock.json"), "%s:/w/package-lock.json" % CONTAINER)
-        _run("exec", CONTAINER, "npm", "ci", "--no-audit", "--no-fund", "--prefix", "/w")
-    _PREPARED = True
-
-
-SYNCED_TREES = ("maps", "fixtures", "tests/contracts/maps/_engine")
-_SYNCED = False
-
-
-def sync_tree(force: bool = False) -> None:
-    """Ship the schemas, fixtures and harness into the container, ONCE.
-
-    Colima shares only the VM owner's home, so a bind mount into the scratchpad
-    silently yields an empty directory (DR-301 operational note); the tree goes
-    in with ``docker cp`` instead.
-
-    Once per process, not once per job.  Doing it per job meant every
-    materialization first ``rm -rf``'d and re-copied the whole tree, which was
-    slow and left a window in which a run could see a missing fixture and
-    report a source-validation failure that had nothing to do with the map.
-    Call ``sync_tree(force=True)`` after editing a schema mid-process; the
-    fault-injection scripts do.
-    """
-    global _SYNCED
-    ensure_container()
-    if _SYNCED and not force:
-        return
-    _run("exec", CONTAINER, "mkdir", "-p", CONTAINER_REPO)
-    for rel in SYNCED_TREES:
-        _run("exec", CONTAINER, "mkdir", "-p", "%s/%s" % (CONTAINER_REPO, Path(rel).parent))
-        _run("exec", CONTAINER, "rm", "-rf", "%s/%s" % (CONTAINER_REPO, rel))
-        _run("cp", str(REPO / rel), "%s:%s/%s" % (CONTAINER, CONTAINER_REPO, rel))
-        # docker cp reports success even where nothing landed; verify.
-        probe = _run("exec", CONTAINER, "test", "-e", "%s/%s" % (CONTAINER_REPO, rel),
-                     check=False)
-        if probe.returncode != 0:
-            raise RuntimeError("docker cp did not land %s in the container" % rel)
-    _SYNCED = True
+def image() -> EngineImage:
+    global _IMAGE
+    if _IMAGE is None:
+        img = EngineImage()
+        img.ensure_built()
+        _IMAGE = img
+    return _IMAGE
 
 
 def cpath(rel: str) -> str:
-    """Repository-relative path as seen inside the container."""
-    return "%s/%s" % (CONTAINER_REPO, rel)
+    """A repository-relative path.
+
+    Kept as a function because the case modules call it eleven times. Nothing
+    is copied into a container any more -- the bridge takes schema text and
+    graph text on stdin, which is also why no bind mount is involved (DR-301:
+    on this host an unshared bind mount yields an empty directory, silently).
+    """
+    return rel
+
+
+def _read(rel: str) -> str:
+    return (REPO / rel).read_text(encoding="utf-8")
+
+
+def _nt(term) -> str:
+    return term.to_ntriples()
 
 
 def run_job(job: Mapping[str, Any]) -> Dict[str, Any]:
-    """Run one map job through the pinned engine and return its result document."""
-    sync_tree()
-    proc = subprocess.run(
-        ["docker", "exec", "-i", CONTAINER, "node",
-         cpath("tests/contracts/maps/_engine/run-map.js"), "-"],
-        input=json.dumps(job), capture_output=True, text=True)
-    if proc.returncode != 0:
-        raise RuntimeError("run-map.js failed (%s)\n%s\n%s"
-                           % (proc.returncode, proc.stdout[-4000:], proc.stderr[-4000:]))
-    return json.loads(proc.stdout)
+    """Run one map job and return the harness result document."""
+    passes = [
+        MapPass(name=p["name"], shape=p.get("shape"), root=p["root"],
+                static_vars=p.get("staticVars", {}))
+        for p in job.get("passes", [])
+    ]
+    map_job = MapJob(
+        source_schema=_read(job["sourceSchema"]),
+        target_schema=_read(job["targetSchema"]) if job.get("targetSchema") else "",
+        data=_read(job["data"]),
+        node=job["focus"],
+        passes=passes,
+        source_shape=job.get("startShape"),
+        bindings_override=job.get("bindingsOverride"),
+    )
+    guards = Guards()
+    request = map_job.to_bridge(guards)
+    if not passes:
+        request["passes"] = []
+    response = image().call("run-map.js", request)
+
+    out: Dict[str, Any] = {
+        "ok": False, "stage": response.get("stage", "validate"),
+        "validation": None, "bindings": response.get("bindings"),
+        "passes": [], "nquads": "",
+        "engine": {"image": image().tag, "guards": guards.to_bridge()},
+    }
+
+    if not response.get("ok") and response.get("stage") == "validate":
+        out["validation"] = {"ok": False, "failure": response.get("validation"),
+                             "exitCode": 1}
+        return out
+    out["validation"] = {"ok": True, "failure": None, "exitCode": 0}
+
+    if not response.get("ok"):
+        # a materialization failure: report it on the pass that raised, the
+        # way the old harness did, so require_clean stays the thing that fails
+        out["stage"] = response.get("stage", "materialize")
+        out["passes"] = [{"name": response.get("pass"), "root": None, "shape": None,
+                          "quads": [], "report": response.get("report"),
+                          "error": {"message": response.get("error"),
+                                    "report": response.get("report")}}]
+        return out
+
+    entries = response.get("passes", [])
+    results, lines = [], []
+    for entry in entries:
+        spec = next(p for p in passes if p.name == entry["name"])
+        record = {"name": entry["name"], "root": entry["root"],
+                  "shape": entry.get("shape"), "quads": [], "report": entry["lastReport"],
+                  "error": None}
+        try:
+            interpreted = _interpret(entry, spec, guards)
+        except MaterializationFailure as exc:
+            record["error"] = {"message": str(exc), "report": entry["lastReport"]}
+            out["passes"].append(record)
+            out["stage"] = "materialize"
+            return out
+        results.append(interpreted)
+        for quad_record in interpreted.records:
+            quad = quad_record.quad.relabel_blank_nodes(entry["name"])
+            triple = [_nt(quad.s), _nt(quad.p), _nt(quad.o)]
+            record["quads"].append(triple)
+            lines.append(" ".join(triple) + " .")
+        out["passes"].append(record)
+
+    out["nquads"] = "\n".join(sorted(set(lines)))
+    out["stage"] = "done"
+    out["ok"] = True
+    if results:
+        # the driver's own union, so the host-emits-no-triples guard runs on
+        # exactly the graph the tests inspect
+        out["_driverResult"] = union_passes(results)
+    return out
 
 
 def quads(result: Mapping[str, Any]) -> List[str]:
-    """The union graph as a sorted list of N-Triples lines."""
     return [line for line in result.get("nquads", "").splitlines() if line]
 
 
 def triples(result: Mapping[str, Any]) -> List[tuple]:
-    """The union graph as (subject, predicate, object) N-Triples term triples."""
     out = []
     for p in result.get("passes", []):
         for s, pr, o in p["quads"]:
@@ -158,6 +178,11 @@ def require_clean(result: Mapping[str, Any]) -> None:
             raise AssertionError("pass %r ignored run bindings %s -- an identity-provided "
                                  "binding that never reaches the graph is a silent "
                                  "mis-map" % (p["name"], r["unusedStatics"]))
+    driver = result.get("_driverResult")
+    if driver is not None and driver.untraced_quads():
+        raise AssertionError(
+            "quads at %s name no TripleConstraint in the target schema; the host "
+            "would be emitting them (DR-302)" % (driver.untraced_quads(),))
 
 
 SKIP_NOTE = (
@@ -169,20 +194,23 @@ SKIP_NOTE = (
 class EngineTestCase(unittest.TestCase):
     """Base class for tests that need the pinned engine in Docker.
 
-    Skips, loudly, where Docker is unavailable.  Also skips on a CI runner
-    unless ``FHIR_SULO_ENGINE_TESTS=1`` is set: the CI job as configured runs
-    ``make contracts`` with no Docker step, and silently adding a container
-    pull plus ``npm ci`` to it is the integration lead's call, not this
-    package's.  Reported to Agent 1: CI needs a job that sets that variable, or
-    these tests never run there.
+    Skips, loudly, where Docker is unavailable -- unless
+    ``FHIR_SULO_REQUIRE_ENGINE=1``, which the gate sets: a gate that passes
+    because its evidence did not run is not a gate.
     """
 
     @classmethod
     def setUpClass(cls) -> None:
-        if os.environ.get("CI") and os.environ.get("FHIR_SULO_ENGINE_TESTS") != "1":
+        required = os.environ.get("FHIR_SULO_REQUIRE_ENGINE") == "1"
+        if os.environ.get("CI") and os.environ.get("FHIR_SULO_ENGINE_TESTS") != "1" \
+                and not required:
             raise unittest.SkipTest(
                 SKIP_NOTE + " Reason: running under CI without FHIR_SULO_ENGINE_TESTS=1."
             )
         if not docker_available():
+            if required:
+                raise AssertionError(
+                    SKIP_NOTE + " FHIR_SULO_REQUIRE_ENGINE=1 was set, so this is a "
+                    "failure rather than a skip.")
             raise unittest.SkipTest(SKIP_NOTE + " Reason: Docker is unavailable.")
-        ensure_container()
+        image()

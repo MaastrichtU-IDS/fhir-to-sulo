@@ -27,6 +27,7 @@ import os
 import subprocess
 import sys
 import unittest
+from pathlib import Path
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
@@ -279,13 +280,13 @@ class TestLintCommandFailsTheBuild(unittest.TestCase):
                          "--json")
         self.assertEqual(proc.returncode, 1)
         payload = json.loads(proc.stdout)
-        by_name = {p["name"]: p for p in payload["pairs"]}
+        by_name = {p["name"]: p for p in payload["maps"]}
         self.assertTrue(by_name["ok-bp"]["ok"])
         self.assertTrue(by_name["ok-decomp-a"]["ok"])
         self.assertTrue(by_name["ok-decomp-b"]["ok"])
         self.assertFalse(by_name["neg-nested-repetition"]["ok"])
         self.assertEqual(
-            {p["name"] for p in payload["pairs"] if not p["ok"]},
+            {p["name"] for p in payload["maps"] if not p["ok"]},
             {n for n in by_name if n.startswith("neg-")},
         )
 
@@ -298,3 +299,117 @@ class TestLintCommandFailsTheBuild(unittest.TestCase):
             self.assertNotEqual(proc.returncode, 0)
         finally:
             os.unlink(broken)
+
+
+@requires_docker
+class TestRealMapsLintClean(unittest.TestCase):
+    """The three shipped maps, parsed by the pinned engine and linted per pass.
+
+    `make lint-schemas` had never passed: discovery matched only `source.shex`
+    and the shipped files are `<family>-source.v1.shex`, so it found nothing
+    and exited 2 on every run it ever had. These tests are what stops that
+    recurring, and they check the analysis is *real* rather than merely green:
+    the fault-injection cases target a shape `start` does not name.
+    """
+
+    FAMILIES = {"bp": 10, "egfr": 6, "encounter": 9}
+
+    def parse(self, path, base, label):
+        from fhir_sulo.engine.shexj import Schema
+
+        response = engine().parse_schema(
+            open(path, encoding="utf-8").read(), base)
+        self.assertTrue(response.get("ok"), response.get("error"))
+        return Schema(raw=response["schema"], prefixes=response["prefixes"], label=label)
+
+    def lint(self, family, target_text=None):
+        import json as _json
+
+        from fhir_sulo.engine.maplint import lint_map
+        from fhir_sulo.pipeline.manifest import discover
+
+        files = {f.family: f for f in discover(Path(ROOT) / "maps")}[family]
+        source = self.parse(files.source, "urn:s", f"{family}/source")
+        if target_text is None:
+            target = self.parse(files.target, "urn:t", f"{family}/target")
+        else:
+            response = engine().parse_schema(target_text, "urn:t")
+            self.assertTrue(response.get("ok"), response.get("error"))
+            from fhir_sulo.engine.shexj import Schema
+            target = Schema(raw=response["schema"], prefixes=response["prefixes"],
+                            label=f"{family}/target")
+        contract = _json.loads(files.contract.read_text()) if files.contract else None
+        return lint_map(files.manifest, source, target, contract=contract)
+
+    def test_every_shipped_map_lints_clean(self):
+        for family in sorted(self.FAMILIES):
+            with self.subTest(family=family):
+                report = self.lint(family)
+                self.assertTrue(report.ok, report.render())
+
+    def test_every_declared_pass_is_actually_walked(self):
+        """The count is the claim: a start-only walk analysed one shape."""
+        for family, expected in sorted(self.FAMILIES.items()):
+            with self.subTest(family=family):
+                report = self.lint(family)
+                self.assertEqual(len(report.shapes_walked), expected)
+                self.assertEqual(len(report.passes), expected)
+
+    def test_no_target_shape_is_left_unanalysed(self):
+        for family in sorted(self.FAMILIES):
+            with self.subTest(family=family):
+                self.assertEqual(self.lint(family).unreachable_shapes, ())
+
+    def _target_text(self, family):
+        from fhir_sulo.pipeline.manifest import discover
+
+        files = {f.family: f for f in discover(Path(ROOT) / "maps")}[family]
+        return files.target.read_text(encoding="utf-8")
+
+    def test_an_unknown_map_function_in_a_non_start_pass_is_caught(self):
+        """`sh:BPUnitNode` is the `unit` pass. `start` is `BPPanelRecordNode`,
+        so before the manifest-driven walk this edit was invisible."""
+        text = self._target_text("bp").replace(
+            "%Map:{ v:sysUnit %}", "%Map:{ id(v:sysUnit) %}", 1)
+        report = self.lint("bp", text)
+        self.assertFalse(report.ok)
+        errors = [f for f in report.errors if f.code == "SP003"]
+        self.assertTrue(errors)
+        self.assertTrue(any("pass unit" in f.where for f in errors), report.render())
+
+    def test_an_unbound_variable_in_a_non_start_pass_is_caught(self):
+        text = self._target_text("bp").replace(
+            "%Map:{ v:effective %}", "%Map:{ v:effectiveTypo %}", 1)
+        report = self.lint("bp", text)
+        errors = [f for f in report.errors if f.code == "SP001"]
+        self.assertTrue(errors)
+        self.assertTrue(any("pass time" in f.where for f in errors), report.render())
+
+    def test_a_map_on_a_shape_valued_target_constraint_is_caught(self):
+        """SP004 on the eGFR map's non-start quantity shape."""
+        report = self.lint("egfr")
+        self.assertTrue(report.ok, report.render())
+
+
+@requires_docker
+class TestLintSchemasGatePasses(unittest.TestCase):
+    """`make lint-schemas` is a CI step. It must actually pass."""
+
+    def test_the_command_exits_zero_on_the_shipped_maps(self):
+        proc = subprocess.run(
+            [sys.executable, os.path.join(ROOT, "tools", "shexmap-lint"),
+             "--dir", os.path.join(ROOT, "maps"), "--require-pairs"],
+            capture_output=True, text=True, timeout=1800)
+        self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+        self.assertIn("3 map(s) clean", proc.stdout)
+
+    def test_json_output_names_every_pass(self):
+        proc = subprocess.run(
+            [sys.executable, os.path.join(ROOT, "tools", "shexmap-lint"),
+             "--dir", os.path.join(ROOT, "maps"), "--json"],
+            capture_output=True, text=True, timeout=1800)
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        payload = json.loads(proc.stdout)
+        by_name = {m["name"]: m for m in payload["maps"]}
+        self.assertEqual(len(by_name["bp"]["passes"]), 10)
+        self.assertTrue(all(p["ok"] for p in by_name["bp"]["passes"]))

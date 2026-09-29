@@ -8,9 +8,14 @@ build**: any error finding exits non-zero, and there is no flag to downgrade
 one, because every error corresponds to something the engine will not tell you
 about at runtime.
 
-    shexmap-lint SOURCE.shex TARGET.shex
-    shexmap-lint --dir maps/            # every <case>/{source,target}.shex
-    shexmap-lint SOURCE.shex TARGET.shex --static 'http://ex/v#unit=mm[Hg]'
+When a family ships a run-binding manifest, every declared **pass** is linted
+with that pass's staticVars in scope -- not just the one shape `start` names.
+The maps put each IRI-identified target node at the root of its own pass
+(DR-301 4b/4c), so a `start`-only walk analysed one of ten blood-pressure
+shapes and called the other nine's variables unused. See `maplint.py`.
+
+    shexmap-lint --dir maps/                     # every family, every pass
+    shexmap-lint SOURCE.shex TARGET.shex         # a lone pair, from `start`
     shexmap-lint --dir maps/ --json
 
 Exit status
@@ -24,6 +29,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import pathlib
 import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -31,7 +37,9 @@ sys.path.insert(0, os.path.join(ROOT, "src"))
 
 from fhir_sulo.engine.docker import EngineImage, EngineUnavailable  # noqa: E402
 from fhir_sulo.engine.linter import Severity, lint_pair  # noqa: E402
+from fhir_sulo.engine.maplint import lint_map  # noqa: E402
 from fhir_sulo.engine.shexj import Schema  # noqa: E402
+from fhir_sulo.pipeline.manifest import ManifestError, discover  # noqa: E402
 
 SOURCE_BASE = "urn:fhir-sulo:test-source"
 TARGET_BASE = "urn:fhir-sulo:test-target"
@@ -59,19 +67,14 @@ def parse_schema(engine: EngineImage, path: str, base: str, label: str) -> Schem
 
 
 def pairs_in(directory: str):
-    """Every ``<dir>/**/source.shex`` with a ``target.shex`` beside it.
+    """Every map family under ``directory``, at any depth.
 
-    Recursive, because map pairs are grouped by FHIR release
-    (``maps/r4/<name>/``) and a one-level scan would silently lint nothing --
-    which for a build gate is the worst possible failure mode.
+    Discovery lives in ``fhir_sulo.pipeline.manifest`` so that the linter and
+    the runner agree about what is on disk. It follows the shipped naming
+    (``<family>-source.v1.shex``); the earlier glob matched only
+    ``source.shex``, found nothing, and made this command exit 2 on every run.
     """
-    for dirpath, dirnames, filenames in os.walk(directory):
-        dirnames.sort()
-        if "source.shex" in filenames and "target.shex" in filenames:
-            name = os.path.relpath(dirpath, directory)
-            yield (name if name != "." else os.path.basename(os.path.abspath(directory)),
-                   os.path.join(dirpath, "source.shex"),
-                   os.path.join(dirpath, "target.shex"))
+    return discover(pathlib.Path(directory))
 
 
 def statics(values):
@@ -84,22 +87,64 @@ def statics(values):
     return out
 
 
+def finding_json(finding):
+    return {"code": finding.code, "severity": finding.severity.value,
+            "schema": finding.schema, "where": finding.where,
+            "message": finding.message}
+
+
+def lint_one(engine, files, extra_statics, source_shape, target_shape):
+    """Lint one family. Returns ``(ok, findings, summary, detail)``."""
+    source = parse_schema(engine, str(files.source), SOURCE_BASE, f"{files.family}/source")
+    target = parse_schema(engine, str(files.target), TARGET_BASE, f"{files.family}/target")
+
+    manifest = None
+    if files.bindings is not None and not (source_shape or target_shape):
+        try:
+            manifest = files.manifest
+        except ManifestError as exc:
+            raise SystemExit(f"{colour('ERROR', RED)} {files.family}: {exc}")
+
+    if manifest is not None:
+        contract = None
+        if files.contract is not None:
+            contract = json.loads(files.contract.read_text(encoding="utf-8"))
+        report = lint_map(manifest, source, target, contract=contract)
+        summary = (f"{len(report.passes)} pass(es), "
+                   f"{len(report.shapes_walked)} root shape(s)")
+        detail = {"mapId": report.map_id,
+                  "passes": [{"name": p.pass_name, "shape": p.shape, "ok": p.ok}
+                             for p in report.passes]}
+        return report.ok, report.findings, summary, detail
+
+    report = lint_pair(source, target, static_variables=extra_statics,
+                       source_start=source_shape, target_start=target_shape)
+    where = target_shape or "start"
+    return (report.ok, report.findings,
+            f"1 root shape ({where}); no run-binding manifest, so only the "
+            f"shape reachable from it was analysed",
+            {"maxRepetitionDepth": report.max_repetition_depth})
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(
         prog="shexmap-lint", description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("source", nargs="?", help="source ShExC schema")
     ap.add_argument("target", nargs="?", help="target ShExC schema")
-    ap.add_argument("--dir", help="lint every <case>/{source,target}.shex below here")
+    ap.add_argument("--dir", help="lint every map family below here, at any depth")
     ap.add_argument("--static", action="append", metavar="NAME=VALUE",
-                    help="a staticVar the driver will supply; counts as bound")
+                    help="an extra staticVar, for a pair with no manifest; a "
+                         "family that ships one needs none of these")
     ap.add_argument("--json", action="store_true", help="machine-readable output")
     ap.add_argument("--image", help="override the pinned engine image tag")
     ap.add_argument("--require-pairs", action="store_true",
-                    help="exit 2 if --dir contains no schema pair at all; for a "
-                         "build gate, linting nothing must not read as passing")
+                    help="exit 2 if --dir contains no map at all; for a build "
+                         "gate, linting nothing must not read as passing")
     ap.add_argument("--source-shape", help="lint from this source shape, not start")
-    ap.add_argument("--target-shape", help="lint from this target shape, not start")
+    ap.add_argument("--target-shape",
+                    help="lint from this target shape only; suppresses the "
+                         "manifest-driven walk over every pass")
     args = ap.parse_args()
 
     if bool(args.dir) == bool(args.source and args.target):
@@ -121,65 +166,64 @@ def main() -> int:
             return 2
         work = list(pairs_in(args.dir))
         if not work:
-            print(f"no schema pairs under {args.dir}", file=sys.stderr)
+            print(f"no map families under {args.dir}", file=sys.stderr)
             if args.require_pairs:
-                print("  --require-pairs was given: a gate that lints nothing is "
-                      "not a gate. Check the directory and the source.shex / "
-                      "target.shex filenames.", file=sys.stderr)
+                print("  --require-pairs was given: a gate that lints nothing is not "
+                      "a gate. Expected <family>/<family>-source.v1.shex and "
+                      "-target.v1.shex, or a bare source.shex/target.shex pair.",
+                      file=sys.stderr)
                 return 2
             return 0
     else:
-        work = [(os.path.basename(os.path.dirname(os.path.abspath(args.source))) or "pair",
-                 args.source, args.target)]
+        from fhir_sulo.pipeline.manifest import MapFiles
 
-    reports, failed = [], 0
-    for name, source_path, target_path in work:
-        source = parse_schema(engine, source_path, SOURCE_BASE, f"{name}/source")
-        target = parse_schema(engine, target_path, TARGET_BASE, f"{name}/target")
-        report = lint_pair(source, target, static_variables=statics(args.static),
-                           source_start=args.source_shape,
-                           target_start=args.target_shape)
-        reports.append((name, source_path, target_path, report))
-        if not report.ok:
+        directory = pathlib.Path(args.source).resolve().parent
+        work = [MapFiles(family=directory.name, directory=directory,
+                         source=pathlib.Path(args.source),
+                         target=pathlib.Path(args.target))]
+
+    results, failed = [], 0
+    for files in work:
+        ok, findings, summary, detail = lint_one(
+            engine, files, statics(args.static), args.source_shape, args.target_shape)
+        results.append((files, ok, findings, summary, detail))
+        if not ok:
             failed += 1
 
     if args.json:
         print(json.dumps({
             "ok": failed == 0,
-            "pairs": [
-                {
-                    "name": name, "source": source_path, "target": target_path,
-                    "ok": report.ok,
-                    "maxRepetitionDepth": report.max_repetition_depth,
-                    "findings": [
-                        {"code": f.code, "severity": f.severity.value,
-                         "schema": f.schema, "where": f.where, "message": f.message}
-                        for f in report.findings
-                    ],
-                }
-                for name, source_path, target_path, report in reports
+            "maps": [
+                dict({"name": files.family, "source": str(files.source),
+                      "target": str(files.target),
+                      "bindings": str(files.bindings) if files.bindings else None,
+                      "ok": ok, "summary": summary,
+                      "findings": [finding_json(f) for f in findings]}, **detail)
+                for files, ok, findings, summary, detail in results
             ],
         }, indent=1))
         return 1 if failed else 0
 
-    for name, source_path, target_path, report in reports:
-        status = colour("PASS", GREEN) if report.ok else colour("FAIL", RED)
-        print(f"{status} {name}  {colour(source_path + ' -> ' + target_path, DIM)}")
-        for finding in report.findings:
+    for files, ok, findings, summary, detail in results:
+        status = colour("PASS", GREEN) if ok else colour("FAIL", RED)
+        print(f"{status} {files.family}  {colour(summary, DIM)}")
+        print(f"     {colour(str(files.source) + ' -> ' + str(files.target), DIM)}")
+        for finding in findings:
             mark = colour("error", RED) if finding.severity is Severity.ERROR \
                 else colour("warning", YELLOW)
             where = f" [{finding.where}]" if finding.where else ""
             print(f"    {mark} {finding.code} ({finding.schema}){where}")
             print(f"        {finding.message}")
 
-    total = len(reports)
+    total = len(results)
     if failed:
-        print(f"\n{colour('FAILED', RED)}: {failed} of {total} pair(s) carry errors. "
+        print(f"\n{colour('FAILED', RED)}: {failed} of {total} map(s) carry errors. "
               f"Each one is a runtime failure the engine would not report.")
         return 1
-    warnings = sum(len(r.warnings) for _, _, _, r in reports)
+    warnings = sum(1 for _, _, fs, _, _ in results for f in fs
+                   if f.severity is Severity.WARNING)
     suffix = f" ({warnings} warning(s))" if warnings else ""
-    print(f"\n{colour('OK', GREEN)}: {total} pair(s) clean{suffix}.")
+    print(f"\n{colour('OK', GREEN)}: {total} map(s) clean{suffix}.")
     return 0
 
 

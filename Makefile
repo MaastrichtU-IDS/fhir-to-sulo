@@ -52,15 +52,19 @@ integration: ## Source-to-target and update tests (venv: no silent skips)
 
 .PHONY: engine-image
 engine-image: ## Build the pinned ShExMap engine image from the committed lockfile
-	docker build -t fhir-sulo/shexmap:1.0.0-alpha.33 tools/engine
+	@# The tag carries a hash of the build context: several agent worktrees
+	@# share one Docker daemon, so a bare version tag is mutable shared state
+	@# and whoever builds last silently wins.
+	PYTHONPATH=$(SRC) $(PY) -c "from fhir_sulo.engine.docker import EngineImage; \
+	  i = EngineImage(); i.ensure_built(); print('built', i.tag)"
 
 .PHONY: engine-tests
 engine-tests: ## Gate 1 - linter and driver tests (live ones skip without Docker)
-	PYTHONPATH=$(SRC) $(PY) -m unittest discover -s tests/engine -p 'test_*.py' -v
+	PYTHONPATH=$(SRC) $(PY) -m unittest discover -s tests/engine -t . -p 'test_*.py' -v
 
 .PHONY: engine-live
 engine-live: engine-image ## Gate 1 - the same tests with the live engine REQUIRED, not skipped
-	FHIR_SULO_REQUIRE_ENGINE=1 PYTHONPATH=$(SRC) $(PY) -m unittest discover -s tests/engine -p 'test_*.py' -v
+	FHIR_SULO_REQUIRE_ENGINE=1 PYTHONPATH=$(SRC) $(PY) -m unittest discover -s tests/engine -t . -p 'test_*.py' -v
 
 .PHONY: engine-probes
 engine-probes: ## Gate 1 - the original capability probes behind DR-301 (Docker, slow)
@@ -73,9 +77,10 @@ engine: engine-tests ## Gate 1 - engine checks that need no Docker
 lint-schemas: ## CD-1 - static analysis of every committed ShExMap pair; FAILS the build
 	@if [ -n "$$(find maps -name '*.shex' 2>/dev/null | head -1)" ]; then \
 	  tools/shexmap-lint --dir maps --require-pairs; \
-	else echo "no schemas under maps/ yet (Gate 2, Agent 3). The linter itself is"; \
-	     echo "covered by 'make engine-tests'. Once any .shex lands, this target"; \
-	     echo "requires a well-formed source.shex/target.shex pair and fails without one."; fi
+	else echo "no schemas under maps/ yet. The linter itself is covered by"; \
+	     echo "'make engine-tests'. Once any .shex lands, this target requires a"; \
+	     echo "discoverable family (<family>-source.v1.shex + -target.v1.shex, or a"; \
+	     echo "bare source.shex/target.shex pair) and fails without one."; fi
 
 .PHONY: gate0
 gate0: contracts ## Gate 0 pass check
