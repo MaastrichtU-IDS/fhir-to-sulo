@@ -55,8 +55,12 @@ __all__ = [
     "RunRecord",
 ]
 
-CONTRACT_VERSION = "0.1.0"
+CONTRACT_VERSION = "0.2.0"
 """Bumped by the integration lead on any breaking interface change.
+
+0.2.0 - TransformResult lineage coverage is now keyed on target_quads rather
+than on lineage, closing a hole where a mapped result with quads and no
+lineage validated. Tightening: objects valid under 0.1.0 may be invalid now.
 
 Recorded in every RunRecord so a run can be tied to the interface generation it
 was produced under.

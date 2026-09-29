@@ -100,14 +100,20 @@ class TransformResult:
                 f"{self.map_id}: status {self.status.value} must not carry target quads; "
                 "only mapped output may reach a clinical semantic graph (plan section 3)"
             )
-        if self.status is TransformStatus.MAPPED and self.lineage:
+        if self.status is TransformStatus.MAPPED and self.target_quads:
+            # Keyed on target_quads, NOT on lineage. Keying on lineage meant a
+            # mapped result carrying quads and *no* lineage at all skipped the
+            # check entirely and reported is_loadable -- precisely the case the
+            # guard exists to stop. Found by Agent 4 while wiring the driver.
             covered = {l.quad_index for l in self.lineage}
             expected = set(range(len(self.target_quads)))
             if covered != expected:
                 missing = sorted(expected - covered)
                 raise ValueError(
-                    f"{self.map_id}: quads without lineage at indices {missing}; "
-                    "every produced quad must be traceable"
+                    f"{self.map_id}: {len(missing)} of {len(self.target_quads)} quads "
+                    f"have no lineage (indices {missing[:8]}"
+                    f"{'...' if len(missing) > 8 else ''}); every produced quad must be "
+                    "traceable to the binding or constant that made it"
                 )
         if self.status is TransformStatus.REJECTED and not self.rejection_reason:
             raise ValueError(f"{self.map_id}: a rejected result must carry a rejection reason")

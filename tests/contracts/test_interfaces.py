@@ -211,3 +211,40 @@ class TestTransformResultGuards(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
+
+
+class TestLineageCoverageHole(unittest.TestCase):
+    """Regression: a mapped result with quads and NO lineage must be refused.
+
+    The original guard read `if status is MAPPED and self.lineage:`, so a
+    result with zero lineage skipped the check and reported is_loadable --
+    exactly the case the guard existed to stop. Keyed on target_quads now.
+    Contract 0.2.0.
+    """
+
+    def _mk(self, lineage):
+        return TransformResult(
+            status=TransformStatus.MAPPED, map_id="egfr", pairing_hash="h",
+            source_canonical_url="u", source_version_id="1", output_graph_key="k",
+            target_quads=("<a> <b> <c> .", "<d> <e> <f> ."), lineage=lineage,
+        )
+
+    def test_no_lineage_at_all_is_refused(self):
+        with self.assertRaises(ValueError):
+            self._mk(())
+
+    def test_partial_lineage_is_refused(self):
+        with self.assertRaises(ValueError):
+            self._mk((QuadLineage(0, "binding", "value", "TC1"),))
+
+    def test_full_lineage_is_accepted(self):
+        r = self._mk((QuadLineage(0, "binding", "value", "TC1"),
+                      QuadLineage(1, "constant", None, "TC2")))
+        self.assertTrue(r.is_loadable)
+
+    def test_mapped_with_no_quads_needs_no_lineage(self):
+        r = TransformResult(
+            status=TransformStatus.MAPPED, map_id="egfr", pairing_hash="h",
+            source_canonical_url="u", source_version_id="1", output_graph_key="k",
+        )
+        self.assertTrue(r.is_loadable)

@@ -323,6 +323,60 @@ def check_explicit_field_rules():
                   f"{len(expected)} expected target artifacts")
 
 
+def check_fhir_rdf_proven():
+    """Gate 1: FHIR JSON to RDF proven for the fixtures, references resolved.
+
+    Three executed parts, not a claim:
+      drift      - the committed canonical RDF must match the pinned renderer
+      oracle     - our render of HL7's own examples must be graph-isomorphic
+                   to HL7's published Turtle (external validation)
+      references - every fixture case must declare resolved references with
+                   an evidence kind
+    """
+    import json
+
+    build = os.path.join(ROOT, "fixtures", "r4", "build.py")
+    if not os.path.exists(build):
+        return FAIL, "no fixtures/r4/build.py to re-derive the canonical RDF"
+    r = subprocess.run([sys.executable, build, "--check"], cwd=ROOT,
+                       capture_output=True, text=True)
+    if r.returncode != 0:
+        return FAIL, f"committed RDF drifted from the renderer: {(r.stdout or r.stderr).strip()[:140]}"
+    drift = (r.stdout or "").strip().splitlines()
+    drift_msg = drift[-1] if drift else "check passed"
+
+    venv_py = os.path.join(ROOT, ".venv", "bin", "python")
+    oracle_rel = os.path.join("tests", "contracts", "ingest", "test_oracle_conformance.py")
+    if not _exists(oracle_rel):
+        return FAIL, "no oracle conformance test; the renderer would be self-certified"
+    if os.path.exists(venv_py):
+        env = dict(os.environ, PYTHONPATH=os.path.join(ROOT, "src"))
+        r2 = subprocess.run([venv_py, "-m", "pytest", oracle_rel, "-q"],
+                            cwd=ROOT, env=env, capture_output=True, text=True)
+        out = (r2.stdout or "").strip().splitlines()
+        last = out[-1] if out else ""
+        if r2.returncode != 0:
+            return FAIL, f"oracle conformance failed: {last}"
+        if "skipped" in last and "passed" not in last:
+            return FAIL, f"oracle conformance skipped entirely (rdflib missing?): {last}"
+        oracle_msg = last
+    else:
+        oracle_msg = "oracle not executed (no .venv; run 'make venv')"
+        return MANUAL, f"{drift_msg}; {oracle_msg}"
+
+    cases = _glob_any("fixtures/r4", r"^case\.json$")
+    without = []
+    for rel in cases:
+        d = json.load(open(os.path.join(ROOT, rel), encoding="utf-8"))
+        refs = d.get("expected", {}).get("references", {})
+        if refs and not all(v.get("kind") for v in refs.values()):
+            without.append(rel)
+    if without:
+        return FAIL, f"{len(without)} case(s) declare a reference with no evidence kind"
+
+    return PASS, f"{drift_msg}; oracle {oracle_msg}; {len(cases)} cases declare reference evidence"
+
+
 CONDITIONS: List[Condition] = [
     # ---- Gate 0 -----------------------------------------------------------
     Condition(0, "DR-001 / plan §1", "Implementation repository chosen and recorded", check_repository_decision),
@@ -336,7 +390,7 @@ CONDITIONS: List[Condition] = [
     Condition(0, "plan Gate 0", "Reviewer signs off on record/fact distinction and PRO/SOLID patterns", check_review_request_open),
     # ---- Gate 1 -----------------------------------------------------------
     Condition(1, "plan Gate 1", "Engine build pinned with a recorded capability verdict", check_engine_pinned),
-    Condition(1, "plan Gate 1", "FHIR JSON to RDF proven for the fixtures, references resolved"),
+    Condition(1, "plan Gate 1", "FHIR JSON to RDF proven for the fixtures, references resolved", check_fhir_rdf_proven),
     Condition(1, "plan Gate 1", "Two BP panels preserve their component pairing", check_bp_tuple_test),
     Condition(1, "plan Gate 1", "Running the same map twice yields the same graph identity", check_determinism_recorded),
     Condition(1, "plan Gate 1", "Unsupported engine behaviour documented as a blocking issue, not hidden in a postprocessor", check_engine_gaps_documented),
@@ -361,21 +415,49 @@ CONDITIONS: List[Condition] = [
 ]
 
 
-def run_gate(gate: int, verbose=True):
-    conds = [c for c in CONDITIONS if c.gate == gate]
-    results = [(c, *c.evaluate()) for c in conds]
+def _own_conditions_pass(gate: int):
+    results = [(c, *c.evaluate()) for c in CONDITIONS if c.gate == gate]
+    nfail = sum(1 for _, s, _ in results if s == FAIL)
+    nman = sum(1 for _, s, _ in results if s == MANUAL)
+    return results, nfail == 0 and nman == 0
+
+
+def run_gate(gate: int, verbose=True, _cache={}):
+    """Evaluate one gate. A gate is only PASSED if every prior gate is too.
+
+    Plan section 6 rule 5: "no new FHIR resource family starts until the
+    current vertical slice and its negative cases pass". Without the ordering
+    check a later gate could report PASSED while an earlier one is blocked,
+    which is exactly the overclaim this tool exists to prevent.
+    """
+    results, own_ok = _own_conditions_pass(gate)
     npass = sum(1 for _, s, _ in results if s == PASS)
     nfail = sum(1 for _, s, _ in results if s == FAIL)
     nman = sum(1 for _, s, _ in results if s == MANUAL)
+
+    blocked_by = []
+    for earlier in sorted({c.gate for c in CONDITIONS if c.gate < gate}):
+        if earlier not in _cache:
+            _cache[earlier] = _own_conditions_pass(earlier)[1]
+        if not _cache[earlier]:
+            blocked_by.append(earlier)
+
     if verbose:
         print(f"\n=== Gate {gate} ===")
         for c, status, detail in results:
             mark = {PASS: "PASS", FAIL: "FAIL", MANUAL: "MANL"}[status]
             print(f"  [{mark}] {c.text}")
             print(f"         {c.source} - {detail}")
-        verdict = "PASSED" if (nfail == 0 and nman == 0) else "BLOCKED"
-        print(f"  -> Gate {gate} {verdict}  ({npass} pass, {nfail} fail, {nman} manual)")
-    return nfail == 0 and nman == 0
+        if own_ok and blocked_by:
+            print(f"  [HELD] all own conditions pass, but Gate(s) "
+                  f"{', '.join(map(str, blocked_by))} are not passed")
+            print(f"         plan section 6 rule 5 - gates advance in order")
+        own = "own conditions PASS" if own_ok else "own conditions BLOCKED"
+        verdict = "PASSED" if (own_ok and not blocked_by) else (
+            "HELD" if own_ok else "BLOCKED")
+        print(f"  -> Gate {gate} {verdict}  ({npass} pass, {nfail} fail, "
+              f"{nman} manual; {own})")
+    return own_ok and not blocked_by
 
 
 def main():

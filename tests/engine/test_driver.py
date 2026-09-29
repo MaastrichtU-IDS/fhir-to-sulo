@@ -564,42 +564,6 @@ class TestBindingTreeRefusesCorruption(unittest.TestCase):
         )
 
 
-class TestFrozenContractGap(unittest.TestCase):
-    """A hole in the Gate 0 contract, recorded here rather than patched.
-
-    ``TransformResult.__post_init__`` checks lineage coverage only when
-    ``lineage`` is already non-empty::
-
-        if self.status is TransformStatus.MAPPED and self.lineage:
-
-    so a MAPPED result carrying quads and *no* lineage at all is accepted and
-    reports ``is_loadable`` -- the one case the check exists to stop. The
-    one-word fix is to drop ``and self.lineage``, but the four interfaces are
-    frozen and changing one needs the integration lead (plan section 6 rule 1),
-    so this test pins the current behaviour, proves the driver never relies on
-    it, and will fail loudly if the contract is fixed -- which is the signal to
-    delete this class.
-    """
-
-    def test_the_contract_currently_admits_a_mapped_result_with_no_lineage(self):
-        from fhir_sulo.contracts import TransformResult
-
-        result = TransformResult(
-            status=TransformStatus.MAPPED, map_id="m", pairing_hash="h",
-            source_canonical_url="u", source_version_id="1",
-            output_graph_key="k", target_quads=("<a> <b> <c> .",))
-        self.assertEqual(result.lineage, ())
-        self.assertTrue(result.is_loadable)
-
-    def test_the_driver_never_produces_one(self):
-        """Belt and braces: the driver's own gate does not depend on the
-        contract's, so closing the contract hole changes nothing here."""
-        transform = to_transform_result(
-            union_passes([bp_pass()]), map_id="m", pairing_hash="h",
-            source_canonical_url=OBS1, source_version_id="1")
-        self.assertEqual(len(transform.lineage), len(transform.target_quads))
-        self.assertTrue(transform.target_quads)
-
 
 class TestCombinedBindingTree(unittest.TestCase):
     """A decomposed map's acceptance tuples must be reachable from the one
