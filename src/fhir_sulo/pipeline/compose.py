@@ -23,7 +23,7 @@ Two rules this file exists to keep:
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import Any, Dict, Mapping, Optional, Sequence, Tuple
 
@@ -31,11 +31,34 @@ from ..contracts import (
     EligibilityOutcome, RunRecord, SourceContext, TransformResult, TransformStatus,
 )
 from ..engine.docker import EngineImage, default_image
-from ..engine.driver import Guards, graph_key
+from ..engine.driver import Guards
 from .families import Family, family_for
 from .manifest import MapFiles, discover
 from .runner import MapRun, MapRunner
+from ..provenance.run_records import RunInputs, build_run_record, output_digest
 from .services import ReferenceNotAPerson, policy_bundle, source_context
+
+
+#: Honest placeholders. ``GraphKeyInputs`` refuses an empty string, on the
+#: reasoning that "we had not decided yet" is itself a fact about the run and
+#: must not hash to the same graph as a decision. These are the tokens for the
+#: two things the pilot has not decided.
+UNRESOLVED_DOMAIN = "unresolved:R1"
+
+
+@dataclass(frozen=True)
+class RunMetadata:
+    """The run-level facts the graph key is a function of.
+
+    Held on the Pipeline rather than passed per resource, because they are
+    constant for a run and because the store's key refuses to be computed
+    without them.
+    """
+
+    sulo_version: str = "0.2.12"
+    domain_ontology_version: str = UNRESOLVED_DOMAIN
+    policy_version: str = ""
+    engine_build: str = ""
 
 
 @dataclass(frozen=True)
@@ -47,6 +70,9 @@ class PipelineOutcome:
     run: Optional[MapRun] = None
     family: str = ""
     notes: Tuple[str, ...] = ()
+    #: the 13 graph-key inputs, so a run record can be built without
+    #: recomputing them and without a second, weaker key
+    inputs: Optional[RunInputs] = None
 
     @property
     def is_loadable(self) -> bool:
@@ -58,45 +84,31 @@ class PipelineOutcome:
 
     def run_record(
         self,
-        run_id: str,
-        activity_time: str,
-        engine_build: str,
-        sulo_version: str,
-        domain_ontology_version: str,
-        policy_version: str,
-        contract_version: str,
+        activity_time: Optional[str] = None,
+        run_id: Optional[str] = None,
         validation_report_digest: str = "",
     ) -> RunRecord:
-        """The immutable metadata for this run.
+        """The immutable metadata for this run, ready for the store.
 
-        ``engine_build`` should be ``EngineImage.build_id()`` -- the image
-        content id, not the tag, because a tag can be rebuilt.
+        Delegates to ``provenance.run_records.build_run_record``, which derives
+        ``output_graph_key`` from the record's own fields. That is not a
+        detail: the store recomputes the key from the record and **rejects**
+        it if the two disagree, which is what makes an archived correction
+        verifiable. An earlier version of this method filled the key from a
+        different, four-field function, so its output could not be loaded --
+        correct of the store, and unhelpful of this method. See DR-305.
         """
-        from ..engine.driver import DriverResult
-
-        digest = ""
-        if self.run is not None:
-            digest = self.run.result.driver_result.content_digest()
-        return RunRecord(
-            run_id=run_id,
+        if self.inputs is None:
+            raise ValueError(
+                "this outcome carries no RunInputs, so its graph key cannot be "
+                "recomputed and the store would refuse the record")
+        return build_run_record(
+            self.inputs,
+            status=self.transform.status,
+            quads=self.transform.target_quads,
+            validation_report_digest=validation_report_digest or "not-validated",
             activity_time=activity_time,
-            source_canonical_url=self.source.canonical_url,
-            source_version_id=self.source.version_id,
-            source_json_digest=self.source.source_json_digest,
-            map_id=self.transform.map_id,
-            map_semantic_version=self.transform.pairing_hash,
-            pairing_hash=self.transform.pairing_hash,
-            sulo_version=sulo_version,
-            domain_ontology_version=domain_ontology_version,
-            terminology_snapshot=self.source.terminology_snapshot,
-            engine_build=engine_build,
-            policy_version=policy_version,
-            contract_version=contract_version,
-            output_graph_key=self.transform.output_graph_key,
-            output_digest=digest,
-            validation_report_digest=validation_report_digest,
-            transform_status=self.transform.status.value,
-            renderer_id=self.source.renderer_id,
+            run_id=run_id,
         )
 
 
@@ -109,6 +121,7 @@ class Pipeline:
     engine: EngineImage = field(default_factory=default_image)
     guards: Guards = field(default_factory=Guards)
     quality_mode: Optional[str] = None
+    metadata: RunMetadata = field(default_factory=RunMetadata)
 
     @classmethod
     def for_family(
@@ -117,6 +130,7 @@ class Pipeline:
         repo_root: Path,
         engine: Optional[EngineImage] = None,
         quality_mode: Optional[str] = None,
+        metadata: Optional["RunMetadata"] = None,
     ) -> "Pipeline":
         families = {f.family: f for f in discover(repo_root / "maps")}
         if name not in families:
@@ -124,15 +138,40 @@ class Pipeline:
                 f"no map family {name!r} under {repo_root / 'maps'}; found "
                 f"{', '.join(sorted(families)) or 'none'}")
         resolver = family_for(name)
+        image = engine or default_image()
+        mode = quality_mode if quality_mode is not None else resolver.quality_mode
+        meta = metadata or RunMetadata()
+        if not meta.policy_version:
+            meta = replace(meta, policy_version=policy_bundle(mode).policy_version)
+        if not meta.engine_build:
+            meta = replace(meta, engine_build=image.build_id())
         return cls(
             family=resolver,
             files=families[name],
-            engine=engine or default_image(),
-            quality_mode=quality_mode if quality_mode is not None
-            else resolver.quality_mode,
+            engine=image,
+            quality_mode=mode,
+            metadata=meta,
         )
 
     # -- the path -----------------------------------------------------------
+
+    def run_inputs(self, context: SourceContext) -> RunInputs:
+        """The 13 fields the store's graph key is a function of (DR-601)."""
+        manifest = self.files.manifest
+        return RunInputs(
+            source_canonical_url=context.canonical_url,
+            source_version_id=context.version_id,
+            source_json_digest=context.source_json_digest,
+            map_id=manifest.map_id,
+            map_semantic_version=manifest.semantic_version,
+            pairing_hash=manifest.semantic_version,
+            sulo_version=self.metadata.sulo_version,
+            domain_ontology_version=self.metadata.domain_ontology_version,
+            terminology_snapshot=context.terminology_snapshot,
+            policy_version=self.metadata.policy_version,
+            engine_build=self.metadata.engine_build,
+            renderer_id=context.renderer_id,
+        )
 
     def run_file(self, fhir_json: Path, rdf: Optional[str] = None) -> PipelineOutcome:
         """Ingest one FHIR JSON resource and map it."""
@@ -147,11 +186,13 @@ class Pipeline:
             raise ValueError(f"{self.files.family}: no run-binding manifest")
 
         canonical_url = context.canonical_url
+        inputs = self.run_inputs(context)
         identity_keys = dict(
             map_id=manifest.map_id,
             pairing_hash=manifest.semantic_version,
             source_canonical_url=canonical_url,
             source_version_id=context.version_id,
+            output_graph_key=inputs.graph_key,
         )
 
         # 1. eligibility, before anything is materialized
@@ -163,7 +204,7 @@ class Pipeline:
             return PipelineOutcome(
                 source=context, family=self.family.name,
                 transform=_ineligible(status, reason, **identity_keys),
-                notes=(reason,))
+                notes=(reason,), inputs=inputs)
 
         # 2. bind the source graph
         runner = MapRunner(files=self.files, engine=self.engine, guards=self.guards)
@@ -188,7 +229,7 @@ class Pipeline:
                 source=context, family=self.family.name,
                 transform=_ineligible(TransformStatus.SOURCE_ONLY, reason,
                                       **identity_keys),
-                notes=(reason,))
+                notes=(reason,), inputs=inputs)
 
         # 4. materialize every declared pass and union
         run = runner.run(graph, canonical_url, resolved.values,
@@ -196,9 +237,11 @@ class Pipeline:
         transform = run.transform_result(
             source_canonical_url=canonical_url,
             source_version_id=context.version_id,
+            output_graph_key=inputs.graph_key,
         )
         return PipelineOutcome(source=context, transform=transform, run=run,
-                               family=self.family.name, notes=resolved.notes)
+                               family=self.family.name, notes=resolved.notes,
+                               inputs=inputs)
 
 
 def _ineligible(status: TransformStatus, reason: str, **keys) -> TransformResult:
@@ -208,9 +251,7 @@ def _ineligible(status: TransformStatus, reason: str, **keys) -> TransformResult
         pairing_hash=keys["pairing_hash"],
         source_canonical_url=keys["source_canonical_url"],
         source_version_id=keys["source_version_id"],
-        output_graph_key=graph_key(
-            keys["map_id"], keys["pairing_hash"],
-            keys["source_canonical_url"], keys["source_version_id"]),
+        output_graph_key=keys["output_graph_key"],
         rejection_reason=reason if status is TransformStatus.REJECTED else None,
         diagnostics=(reason,),
     )

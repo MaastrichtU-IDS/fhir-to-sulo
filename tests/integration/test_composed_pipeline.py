@@ -199,9 +199,7 @@ class TestTheStoreSeam(unittest.TestCase):
 
     def batch_for(self, family, case, name, mode="per-observation"):
         out = pipeline(family, mode).run_file(fixture(family, case, name))
-        return out, batch_entry(out, engine_build="test", sulo_version="0.2.12",
-                                domain_ontology_version="test",
-                                policy_version="policies/v1")
+        return out, batch_entry(out)
 
     def test_a_mapped_entry_carries_quads_and_provenance(self):
         out, entry = self.batch_for("bp", "bp-two-panels", "bp-1.json")

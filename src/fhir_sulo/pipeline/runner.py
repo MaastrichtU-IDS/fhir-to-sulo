@@ -22,7 +22,7 @@ from ..contracts import (
     BindingNode, QuadLineage, TransformResult, TransformStatus,
 )
 from ..engine.docker import EngineImage, default_image
-from ..engine.driver import Guards, graph_key, to_transform_result
+from ..engine.driver import Guards, to_transform_result
 from ..engine.maprun import MapJob, MapPass, MapRunResult, bind, run_map
 from .manifest import Manifest, MapFiles, PassSpec, host_consumed_variables
 
@@ -60,9 +60,18 @@ class MapRun:
         self,
         source_canonical_url: str,
         source_version_id: str,
+        output_graph_key: str,
         target_root: Optional[str] = None,
         diagnostics: Sequence[str] = (),
     ) -> TransformResult:
+        """The frozen contract object.
+
+        ``output_graph_key`` is supplied, never derived here: it is the store's
+        13-input key (DR-601), and the driver does not know most of those
+        inputs -- SULO version, engine build, renderer, policy version are run
+        metadata the pipeline holds. Computing a weaker key here was the bug
+        DR-305 removes.
+        """
         extra = list(diagnostics)
         if self.skipped_passes:
             extra.append(
@@ -75,9 +84,7 @@ class MapRun:
             source_canonical_url=source_canonical_url,
             source_version_id=source_version_id,
             target_root=target_root or self._primary_root(),
-            output_graph_key=graph_key(
-                self.manifest.map_id, self.manifest.semantic_version,
-                source_canonical_url, source_version_id),
+            output_graph_key=output_graph_key,
             extra_diagnostics=extra,
         )
 

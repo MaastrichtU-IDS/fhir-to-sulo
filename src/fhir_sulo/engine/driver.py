@@ -675,8 +675,8 @@ def to_transform_result(
     pairing_hash: str,
     source_canonical_url: str,
     source_version_id: str,
+    output_graph_key: str,
     target_root: Optional[str] = None,
-    output_graph_key: Optional[str] = None,
     extra_diagnostics: Sequence[str] = (),
 ) -> TransformResult:
     """Populate the frozen :class:`TransformResult`.
@@ -704,9 +704,7 @@ def to_transform_result(
         pairing_hash=pairing_hash,
         source_canonical_url=source_canonical_url,
         source_version_id=source_version_id,
-        output_graph_key=output_graph_key or graph_key(
-            map_id, pairing_hash, source_canonical_url, source_version_id
-        ),
+        output_graph_key=output_graph_key,
         target_quads=result.ntriples,
         target_root=target_root or (result.passes[0].root if result.passes else None),
         binding_tree=result.binding_tree,
@@ -716,17 +714,25 @@ def to_transform_result(
     )
 
 
-def graph_key(
-    map_id: str, pairing_hash: str, source_canonical_url: str, source_version_id: str
-) -> str:
-    """A deterministic named-graph key for one (map, source version) pair.
+def graph_key(*args, **kwargs) -> str:
+    """Removed. There is one graph key, and it is the store's.
 
-    Derived from identity only, never from content: re-running an unchanged
-    source under an unchanged map must address the same graph so that the
-    reload replaces rather than accumulates (plan Gate 4).
+    This used to hash four identity fields. The store's key
+    (``fhir_sulo.store.graph_key``, DR-601) hashes thirteen, and the store
+    **refuses** a run record whose key does not recompute from the record's own
+    fields -- which is what makes an archived correction verifiable. Two
+    functions with the same name and different semantics is how someone ships a
+    graph whose key does not mean what the store thinks it means, so the weaker
+    one is gone rather than deprecated.
+
+    Build ``fhir_sulo.provenance.run_records.RunInputs`` and read
+    ``.graph_key``; the pipeline does this for you.
     """
-    seed = "\n".join([map_id, pairing_hash, source_canonical_url, source_version_id])
-    return "urn:fhir-sulo:graph:" + hashlib.sha256(seed.encode("utf-8")).hexdigest()[:32]
+    raise NotImplementedError(
+        "engine.driver.graph_key has been removed: use "
+        "fhir_sulo.provenance.run_records.RunInputs(...).graph_key, which is "
+        "the 13-input key the store verifies (DR-601). See DR-305."
+    )
 
 
 def ineligible_result(
@@ -736,6 +742,7 @@ def ineligible_result(
     source_canonical_url: str,
     source_version_id: str,
     reason: str,
+    output_graph_key: str,
 ) -> TransformResult:
     """A result for a source the mapping must not be run against at all.
 
@@ -751,9 +758,7 @@ def ineligible_result(
         pairing_hash=pairing_hash,
         source_canonical_url=source_canonical_url,
         source_version_id=source_version_id,
-        output_graph_key=graph_key(
-            map_id, pairing_hash, source_canonical_url, source_version_id
-        ),
+        output_graph_key=output_graph_key,
         rejection_reason=reason if status is TransformStatus.REJECTED else None,
         diagnostics=(reason,),
     )
