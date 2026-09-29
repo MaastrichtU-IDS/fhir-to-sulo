@@ -263,6 +263,66 @@ def check_mock_services():
     return PASS, f"{runner}: {summary}; replay guard in {os.path.basename(replay[0])}"
 
 
+def check_explicit_field_rules():
+    """Gate 0: every required field has an explicit source, target, or rejection rule.
+
+    Mechanised in three parts rather than asserted:
+      source     - the renderer must REFUSE an element absent from the pinned
+                   element table, not drop it. Executed, not inspected.
+      rejection  - every fixture case must declare an eligibility outcome.
+      target     - every fixture case must have an expected target graph or a
+                   declared negative outcome (Agent 3).
+    """
+    import json
+
+    table = os.path.join(ROOT, "profiles", "fhir-r4-element-table.json")
+    if not os.path.exists(table):
+        return FAIL, "no pinned element table at profiles/fhir-r4-element-table.json"
+    try:
+        json.load(open(table, encoding="utf-8"))
+    except Exception as exc:
+        return FAIL, f"element table does not parse: {exc}"
+
+    # -- source half: prove the renderer is fail-closed ----------------------
+    probe = (
+        "import sys, glob;"
+        "sys.path.insert(0,'src');"
+        "from fhir_sulo.ingest import fhir_rdf, jsonio;"
+        "f=sorted(glob.glob('fixtures/r4/*/*/[!ce]*.json'))[0];"
+        "d=jsonio.loads(open(f).read());"
+        "d['totallyNotAFhirElement']='surprise';"
+        "\ntry:\n fhir_rdf.render(d); print('FAILOPEN')\nexcept Exception: print('FAILCLOSED')"
+    )
+    r = subprocess.run([sys.executable, "-c", probe], cwd=ROOT,
+                       capture_output=True, text=True)
+    if "FAILCLOSED" not in (r.stdout or ""):
+        return FAIL, ("renderer does not refuse an unpinned element "
+                      f"(fail-open): {(r.stdout or r.stderr).strip()[:120]}")
+
+    # -- rejection half: every case declares an outcome ----------------------
+    cases = _glob_any("fixtures/r4", r"^case\.json$")
+    if not cases:
+        return FAIL, "no fixture case.json files"
+    missing = []
+    for rel in cases:
+        try:
+            d = json.load(open(os.path.join(ROOT, rel), encoding="utf-8"))
+            if not d.get("expected", {}).get("eligibility"):
+                missing.append(rel)
+        except Exception as exc:
+            return FAIL, f"{rel} does not parse: {exc}"
+    if missing:
+        return FAIL, f"{len(missing)} case(s) declare no eligibility outcome"
+
+    # -- target half: Agent 3's expected graphs ------------------------------
+    expected = _glob_any("fixtures/expected", r"\.(nt|ttl|json)$")
+    if not expected:
+        return FAIL, (f"source and rejection rules explicit for {len(cases)} cases, "
+                      "but no target rules yet: fixtures/expected/ is empty (Agent 3)")
+    return PASS, (f"renderer fail-closed; {len(cases)} cases declare an outcome; "
+                  f"{len(expected)} expected target artifacts")
+
+
 CONDITIONS: List[Condition] = [
     # ---- Gate 0 -----------------------------------------------------------
     Condition(0, "DR-001 / plan §1", "Implementation repository chosen and recorded", check_repository_decision),
@@ -272,7 +332,7 @@ CONDITIONS: List[Condition] = [
     Condition(0, "plan Gate 0", "The manifest parses", check_profile_manifest),
     Condition(0, "plan Gate 0", "Fixtures are committed", check_fixtures_present),
     Condition(0, "plan Gate 0", "Expected pivot tuples are committed", check_expected_bindings),
-    Condition(0, "plan Gate 0", "Every required field has an explicit source, target, or rejection rule"),
+    Condition(0, "plan Gate 0", "Every required field has an explicit source, target, or rejection rule", check_explicit_field_rules),
     Condition(0, "plan Gate 0", "Reviewer signs off on record/fact distinction and PRO/SOLID patterns", check_review_request_open),
     # ---- Gate 1 -----------------------------------------------------------
     Condition(1, "plan Gate 1", "Engine build pinned with a recorded capability verdict", check_engine_pinned),
