@@ -64,10 +64,11 @@ def _glob_any(pattern_dir, regex):
 
 def check_contract_tests():
     env = dict(os.environ, PYTHONPATH=os.path.join(ROOT, "src"))
-    p = subprocess.run(
-        [sys.executable, "-m", "unittest", "discover", "-s", "tests/contracts", "-p", "test_*.py"],
-        cwd=ROOT, env=env, capture_output=True, text=True,
-    )
+    venv_py = os.path.join(ROOT, ".venv", "bin", "python")
+    cmd = ([venv_py, "-m", "pytest", "tests", "-q"] if os.path.exists(venv_py)
+           else [sys.executable, "-m", "unittest", "discover",
+                 "-s", "tests/contracts", "-p", "test_*.py"])
+    p = subprocess.run(cmd, cwd=ROOT, env=env, capture_output=True, text=True)
     tail = (p.stderr or p.stdout).strip().splitlines()
     summary = tail[-1] if tail else "no output"
     ran = next((l for l in tail if l.startswith("Ran ")), "")
@@ -228,12 +229,38 @@ def check_engine_gaps_documented():
 
 
 def check_mock_services():
+    """Gate 1: a deterministic mock terminology/identity service exists.
+
+    Checking that two directories exist would pass vacuously, so run their
+    suites and require a real replay test to be present and passing. The
+    determinism claim is the whole point of the condition.
+    """
     ident = _exists("src", "fhir_sulo", "identity")
     term = _exists("src", "fhir_sulo", "terminology")
-    if not (ident and term):
-        missing = [n for n, ok in (("identity", ident), ("terminology", term)) if not ok]
+    missing = [n for n, ok in (("identity", ident), ("terminology", term)) if not ok]
+    if missing:
         return FAIL, f"missing service package(s): {', '.join(missing)}"
-    return PASS, "identity and terminology packages present"
+
+    replay = [r for r in _glob_any("tests", r"\.py$")
+              if "replay" in r or "determinism" in r]
+    if not replay:
+        return FAIL, "service packages exist but no determinism/replay test guards them"
+
+    env = dict(os.environ, PYTHONPATH=os.path.join(ROOT, "src"))
+    venv_py = os.path.join(ROOT, ".venv", "bin", "python")
+    if os.path.exists(venv_py):
+        cmd = [venv_py, "-m", "pytest", "tests", "-q"]
+        runner = "pytest"
+    else:
+        cmd = [sys.executable, "-m", "unittest", "discover",
+               "-s", "tests/contracts", "-p", "test_*.py"]
+        runner = "unittest (stdlib fallback; run 'make venv' for full coverage)"
+    p = subprocess.run(cmd, cwd=ROOT, env=env, capture_output=True, text=True)
+    out = (p.stdout or p.stderr).strip().splitlines()
+    summary = out[-1] if out else "no output"
+    if p.returncode != 0:
+        return FAIL, f"{runner}: {summary}"
+    return PASS, f"{runner}: {summary}; replay guard in {os.path.basename(replay[0])}"
 
 
 CONDITIONS: List[Condition] = [

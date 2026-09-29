@@ -12,8 +12,30 @@ help: ## Show available targets
 	@grep -hE '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) \
 	  | awk 'BEGIN{FS=":.*?## "}{printf "  \033[36m%-18s\033[0m %s\n", $$1, $$2}'
 
+VENV  := .venv
+PYTEST := $(VENV)/bin/python -m pytest
+
+.PHONY: venv
+venv: ## Create the pinned dev virtualenv
+	$(PY) -m venv $(VENV)
+	$(VENV)/bin/pip install -q -r requirements-dev.txt
+
 .PHONY: contracts
-contracts: ## Gate 0 - shared interface guard tests
+contracts: ## Gate 0 - shared interface + service contract tests
+	@# unittest discover does NOT descend into non-package subdirectories, so the
+	@# per-service suites under tests/contracts/*/ are invisible to it. pytest is
+	@# therefore the authoritative runner; the unittest path is a stdlib-only
+	@# fallback that covers the headline invariants and must stay passing.
+	@if [ -x "$(VENV)/bin/python" ]; then \
+	  echo "== pytest (authoritative) =="; \
+	  PYTHONPATH=$(SRC) $(PYTEST) tests -q; \
+	else \
+	  echo "== pytest unavailable; stdlib fallback only (run 'make venv' for full coverage) =="; \
+	  PYTHONPATH=$(SRC) $(PY) -m unittest discover -s tests/contracts -p 'test_*.py'; \
+	fi
+
+.PHONY: contracts-stdlib
+contracts-stdlib: ## Stdlib-only subset (no venv needed)
 	PYTHONPATH=$(SRC) $(PY) -m unittest discover -s tests/contracts -p 'test_*.py' -v
 
 .PHONY: integration
