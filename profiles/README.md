@@ -71,6 +71,11 @@ the R4 value set, so a new status cannot be silently unhandled.
 `entered-in-error` is **source-only, not rejected**: concept note §2 says it
 suppresses clinical assertions but does not erase the source record.
 
+Observation `final` is the only `eligible` status. `amended`, `corrected`,
+`preliminary` and `registered` are all held at `source-only` because review
+item R3 lists them as open — see DR-102 Q-A2-5. This block is the single place
+to change when R3 is answered.
+
 `value_policy` gives each awkward case an explicit outcome — comparator
 present, dataAbsentReason present, both present, unpinned code, unrecognised
 unit, unresolvable reference, ambiguous reference, unsupported modifier

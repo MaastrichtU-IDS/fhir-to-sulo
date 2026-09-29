@@ -222,8 +222,8 @@
   "status_policy": {
     "Observation": {
       "final": "eligible",
-      "amended": "eligible",
-      "corrected": "eligible",
+      "amended": "source-only",
+      "corrected": "source-only",
       "preliminary": "source-only",
       "registered": "source-only",
       "cancelled": "source-only",
@@ -243,7 +243,9 @@
     },
     "notes": [
       "entered-in-error is source-only, never rejected: concept note section 2 says it suppresses clinical assertions but does not erase the source record.",
-      "Encounter in-progress is source-only pending an explicit policy (concept note section 6: 'may receive a separate, explicitly defined policy; it is not treated as a finished interval'). See reviewer question Q-A2-2."
+      "Encounter in-progress is source-only pending an explicit policy (concept note section 6: 'may receive a separate, explicitly defined policy; it is not treated as a finished interval'). See reviewer question Q-A2-2.",
+      "Observation amended, corrected, preliminary and registered are ALL held at source-only because review item R3 lists them as open. This manifest previously declared amended and corrected eligible, which asserted an answer to an open question; corrected on 2026-09-29. source-only is the conservative outcome: the record is retained in full and no clinical assertion is made. When R3 is answered, this block is the single place to change.",
+      "Agent 3's egfr-source.v1.shex independently guards Observation.status to 'final' (see maps/r4/egfr/egfr-map-contract.v1.json, status_eligibility). These are two different layers - ingestion eligibility and map acceptance - and they now agree that nothing but 'final' produces clinical assertions."
     ]
   },
 

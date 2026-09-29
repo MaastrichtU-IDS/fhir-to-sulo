@@ -1,0 +1,295 @@
+{
+  "format": "fhir-sulo/expected-bindings/0.1.0",
+  "fixture_id": "egfr-retracted",
+  "family": "egfr",
+  "concept_note_section": "4",
+  "notes": [
+    "The bindings still extract. Eligibility, not extraction, is what suppresses the clinical assertions: the source layer keeps everything, including the value that is no longer to be asserted.",
+    "meta.lastUpdated moves again while effective does not: a retraction is an administrative change to the record, not a new observation."
+  ],
+  "identity_provided_variables": [
+    "person"
+  ],
+  "identity_note": "egfr:person is the identity service's output for egfr:subjectRef, supplied as a run binding. It is deliberately stable across this lineage: a correction changes the reported value, not who the patient is.",
+  "binding_tree": {
+    "shape": "EGFRSource",
+    "focus": "observation-set",
+    "bindings": {},
+    "children": [
+      {
+        "shape": "EGFRObservation",
+        "focus": "egfr-456",
+        "scope": "observation",
+        "iteration_key": [
+          "egfr-456",
+          "3"
+        ],
+        "bindings": {
+          "obsId": "egfr-456",
+          "versionId": "3",
+          "status": "entered-in-error",
+          "code": "33914-3",
+          "codeSystem": "http://loinc.org",
+          "subjectRef": "Patient/p123",
+          "effective": "2026-09-02T14:00:00Z^^http://www.w3.org/2001/XMLSchema#dateTime",
+          "lastUpdated": "2026-09-04T11:00:00Z^^http://www.w3.org/2001/XMLSchema#dateTime",
+          "value": "58.5^^http://www.w3.org/2001/XMLSchema#decimal",
+          "unitSystem": "http://unitsofmeasure.org",
+          "unitCode": "mL/min/{1.73_m2}",
+          "comparator": "",
+          "absentReason": ""
+        }
+      }
+    ]
+  },
+  "assertions": {
+    "scope_tuples": [
+      {
+        "scope": "observation",
+        "variables": [
+          "obsId",
+          "status",
+          "code",
+          "subjectRef",
+          "effective",
+          "value",
+          "unitCode",
+          "comparator",
+          "absentReason"
+        ],
+        "expected_multiset": [
+          [
+            "egfr-456",
+            "entered-in-error",
+            "33914-3",
+            "Patient/p123",
+            "2026-09-02T14:00:00Z^^http://www.w3.org/2001/XMLSchema#dateTime",
+            "58.5^^http://www.w3.org/2001/XMLSchema#decimal",
+            "mL/min/{1.73_m2}",
+            "",
+            ""
+          ]
+        ],
+        "must_not_contain": []
+      },
+      {
+        "scope": "observation",
+        "variables": [
+          "obsId",
+          "versionId",
+          "status",
+          "effective",
+          "lastUpdated",
+          "value"
+        ],
+        "expected_multiset": [
+          [
+            "egfr-456",
+            "3",
+            "entered-in-error",
+            "2026-09-02T14:00:00Z^^http://www.w3.org/2001/XMLSchema#dateTime",
+            "2026-09-04T11:00:00Z^^http://www.w3.org/2001/XMLSchema#dateTime",
+            "58.5^^http://www.w3.org/2001/XMLSchema#decimal"
+          ]
+        ],
+        "must_not_contain": [],
+        "note": "The lineage tuple. effective[x] is identical to version 1's; meta.lastUpdated is not. Concept note section 2 requires the clinically relevant time and the resource update time to stay distinguishable, and a correction is where that actually bites. Observation.issued is absent from these fixtures because the pinned eGFR source shape is CLOSED and rejects it."
+      }
+    ]
+  },
+  "extraction": {
+    "scopes": [
+      {
+        "name": "observation",
+        "iterate": {
+          "kind": "tree_roots",
+          "type": "Observation"
+        },
+        "key_variables": [
+          "obsId",
+          "versionId"
+        ],
+        "vars": {
+          "obsId": {
+            "steps": [
+              {
+                "p": "Resource.id"
+              },
+              {
+                "p": "value"
+              }
+            ]
+          },
+          "versionId": {
+            "steps": [
+              {
+                "p": "Resource.meta"
+              },
+              {
+                "p": "Meta.versionId"
+              },
+              {
+                "p": "value"
+              }
+            ]
+          },
+          "lastUpdated": {
+            "steps": [
+              {
+                "p": "Resource.meta"
+              },
+              {
+                "p": "Meta.lastUpdated"
+              },
+              {
+                "p": "value"
+              }
+            ],
+            "optional": true,
+            "datatype": true
+          },
+          "status": {
+            "steps": [
+              {
+                "p": "Observation.status"
+              },
+              {
+                "p": "value"
+              }
+            ]
+          },
+          "codeSystem": {
+            "steps": [
+              {
+                "p": "Observation.code"
+              },
+              {
+                "p": "CodeableConcept.coding"
+              },
+              {
+                "p": "Coding.system"
+              },
+              {
+                "p": "value"
+              }
+            ]
+          },
+          "code": {
+            "steps": [
+              {
+                "p": "Observation.code"
+              },
+              {
+                "p": "CodeableConcept.coding"
+              },
+              {
+                "p": "Coding.code"
+              },
+              {
+                "p": "value"
+              }
+            ]
+          },
+          "subjectRef": {
+            "steps": [
+              {
+                "p": "Observation.subject"
+              },
+              {
+                "p": "Reference.reference"
+              },
+              {
+                "p": "value"
+              }
+            ]
+          },
+          "effective": {
+            "steps": [
+              {
+                "p": "Observation.effectiveDateTime"
+              },
+              {
+                "p": "value"
+              }
+            ],
+            "datatype": true
+          },
+          "value": {
+            "steps": [
+              {
+                "p": "Observation.valueQuantity"
+              },
+              {
+                "p": "Quantity.value"
+              },
+              {
+                "p": "value"
+              }
+            ],
+            "optional": true,
+            "datatype": true
+          },
+          "unitSystem": {
+            "steps": [
+              {
+                "p": "Observation.valueQuantity"
+              },
+              {
+                "p": "Quantity.system"
+              },
+              {
+                "p": "value"
+              }
+            ],
+            "optional": true
+          },
+          "unitCode": {
+            "steps": [
+              {
+                "p": "Observation.valueQuantity"
+              },
+              {
+                "p": "Quantity.code"
+              },
+              {
+                "p": "value"
+              }
+            ],
+            "optional": true
+          },
+          "comparator": {
+            "steps": [
+              {
+                "p": "Observation.valueQuantity"
+              },
+              {
+                "p": "Quantity.comparator"
+              },
+              {
+                "p": "value"
+              }
+            ],
+            "optional": true
+          },
+          "absentReason": {
+            "steps": [
+              {
+                "p": "Observation.dataAbsentReason"
+              },
+              {
+                "p": "CodeableConcept.coding"
+              },
+              {
+                "p": "Coding.code"
+              },
+              {
+                "p": "value"
+              }
+            ],
+            "optional": true
+          }
+        }
+      }
+    ]
+  }
+}
