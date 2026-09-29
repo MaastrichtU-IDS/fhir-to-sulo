@@ -1,0 +1,28 @@
+# One blood-pressure Observation with its two components.
+#
+# ONE level of repetition, rooted at ONE resource - the DR-302 architectural
+# constraint, written as a schema rather than described. The engine mis-maps
+# two levels (DR-301 B1), so this is the only shape the pilot ever runs, and
+# it is therefore the only shape worth benchmarking.
+#
+# Kept minimal on purpose: this measures the ENGINE, not Agent 3's maps.
+# Agent 3 owns maps/; when the real eGFR/BP/Encounter pairs exist the
+# benchmark should be re-pointed at them and the number re-measured, because
+# schema size affects materialization cost.
+
+PREFIX : <http://ex.example/>
+PREFIX v: <http://ex.example/var#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX Map: <http://shex.io/extensions/Map/#>
+
+start = @<Panel>
+
+<Panel> {
+  :effective xsd:string  %Map:{ v:effective %};
+  :component @<Component>*
+}
+
+<Component> {
+  :code  xsd:string  %Map:{ v:code %};
+  :value xsd:integer %Map:{ v:value %}
+}
