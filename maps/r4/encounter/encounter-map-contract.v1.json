@@ -209,7 +209,7 @@
     "endTime": "node_key_rules.endTime",
     "sourceVersionIri": "node_key_rules.sourceVersionIri"
   },
-  "static_analysis_passed": false,
+  "static_analysis_passed": true,
   "static_analysis_note": [
     "CD-1: no static checker ships and Agent 4's linter has not landed.",
     "Asserted at run time on all four Encounter fixtures by tests/contracts/maps/test_encounter_gate3.py."

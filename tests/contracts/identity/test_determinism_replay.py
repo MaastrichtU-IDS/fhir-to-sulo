@@ -138,3 +138,70 @@ def test_no_builtin_hash_anywhere_in_src():
     for path in sorted((REPO_ROOT / "src" / "fhir_sulo").rglob("*.py")):
         offenders += _offending_lines(path, ("hash(",), skip_hashlib=True)
     assert not offenders, "builtin hash() found in src:\n" + "\n".join(offenders)
+
+
+# ---------------------------------------------------------------------------
+# Restored 2026-09-29. These three were dropped when the integration lead
+# rewrote the static determinism guard above and replaced everything from that
+# function to end-of-file. Nothing replaced them and no decision record
+# mentioned it, so coverage silently fell. They are unchanged from
+# f947f27^ and they still pass.
+# ---------------------------------------------------------------------------
+
+def test_candidate_order_does_not_affect_the_key():
+    from fhir_sulo.identity import IdentityRequest, IdentityService, ReferenceEvidence, SourceScope
+
+    scope = SourceScope("synthea-pilot-r4", "https://fhir.example/")
+    a = ReferenceEvidence("a", "literal-reference", scope, "Patient", "p123")
+    b = ReferenceEvidence("b", "bundle-entry", scope, "Patient", "p123")
+    svc = IdentityService()
+
+    forward = svc.resolve(IdentityRequest("Patient/p123", ("Patient",), (a, b)))
+    reverse = svc.resolve(IdentityRequest("Patient/p123", ("Patient",), (b, a)))
+
+    assert forward.is_resolved and reverse.is_resolved
+    assert forward.identity.entity_iri == reverse.identity.entity_iri
+    assert forward.record.decision_id == reverse.record.decision_id
+
+
+def test_repeated_reference_resolves_to_one_person():
+    """Plan section 2: 'repeated references resolve to one intended person'."""
+    from fhir_sulo.identity import IdentityRequest, IdentityService, ReferenceEvidence, SourceScope
+
+    scope = SourceScope("synthea-pilot-r4", "https://fhir.example/")
+    svc = IdentityService()
+    iris = set()
+    for i in range(25):
+        evidence = ReferenceEvidence(
+            evidence_id="ev-%d" % i,
+            kind="literal-reference" if i % 2 else "bundle-entry",
+            source_scope=scope,
+            resource_type="Patient",
+            resource_id="p123",
+            canonical_url="https://fhir.example/Patient/p123",
+            resource_version_id=str(i),
+            detail={"observed_in": "Observation/obs-%d" % i},
+        )
+        outcome = svc.resolve(IdentityRequest("Patient/p123", ("Patient",), (evidence,)))
+        assert outcome.is_resolved
+        iris.add(outcome.identity.entity_iri)
+    assert len(iris) == 1, iris
+
+
+def test_unicode_equivalent_ids_do_not_split_one_person():
+    """NFC normalisation: two byte-different but equivalent ids are one entity."""
+    from fhir_sulo.identity import IdentityRequest, IdentityService, ReferenceEvidence, SourceScope
+
+    svc = IdentityService()
+    composed = "pat-é"  # e-acute as a single code point
+    decomposed = "pat-é"  # e + combining acute
+    assert composed != decomposed
+
+    iris = set()
+    for resource_id in (composed, decomposed):
+        scope = SourceScope("synthea-pilot-r4", "https://fhir.example/")
+        evidence = ReferenceEvidence("e", "literal-reference", scope, "Patient", resource_id)
+        outcome = svc.resolve(IdentityRequest("Patient/x", ("Patient",), (evidence,)))
+        assert outcome.is_resolved
+        iris.add(outcome.identity.entity_iri)
+    assert len(iris) == 1

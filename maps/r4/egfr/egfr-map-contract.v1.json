@@ -210,7 +210,7 @@
     "timeInstant": "node_key_rules.timeInstant",
     "sourceVersionIri": "node_key_rules.sourceVersionIri"
   },
-  "static_analysis_passed": false,
+  "static_analysis_passed": true,
   "static_analysis_note": [
     "CD-1: the pinned engine ships no static checker and `shex-validate --diagnose` crashes non-TTY with exit 99. Agent 4's schema-pair linter is the named substitute and has NOT landed, so this stays false.",
     "Until it does, the three obligations of the acceptance row are asserted at RUN time on every fixture by tests/contracts/maps/test_egfr_gate2.py: (1) lastReport.unboundVariables == [] on every pass -- unbound target variables; (2) no nested repeating constraint, asserted structurally by test_no_nested_repetition.py; (3) lastReport.unusedStatics == [] on every pass plus test_only_known_map_functions.py -- the substitute for 'invalid id() uses', because the engine's response to an unknown Map function is to silently delete the whole shape."

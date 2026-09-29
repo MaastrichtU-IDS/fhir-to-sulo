@@ -88,3 +88,128 @@ Gate 4 HELD     (5 pass, 0 fail, 0 manual; own conditions PASS)
 Every gate's engineering conditions pass. **Gate 0's single remaining item is the human
 reviewer's sign-off**, and by plan §6 rule 5 every later gate is correctly `HELD` behind it.
 No gate is reported as passed, and nothing in `REVIEW-REQUEST.md` (12 items) is marked approved.
+
+---
+
+# Addendum — independent review, 2026-09-29
+
+An independent reviewer with no part in building the pilot attacked the branch. It found two
+blockers and six majors. **Every finding reproduced.** Three of them contradicted claims this
+record made, so this section corrects them rather than editing the text above.
+
+## The three claims in this record that were wrong
+
+**1. "The BP multiset is verified against the live engine" — the verification tested the wrong
+artifact.** The lead's fault injection swapped the systolic and diastolic LOINC codes in the
+**source** schema, which changes source bindings. The acceptance test built its `BindingNode`s
+from `_sourceBindings`, so it was asserting over extraction, never over the emitted graph.
+Injecting into the **target** schema instead:
+
+```
+bp-target.v1.shex: diastolic node emits %Map:{ v:sysValue %}, rehashed
+→ BPTupleMultiset 20 passed, incl. test_the_concept_note_multiset_is_exactly_right
+→ emitted: <bp-diastolic-result-bp-1> sulo:hasValue "120"^^xsd:decimal
+```
+
+A clinically wrong graph with the headline Gate 3 test green. Fixed in DR-203: the multiset is
+now read out of the emitted graph, keyed on the graph's own `prov:wasDerivedFrom`, with the slot
+decided by the class of the quality each quantity `refersTo`. Both injections now fail 10 tests.
+
+The generalisable rule, which applies to every fault injection in this record:
+
+> An acceptance condition is asserted on the emitted target graph. **A fault injection only
+> demonstrates coverage of the artifact it perturbs** — injecting into the source schema says
+> nothing about whether the target schema is checked.
+
+**2. "A Docker CI job runs `engine-live`, `lint-schemas` and the map suites" — `lint-schemas`
+had never passed.** `make lint-schemas` exited 2 with "no schema pairs under maps": the linter
+discovered only files named `source.shex`/`target.shex`, while the shipped pairs are
+`<family>-source.v1.shex`. The CI job would have failed on first run. This record asserted it
+ran without anyone running it. Worse, when pointed at the pairs directly the linter walked only
+from `start`, leaving 9 of BP's 10 root shapes unanalysed. Fixed in DR-304: discovery follows
+the shipped naming, and the linter now lints once per declared pass — 25 root shapes across the
+three maps. `static_analysis_passed` is now `true` in all three contracts, and its test asserts
+the claim **and** runs the linter, so the two cannot drift apart.
+
+**3. Three tests were deleted and not noticed.** The lead's rewrite of the static determinism
+guard replaced everything from one function to end-of-file, dropping
+`test_candidate_order_does_not_affect_the_key`,
+`test_repeated_reference_resolves_to_one_person` and
+`test_unicode_equivalent_ids_do_not_split_one_person`. Nothing replaced them; no record
+mentioned it. Restored verbatim; all three still pass.
+
+## The other blocker: the pipeline was three islands
+
+Nothing ran FHIR JSON → maps → store. The production driver was imported only by its own tests;
+the production maps ran through a `run-map.js` whose own header called itself temporary; the
+store consumed a batch format whose only producer was the synthetic benchmark generator. So plan
+§8's "an operator can run a batch without editing code" was not met for FHIR input.
+
+Fixed (DR-304). `run-map.js` is deleted, `src/fhir_sulo/pipeline/` is the missing middle, and
+the "host emits no triple of its own" guard now runs over the **real** maps rather than toy
+pairs. Verified by the lead:
+
+```
+$ python -m fhir_sulo.pipeline.cli batch --family bp --quality-mode per-observation \
+    --out batch.jsonl --load store/ fixtures/r4/bp/bp-two-panels/bp-{1,2}.json
+$ python -m fhir_sulo.store.cli inspect --state store/state.json
+source_versions 2 · 2 subjects, each with a deterministic graph key
+```
+
+## Defects found while fixing the defects
+
+- **The suite was not reliable from clean.** `make clean && pytest tests` gave 22 failures, then
+  2, then 0. Not cold-cache — the maps suite alone passed from clean. Causes, found by Agent 3:
+  the job document was `docker cp`'d to a fixed path and could be read by the *previous* call's
+  runner, and the container tree was shared across processes. Both fixed; the job now goes in on
+  stdin. **CI always runs from clean, so this would have been a permanently red pipeline.**
+- **The engine image tag was shared mutable state across worktrees** (CD-5). `ensure_built()`
+  no-ops when the tag exists, and the worktrees share one Docker daemon, so whoever built last
+  won and everyone else silently ran an image not matching their tree. The tag now carries a
+  hash of the build context.
+- **A function-local `from support import`** survived two sweeps that only matched module-level
+  imports, binding the wrong suite's helpers. Now guarded by
+  `tests/contracts/test_repo_hygiene.py`, which also asserts the collision it guards against
+  still exists, so the guard is removed deliberately rather than left as cargo cult.
+- **`make venv` installed only the dev requirements**, so 20 validation tests skipped locally
+  while CI ran them. A local run that silently covers less than CI is worse than one that fails.
+
+## Gate-check defects, all self-inflicted
+
+The tool that reports gate status had six weak or broken checks. All were mine.
+
+| Defect | Now |
+| --- | --- |
+| `--report` forced exit 0, so the CI gate job could never fail | exit status reflects the gates |
+| `check_bp_multiset_live` defined, never wired — dead code reading as coverage | removed; the condition runs the real suites |
+| BP pairing check parsed "PASS 3" from this record's prose, then grepped the test tree for the substrings "120"/"80"/"105"/"70" (six files matched) | runs the engine probe **and** the map suite |
+| Gate 1 determinism was a regex for "PASS 4a" | runs the byte-identical-across-runs test |
+| "Expected pivot tuples committed" was a filename regex that passed on empty files | requires each artifact to parse and declare tuples |
+| `check_benchmark` read only `passed: true` | verifies resource count, both limits, and that rendering and materialization are among the stages |
+
+`tests/contracts/test_gate_check_itself.py` now asserts the structural ones: no condition may
+reference an undefined check, no check may be dead code, `--report` may not short-circuit, a
+raising check must report FAIL, and the reviewer sign-off must report MANUAL while the review is
+open.
+
+## What the review found solid
+
+Store correction semantics (a broken `_retire` produced 8 failures), the ELK negative control,
+the round-trip mutation suite, pairing-hash tamper detection, the determinism keying path, and —
+the question that mattered most — **no host-side triple construction**: every emitted triple
+comes from a target schema, with the host supplying root IRIs and static variables and unioning
+passes. Git history was clean: no threshold, expected graph or shape had moved.
+
+## Still open after the review
+
+- **M3 / Gate 4 scale.** The benchmark measured keying, provenance, SHACL and reasoning with no
+  rendering and no mapping in it. DR-604 has been amended to say the Gate 4 scale row is **not
+  satisfied**. Now unblocked by the composed pipeline; being re-measured honestly.
+- **R6 has no OWL guard, contrary to DR-603.** Measured with HermiT: a person typed
+  `sulo:SpatialObject` alongside a Quality or Role is inconsistent, but a person typed
+  `sulo:Object` — which is what the maps emit — is **consistent**, because
+  `Quality ⊑ Feature ⊑ Object`. SHACL still catches it, so nothing reaches the store, but the
+  acceptance row saying "an OWL reasoner checks consistency" leans on a guard that is not there.
+  Recorded as input to R6; it does not answer it.
+- **No two fixtures are two versions of the same resource**, so Gate 4's correction row rests
+  partly on a hand-edited literal. An `egfr-corrected` fixture is requested.

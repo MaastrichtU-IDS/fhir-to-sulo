@@ -22,11 +22,43 @@ version of this engine, and no flag, that makes a two-level map correct.
 
 ## Why our scope fits inside it
 
-| Map | Repetition depth | Fits? |
+> **Corrected 2026-09-29.** This table previously claimed BP and Encounter were depth 1.
+> They are not, in the schemas that actually shipped. An independent review caught it. The
+> corrected figures are below, and the consequence — that no production map exercises
+> iteration scopes at all — is stated rather than left implicit.
+
+| Map | Repetition depth *as shipped* | Why |
 | --- | --- | --- |
-| eGFR `Observation` → SOLID quantity | 0 (single `valueQuantity`) | yes |
-| BP `Observation` → two component quantities | 1 (`Observation.component*`) | yes |
-| `Encounter` → PRO roles | 1 (`Encounter.participant*`) | yes |
+| eGFR `Observation` → SOLID quantity | **0** | a single `valueQuantity` |
+| BP `Observation` → two component quantities | **0** | two *non-repeating* max-1 constraints on `Observation.component`, each pinned to its own LOINC code (`8480-6`, `8462-4`) |
+| `Encounter` → PRO roles | **0** | `Encounter.participant` is cardinality **1** in v1 (DR-201 §5.1) |
+
+### What this means, stated plainly
+
+**Iteration scopes — the mechanism concept note §3 names as the answer to repetition — are
+never exercised by a production map.** Every shipped pair is depth 0.
+
+The acceptance condition "two BP panels preserve their component pairing" is therefore
+satisfied *structurally* rather than by the engine's repetition handling: the two panels are
+two separate `Observation` resources and so two separate engine runs, and within a panel the
+systolic and diastolic values are told apart by LOINC code rather than by position in a
+repetition. That is a **stronger** guarantee than relying on iteration scopes — 80 is bound by
+the `8462-4` constraint whatever `fhir:index` says, which is why the reordered-serialisation
+fixture passes — but it is a different guarantee from the one the plan's risk row anticipated.
+
+Two honest consequences:
+
+1. The plan's repetition risk ("repeated components lose association") is **side-stepped, not
+   demonstrated**. The engine's one-level repetition handling is proven by probe 3 in
+   `tools/engine/probes/`, on a synthetic pair — not by any map we ship.
+2. `Encounter.participant` at cardinality 1 means **"who participated in this encounter" only
+   answers for single-clinician encounters.** A second participant fails source validation
+   loudly rather than silently, which is the right failure, but it is a real scope limit and it
+   is recorded in DR-201 §5.1 and DR-007's debt table.
+
+The constraint in this decision record still binds: a future map that *does* repeat must
+contain at most one repeating constraint on a path, and the linter enforces it across every
+root shape of every pass.
 
 The concept note's §5 case — "two blood-pressure panels" — is **two `Observation` resources**,
 not one nested structure. Mapped resource-by-resource, each run sees one level, and the

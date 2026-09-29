@@ -269,7 +269,7 @@
     "timeInstant": "node_key_rules.timeInstant",
     "sourceVersionIri": "node_key_rules.sourceVersionIri"
   },
-  "static_analysis_passed": false,
+  "static_analysis_passed": true,
   "static_analysis_note": [
     "CD-1: no static checker ships and Agent 4's linter has not landed, so this stays false.",
     "The three obligations are asserted at run time on all five BP fixtures plus both RDF variants by tests/contracts/maps/test_bp_gate3.py.",

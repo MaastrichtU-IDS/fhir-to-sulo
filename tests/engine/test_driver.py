@@ -214,7 +214,7 @@ class TestNestedRepetitionIsNotCaughtHere(unittest.TestCase):
                             "DR-302 should be revisited")
 
     def test_the_linter_catches_what_the_driver_cannot(self):
-        from support import load_pair
+        from .support import load_pair
 
         from fhir_sulo.engine.linter import lint_pair
 

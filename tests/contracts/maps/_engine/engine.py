@@ -74,10 +74,22 @@ def run_job(job: Mapping[str, Any]) -> Dict[str, Any]:
                 static_vars=p.get("staticVars", {}))
         for p in job.get("passes", [])
     ]
+    # `dataInline` carries graph text directly instead of a repository path.
+    # Agent 3's inverse-pivot tests use it to validate a FRESHLY materialized
+    # graph: reverse-validating the committed golden would read a file a
+    # broken map has not been allowed to update, making the test blind to the
+    # drift it exists to catch. Introduced on their branch at the same time
+    # this adapter replaced run-map.js, so neither side saw the other.
+    inline = job.get("dataInline")
+    if inline is None and job.get("data") is None:
+        raise ValueError(
+            "run_job needs either 'data' (a repository-relative path) or "
+            "'dataInline' (graph text); both were None"
+        )
     map_job = MapJob(
         source_schema=_read(job["sourceSchema"]),
         target_schema=_read(job["targetSchema"]) if job.get("targetSchema") else "",
-        data=_read(job["data"]),
+        data=inline if inline is not None else _read(job["data"]),
         node=job["focus"],
         passes=passes,
         source_shape=job.get("startShape"),

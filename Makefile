@@ -16,9 +16,13 @@ VENV  := .venv
 PYTEST := $(VENV)/bin/python -m pytest
 
 .PHONY: venv
-venv: ## Create the pinned dev virtualenv
+venv: ## Create the pinned virtualenv (dev AND runtime)
 	$(PY) -m venv $(VENV)
-	$(VENV)/bin/pip install -q -r requirements-dev.txt
+	@# Both files. Installing only requirements-dev.txt left rdflib/pyshacl
+	@# missing, so 20 validation tests skipped locally while CI (which installs
+	@# both) ran them. A skip is not a pass, and a local run that silently
+	@# covers less than CI is worse than one that fails.
+	$(VENV)/bin/pip install -q -r requirements-dev.txt -r requirements-runtime.txt
 
 .PHONY: contracts
 contracts: ## Gate 0 - shared interface + service contract tests

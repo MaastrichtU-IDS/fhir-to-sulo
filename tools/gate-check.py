@@ -113,7 +113,15 @@ def check_review_request_open():
 
 
 def check_fixtures_present():
-    js = _glob_any("fixtures/r4", r"\.json$")
+    """Count FHIR source documents, not every .json in the tree.
+
+    The old count (67) included case.json and expected-bindings.json, which
+    made the gate look better stocked than it is.
+    """
+    js = [f for f in _glob_any("fixtures/r4", r"\.json$")
+          if os.path.basename(f) not in ("case.json", "expected-bindings.json",
+                                         "outcome.json")
+          and "_oracle" not in f]
     if not js:
         return FAIL, "no fixtures under fixtures/r4/"
     families = {"egfr": 0, "bp": 0, "enc": 0}
@@ -129,10 +137,41 @@ def check_fixtures_present():
 
 
 def check_expected_bindings():
-    b = _glob_any("fixtures", r"expected.*(binding|tuple)")
+    """Gate 0: expected pivot tuples are committed -- and are not empty.
+
+    A filename regex passed on a zero-byte file. Require each artifact to
+    parse and to declare an actual tuple assertion.
+    """
+    import json
+    b = _glob_any("fixtures", r"expected.*(binding|tuple).*\.json$")
     if not b:
         return FAIL, "no expected binding/tuple artifacts committed"
-    return PASS, f"{len(b)} expected-binding artifacts"
+    empty, unparseable, no_tuples = [], [], []
+    total_tuples = 0
+    for rel in b:
+        path = os.path.join(ROOT, rel)
+        if os.path.getsize(path) == 0:
+            empty.append(rel)
+            continue
+        try:
+            d = json.load(open(path, encoding="utf-8"))
+        except Exception:
+            unparseable.append(rel)
+            continue
+        tuples = (d.get("assertions", {}) or {}).get("scope_tuples")
+        if tuples:
+            n = len(tuples.get("expected_multiset", []) if isinstance(tuples, dict) else tuples)
+            total_tuples += n
+        elif not d.get("binding_tree"):
+            no_tuples.append(rel)
+    if empty:
+        return FAIL, f"{len(empty)} expected-binding artifact(s) are empty"
+    if unparseable:
+        return FAIL, f"{len(unparseable)} expected-binding artifact(s) do not parse"
+    if no_tuples:
+        return FAIL, f"{len(no_tuples)} artifact(s) declare neither a binding tree nor tuples"
+    return PASS, (f"{len(b)} expected-binding artifacts parse; "
+                  f"{total_tuples} declared scope tuples")
 
 
 def check_profile_manifest():
@@ -176,38 +215,38 @@ def _dr301_verdicts():
 
 
 def check_bp_tuple_test():
-    """Gate 1/3: the ENGINE must preserve within-panel pairing.
+    """Gate 1/3: within-panel pairing survives, in the EMITTED graph.
 
-    A passing assertion in our own dataclass tests is not evidence about the
-    engine, so require both: a committed, runnable engine probe and a recorded
-    PASS verdict for it.
+    This used to parse "PASS 3" out of DR-301's prose and then grep the test
+    tree for the substrings "120"/"80"/"105"/"70" -- which six files matched,
+    including tests that have nothing to do with blood pressure. Prose is not
+    evidence and a substring is not an assertion. Run the real suites.
+
+    Both halves are required: the engine probe (the engine preserves pairing
+    at one level) and the map suite (our target graph carries the right
+    pairing). A review found the map suite originally asserted the multiset
+    over *source* bindings, so a wrong target schema passed; the engine probe
+    alone would never have caught that.
     """
-    probe = _exists("tools", "engine", "probes", "p03-iteration")
-    verdicts = _dr301_verdicts()
-    v = verdicts.get("3")
-    unit = []
-    for rel in _glob_any("tests", r"\.py$"):
-        t = open(os.path.join(ROOT, rel), encoding="utf-8").read()
-        if "105" in t and "120" in t and "80" in t and "70" in t:
-            unit.append(rel)
-    if not probe:
+    if not _exists("tools", "engine", "probes", "p03-iteration"):
         return FAIL, "no committed engine probe tools/engine/probes/p03-iteration"
-    if not v:
-        return FAIL, "engine probe present but DR-301 records no verdict for probe 3"
-    if v[0] != PASS:
-        return FAIL, f"engine probe 3 recorded as {v[0]}: {v[1]}"
-    if not unit:
-        return FAIL, "engine passes but no unit test asserts the multiset"
-    return PASS, f"engine probe 3 PASS + asserted in {', '.join(unit)}"
+    engine = _pytest_node(
+        "tests/engine/test_engine_live.py::TestTheLinterIsNotCryingWolf"
+        "::test_the_clean_pair_really_is_clean", "engine one-level pairing")
+    if engine[0] != PASS:
+        return engine
+    return _pytest_node("tests/contracts/maps/test_bp_gate3.py::BPTupleMultiset",
+                        "BP multiset on the emitted graph")
 
 
 def check_determinism_recorded():
-    v = _dr301_verdicts().get("4a")
-    if not v:
-        return FAIL, "DR-301 records no determinism verdict (probe 4a)"
-    if v[0] != PASS:
-        return FAIL, f"probe 4a recorded as {v[0]}: {v[1]}"
-    return PASS, "probe 4a PASS - byte-identical across runs incl. blank-node labels"
+    """Gate 1: the same map twice yields the same graph identity.
+
+    Was a regex for "PASS 4a" in DR-301. Run the assertion instead.
+    """
+    return _pytest_node(
+        "tests/engine/test_engine_live.py::TestDriverAgainstTheLiveEngine"
+        "::test_output_is_byte_identical_across_runs", "byte-identical across runs")
 
 
 def check_engine_gaps_documented():
@@ -478,6 +517,13 @@ def check_clean_deployment_hashes():
 
 
 def check_benchmark():
+    """Gate 4: the benchmark must actually measure the pipeline.
+
+    Reading `passed: true` alone let a report pass that excluded rendering
+    and mapping entirely -- i.e. "no unexpected mapping failures" over a run
+    with no mapping in it. Check the resource count, the limits, and which
+    stages ran.
+    """
     import json
     p = os.path.join(ROOT, "benchmarks", "last-report.json")
     if not os.path.exists(p):
@@ -487,26 +533,40 @@ def check_benchmark():
     except Exception as exc:
         return FAIL, f"benchmark report does not parse: {exc}"
     if not d.get("passed"):
-        return FAIL, f"benchmark did not pass: {d.get('total_seconds')}s"
-    secs = d.get("total_seconds")
+        return FAIL, f"benchmark reports passed=false ({d.get('total_seconds')}s)"
+
     n = d.get("resources")
-    return PASS, f"{n} resources in {secs}s (targets: 15 min, 6 GB)"
+    if not isinstance(n, int) or n < 10000:
+        return FAIL, f"benchmark ran {n} resources; Gate 4 requires 10,000"
+    secs = d.get("total_seconds")
+    if not isinstance(secs, (int, float)) or secs > 15 * 60:
+        return FAIL, f"benchmark took {secs}s; Gate 4 allows 900s"
+
+    stages = d.get("stages") or {}
+    names = " ".join(str(k) for k in (stages.keys() if isinstance(stages, dict) else stages)).lower()
+    missing = [want for want, keys in (
+        ("rendering", ("render", "ingest")),
+        ("materialization", ("materiali", "map", "engine", "transform")),
+    ) if not any(k in names for k in keys)]
+    if missing:
+        return FAIL, (f"{n} resources in {secs}s, but the run excludes: "
+                      f"{', '.join(missing)}. Plan Gate 4 requires 'no unexpected "
+                      f"mapping failures', which a run with no mapping cannot show. "
+                      f"Stages present: {names or 'none recorded'}")
+    return PASS, f"{n} resources in {secs}s, stages: {names}"
 
 
 def check_egfr_one_association():
     return _pytest_node("tests/contracts/maps/test_egfr_gate2.py::EGFRGate2",
                         "eGFR value/unit/quality/patient")
 
-
-def check_negative_fixtures_take_their_path():
-    return _pytest_node("tests/contracts/maps/test_expected_graphs.py",
-                        "expected graphs and negative outcomes")
-
-
 def check_inverse_recovers_pivots():
     return _pytest_node("tests/contracts/maps/test_inverse_pivot.py",
                         "inverse pivot recovery")
 
+def check_negative_fixtures_take_their_path():
+    return _pytest_node("tests/contracts/maps/test_expected_graphs.py",
+                        "expected graphs and negative outcomes")
 
 def check_no_orphan_nodes():
     """Across all three families, not just eGFR."""
@@ -525,7 +585,6 @@ def check_no_orphan_nodes():
         details.append(label)
     return PASS, "no orphan or blank nodes in " + ", ".join(details)
 
-
 def check_no_source_modification_lost():
     """Gate 2: no source modification is lost.
 
@@ -537,11 +596,6 @@ def check_no_source_modification_lost():
     """
     return _pytest_node("tests/contracts/ingest/test_roundtrip_mutations.py",
                         "round-trip mutation detection")
-
-
-def check_bp_multiset_live():
-    return _pytest_node("tests/contracts/maps/test_bp_gate3.py::BPTupleMultiset",
-                        "BP multiset against the live engine")
 
 
 CONDITIONS: List[Condition] = [
@@ -636,7 +690,9 @@ def main():
     if a.all:
         oks = [run_gate(g) for g in sorted({c.gate for c in CONDITIONS})]
         print("\nGates passing:", sum(oks), "of", len(oks))
-        return 0 if a.report else (0 if all(oks) else 1)
+        # --report formerly forced exit 0, which meant the CI gate job could
+        # never fail. It selects verbosity, not leniency.
+        return 0 if all(oks) else 1
     if a.gate is None:
         ap.error("give a gate number or --all")
     return 0 if run_gate(a.gate) else 1

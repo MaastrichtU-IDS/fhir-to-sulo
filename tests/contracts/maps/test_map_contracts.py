@@ -16,6 +16,7 @@ import json
 import re
 import subprocess
 import sys
+import os
 import unittest
 from pathlib import Path
 
@@ -205,12 +206,37 @@ class MapContracts(unittest.TestCase):
                 with self.subTest(file=rel):
                     self.assertNotIn("sameAs", body)
 
-    def test_static_analysis_is_not_claimed(self):
-        """CD-1: the engine ships no static checker and Agent 4's linter has not
-        landed, so no map may claim static analysis passed."""
+    def test_static_analysis_is_claimed_and_the_linter_agrees(self):
+        """CD-1: the obligation moved from the absent id() to a host linter.
+
+        This test was previously `test_static_analysis_is_not_claimed`, which
+        asserted every map declared False because the linter had not landed.
+        It has landed and covers every root shape of every pass -- 25 across
+        the three maps, where it once saw three -- so the claim is now true
+        and must stay backed by the linter actually passing.
+
+        The two halves are asserted together on purpose. A contract claiming
+        static analysis while the linter fails is a lie; a linter passing
+        while the contract denies it is stale bookkeeping.
+        """
+        import shutil
+        import subprocess
+        import sys
+
         for family in FAMILIES:
             with self.subTest(family=family):
-                self.assertIs(contractio.load(family).static_analysis_passed, False)
+                self.assertIs(contractio.load(family).static_analysis_passed, True)
+
+        lint = os.path.join(REPO, "tools", "shexmap-lint")
+        proc = subprocess.run(
+            [sys.executable, lint, "--dir", os.path.join(REPO, "maps"), "--require-pairs"],
+            capture_output=True, text=True, cwd=REPO,
+            env=dict(os.environ, PYTHONPATH=os.path.join(REPO, "src")),
+        )
+        self.assertEqual(
+            proc.returncode, 0,
+            "maps claim static_analysis_passed but the linter disagrees:\n"
+            + proc.stdout + proc.stderr)
 
     def test_inverse_coverage_is_reported_not_assumed(self):
         """Concept note section 7: the promised fraction is explicit, not 1."""
