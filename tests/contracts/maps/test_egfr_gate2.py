@@ -268,3 +268,80 @@ class EGFRQualityIdentityIsBlocked(engine.EngineTestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class CorrectionReplacesTheSameNodes(engine.EngineTestCase):
+    """The map-side half of Gate 4's correction row, on Agent 2's v1/v2/v3.
+
+    Concept note section 7: "A correction computes a replacement graph and
+    removes stale derived assertions; source versions remain traceable."
+    That only works if a new version keys the SAME node IRIs -- otherwise the
+    stale triples have nothing to be replaced on, and a store ends up holding
+    both values. `MapContract.node_key_rules` keys by resource id and not by
+    version precisely for this, and until the version-lineage fixtures landed
+    it was a claim in a manifest with nothing exercising it.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.v1 = egfr_case.run("egfr-baseline")       # egfr-456 @ v1, 55.0
+        cls.v2 = egfr_case.run("egfr-corrected")      # egfr-456 @ v2, 58.5
+
+    def test_both_versions_are_the_same_resource(self):
+        self.assertEqual(egfr_case.focus_iri("egfr-baseline"),
+                         egfr_case.focus_iri("egfr-corrected"))
+
+    def test_the_result_and_record_nodes_keep_their_iris(self):
+        for node in ("result", "record", "timeInstant"):
+            with self.subTest(node=node):
+                self.assertEqual(self.v1["_hostValues"][node],
+                                 self.v2["_hostValues"][node])
+
+    def test_the_person_and_the_unit_are_unchanged(self):
+        for node in ("person", "unitIri"):
+            with self.subTest(node=node):
+                self.assertEqual(self.v1["_hostValues"][node],
+                                 self.v2["_hostValues"][node])
+
+    def test_the_value_moves_and_the_old_one_is_gone(self):
+        result = "<%s>" % self.v1["_hostValues"]["result"]
+        decimal = "^^<http://www.w3.org/2001/XMLSchema#decimal>"
+        self.assertEqual(
+            graph.objects_of(graph.parse(self.v1["nquads"]), result, "<%shasValue>" % SULO),
+            ['"55.0"' + decimal])
+        self.assertEqual(
+            graph.objects_of(graph.parse(self.v2["nquads"]), result, "<%shasValue>" % SULO),
+            ['"58.5"' + decimal])
+
+    def test_the_lineage_names_the_version_that_produced_each_graph(self):
+        prov = "<http://www.w3.org/ns/prov#wasDerivedFrom>"
+        base = "<https://fhir.example/Observation/egfr-456/_history/%s>"
+        for version, result in (("1", self.v1), ("2", self.v2)):
+            with self.subTest(version=version):
+                triples = graph.parse(result["nquads"])
+                self.assertEqual(
+                    graph.objects_of(triples, "<%s>" % result["_hostValues"]["result"], prov),
+                    [base % version])
+
+    def test_a_retraction_produces_no_clinical_assertion(self):
+        """Concept note section 2: `entered-in-error` suppresses clinical
+        assertions from that resource; it does not erase the source record."""
+        v3 = egfr_case.run("egfr-retracted")
+        self.assertFalse(v3["validation"]["ok"])
+        self.assertEqual(v3["nquads"], "")
+
+    def test_the_quality_iri_moves_with_the_version_under_the_current_policy(self):
+        """Recorded, not asserted as desirable: R2 is unanswered, and under
+        `per-observation` the quality is keyed by version, so a correction
+        mints a new quality node while the quantity keeps its IRI. Under
+        `persistent-per-person-code` it would not. Whoever answers R2 should
+        see this consequence rather than discover it."""
+        self.assertNotEqual(self.v1["_hostValues"]["quality"],
+                            self.v2["_hostValues"]["quality"])
+        persistent_v1 = egfr_case.run("egfr-baseline",
+                                      quality_mode="persistent-per-person-code")
+        persistent_v2 = egfr_case.run("egfr-corrected",
+                                      quality_mode="persistent-per-person-code")
+        self.assertEqual(persistent_v1["_hostValues"]["quality"],
+                         persistent_v2["_hostValues"]["quality"])

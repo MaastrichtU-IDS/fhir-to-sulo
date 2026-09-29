@@ -48,7 +48,9 @@ class ExpectedOutcomes(unittest.TestCase):
                           if p.is_dir() and (p / "case.json").is_file())
         mine = sorted(p.name for p in FIXTURE_DIRS)
         self.assertEqual(mine, declared)
-        self.assertEqual(len(mine), 19, mine)
+        # derived, not hardcoded: adding a fixture should fail the tests that
+        # are actually about that fixture, not an unrelated count.
+        self.assertGreaterEqual(len(mine), 19, mine)
 
     def test_the_map_outcome_agrees_with_agent_2s_declaration(self):
         for path in FIXTURE_DIRS:
@@ -93,14 +95,24 @@ class ExpectedOutcomes(unittest.TestCase):
                 self.assertIn("R2", params["quality_identity_mode_note"])
                 self.assertEqual(params["sulo_version"], "0.2.12")
 
-    def test_nine_fixtures_materialize_and_ten_do_not(self):
-        mapped = [outcome(p)["fixture_id"] for p in FIXTURE_DIRS
-                  if outcome(p)["map_outcome"] == "mapped"]
-        self.assertEqual(sorted(mapped), [
+    def test_exactly_the_expected_fixtures_materialize(self):
+        """The named list IS the contract; the counts are derived from it.
+
+        Which fixtures produce a semantic graph is a reviewed decision, so it
+        is spelled out. How many there are is not, so adding a fixture must
+        not fail a test about arithmetic.
+        """
+        mapped = sorted(outcome(p)["fixture_id"] for p in FIXTURE_DIRS
+                        if outcome(p)["map_outcome"] == "mapped")
+        self.assertEqual(mapped, [
             "bp-component-omitted", "bp-duplicate-values", "bp-other-patient",
             "bp-reordered-serialisation", "bp-two-panels", "egfr-baseline",
-            "egfr-contained-subject", "enc-baseline", "enc-contained-practitioner"])
-        self.assertEqual(len(FIXTURE_DIRS) - len(mapped), 10)
+            "egfr-contained-subject", "egfr-corrected",
+            "enc-baseline", "enc-contained-practitioner"])
+        not_mapped = sorted(outcome(p)["fixture_id"] for p in FIXTURE_DIRS
+                            if outcome(p)["map_outcome"] != "mapped")
+        self.assertEqual(len(mapped) + len(not_mapped), len(FIXTURE_DIRS))
+        self.assertIn("egfr-retracted", not_mapped)
 
 
 class ExpectedGraphContents(unittest.TestCase):

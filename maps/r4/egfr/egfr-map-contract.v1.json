@@ -7,7 +7,7 @@
     "maps/r4/egfr/egfr-target.v1.shex",
     "maps/r4/egfr/egfr-bindings.v1.json"
   ],
-  "pairing_hash": "53dd1b511b9377e5cc5d8c7378a3d226a9f4b787d9cc61c82b21d65c0f8f0965",
+  "pairing_hash": "54dc236c1d69f4d9e7f94c2a4e700f47a0f51f1879bf6f37dbd70699c3d52bf9",
   "pairing_hash_note": "sha256 over the three pairing_files, each hashed as bytes in the listed order. Left empty in the committed file and recomputed by tests/contracts/maps/test_map_contracts.py, which fails if it drifts from the schemas. Filled in by `python3 maps/r4/rehash.py`.",
   "source_release": "R4",
   "source_profiles": [

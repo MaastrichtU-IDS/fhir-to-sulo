@@ -69,6 +69,13 @@ Source-side comparisons against Agent 2's `expected-bindings.json` are kept as
 named corroboration (`BPSourceBindingMultiset`): they localise a fault to the
 extraction half, which a target-side check alone would misattribute.
 
+## The evidence has to be reproducible from nothing
+
+From a clean tree, in any order, on the pinned image, with nothing surviving
+between runs.  `tests/contracts/maps/test_order_independence.py` enforces it;
+[DR-204](../../docs/fhir-sulo/decisions/DR-204-the-gate-suite-must-be-order-independent-and-pinned.md)
+records the two defects that bought it.
+
 ## Running them
 
 The maps are driven through `ThreadedMaterializer`, never the shipped CLI (CD-2). Until Agent

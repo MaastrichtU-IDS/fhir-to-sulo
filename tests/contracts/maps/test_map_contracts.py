@@ -105,19 +105,68 @@ class MapContracts(unittest.TestCase):
                         "%s: scope %r declares max_occurs=%s" % (family, scope.name,
                                                                  scope.max_occurs))
 
-    def test_the_source_schema_has_at_most_one_repeating_constraint(self):
-        """DR-302 again, on the schema text rather than the manifest.
+    def test_every_repeating_constraint_is_a_tolerated_wildcard(self):
+        """DR-302, on the schema text rather than the manifest.
 
-        A repeating constraint is `*`, `+` or an upper bound above 1.  The only
-        one any source schema may carry is the tolerated, unmapped
-        fhir:DomainResource.contained.
+        The rule that matters is DEPTH: two levels of repetition are silently
+        mis-mapped by the engine.  A repeating constraint creates a second
+        level only if something with a sub-shape, or a Map variable, sits
+        under it.  So the check is not "there is exactly one `*`" -- that was
+        the first version of this test and it was wrong, because it forced the
+        CLOSED shapes to reject every `source_only_element`, including the
+        `issued` that HL7's own eGFR example carries.
+
+        The check is: every repeating constraint has the WILDCARD `.` value
+        expression and no Map variable.  Nothing is bound under it, nothing is
+        matched under it, so it cannot contribute a level.
         """
         for family in FAMILIES:
+            body = schema_body((REPO / source_schema(family)).read_text())
+            for line in body.splitlines():
+                code = line.strip()
+                if not code or not REPEAT.search(code):
+                    continue
+                with self.subTest(family=family, constraint=code):
+                    self.assertRegex(
+                        code, r"^fhir:[A-Za-z.]+\s+\.\s*\*\s*;?$",
+                        "a repeating constraint must be a tolerated wildcard with no "
+                        "sub-shape and no Map variable, or it can create the second "
+                        "level of repetition the engine mis-maps (DR-302)")
+
+    def test_repeating_constraints_are_the_declared_source_only_elements(self):
+        """And each tolerated wildcard is one the pinned profile declares
+        source-only, so the CLOSED shapes cannot be widened by accident."""
+        profile = json.loads((REPO / "profiles/fhir-r4-pilot.json").read_text())
+        declared = set()
+        for spec in profile["resources"].values():
+            for element in spec.get("source_only_elements", ()):
+                declared.add("fhir:" + element)
+        declared.add("fhir:DomainResource.text")        # Observation.text / Encounter.text
+        declared.add("fhir:DomainResource.contained")   # Observation.contained / Encounter.contained
+
+        for family in FAMILIES:
+            body = schema_body((REPO / source_schema(family)).read_text())
+            for line in body.splitlines():
+                code = line.strip()
+                if not code or not REPEAT.search(code):
+                    continue
+                predicate = code.split()[0]
+                with self.subTest(family=family, predicate=predicate):
+                    self.assertIn(predicate, declared)
+
+    def test_method_is_not_tolerated(self):
+        """Concept note section 2 names `method` among the things that must
+        never be dropped while claiming an unqualified numeric result.
+
+        The pinned profile lists it under `source_only_elements`, so the two
+        documents conflict.  Held at REJECT -- the conservative side, producing
+        no semantic output rather than an unqualified quantity -- and reported
+        in DR-205 rather than resolved unilaterally.
+        """
+        for family in ("egfr", "bp"):
             with self.subTest(family=family):
                 body = schema_body((REPO / source_schema(family)).read_text())
-                repeating = [line.strip() for line in body.splitlines()
-                             if line.strip() and REPEAT.search(line.strip())]
-                self.assertEqual(repeating, ["fhir:DomainResource.contained . * ;"], repeating)
+                self.assertNotIn("fhir:Observation.method", body)
 
     def test_every_map_code_is_a_bare_variable(self):
         """CD-1's substitute for 'invalid id() uses fail before data processing'.

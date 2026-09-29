@@ -124,6 +124,12 @@ recovery). Everything else was already target-side.**
 
 ## Two harness defects found while fixing this
 
+Two more, found in the next review round, are in
+[DR-204](DR-204-the-gate-suite-must-be-order-independent-and-pinned.md):
+the suite was order-dependent and failed from clean, and it was not running
+on the pinned image at all.
+
+
 Both were producing wrong or unstable results and are worth recording because
 they are the kind of thing that makes a green suite meaningless.
 

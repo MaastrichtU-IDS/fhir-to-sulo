@@ -51,11 +51,13 @@ def _manifest_of(raw: Mapping[str, Any]):
     return Manifest(family=raw.get("map_id", "?"), path=Path("<in-memory>"), raw=raw)
 
 
-def bind(family: str, fixture: Path, focus: str, version: str = "v1") -> Dict[str, Any]:
+def bind(family: str, fixture: Path, focus: str, version: str = "v1",
+         data_override: Optional[str] = None) -> Dict[str, Any]:
     """Stage 1 only: validate the source shape and return the engine result."""
     return engine.run_job({
         "sourceSchema": "maps/r4/%s/%s-source.%s.shex" % (family, family, version),
-        "data": str(fixture.relative_to(REPO)),
+        "data": None if data_override is not None else str(fixture.relative_to(REPO)),
+        "dataInline": data_override,
         "focus": focus,
         "startShape": None,
         "passes": [],
