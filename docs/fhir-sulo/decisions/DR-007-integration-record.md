@@ -213,3 +213,125 @@ passes. Git history was clean: no threshold, expected graph or shape had moved.
   Recorded as input to R6; it does not answer it.
 - **No two fixtures are two versions of the same resource**, so Gate 4's correction row rests
   partly on a hand-edited literal. An `egfr-corrected` fixture is requested.
+
+---
+
+# Addendum 2 — Gate 4 scale, measured and missed
+
+The review's M3 said the benchmark excluded the transformation. That is fixed: it now runs
+10,000 synthetic FHIR R4 resources through ingest, RDF rendering, the reviewed maps, the pinned
+engine, store, SHACL and HermiT. **The result is a failure, recorded as one.**
+
+| Gate 4 target | Measured | |
+| --- | --- | --- |
+| ≤ 15 min | **78.1 min** (4,685.11 s) | **missed, 5.2×** |
+| peak memory < 6 GB | 5.68 GB | met, 5% headroom |
+| no unexpected mapping failures | 9,510 mapped, 490 not, all 490 explained | met |
+
+The corpus was not shrunk and the target was not revised. Plan §4 permits revision "only by an
+explicit performance decision backed by measured profiles"; this is the profile, and it argues
+for fixing the engine invocation rather than moving the target.
+
+## The bottleneck is invocation overhead, not mapping
+
+`materialize` is 95.9% of the run at 0.472 s per mapped resource:
+
+- a bare `docker run --rm -i <engine> node -e 0` costs **0.169 s**
+- there are **two** engine invocations per resource (bind pass, materialize pass)
+- so **container start-up is ≈0.339 s, or 72% of the per-resource cost**
+
+Cost is flat across families — eGFR 0.503 s (21 quads), BP 0.552 s (34 quads), Encounter
+0.519 s (29 quads). BP's ten-pass map emits 62% more triples in the same time, which is what
+rules out schema work as the cause. The engine's actual materialization is **0.030 ms/resource**
+(`engine_bench` Part A), four orders of magnitude below what is being paid.
+
+Fix in progress with Agent 4, in this order: a long-lived container or persistent Node process
+(start-up alone ≈22 min, conservative because schemas are still re-parsed per resource), then
+batching resources per invocation (safe under DR-302 — maps are resource-rooted and nothing
+crosses resources), then parallelism, which is a legitimate 4× only *after* the first two.
+
+## Two results that should not be read as part of the miss
+
+- **"No unexpected mapping failures" was previously unaskable and is now satisfied.** All 490
+  non-mapped resources are policy-declared outcomes with reasons from the pinned status policy
+  (262 `dataAbsentReason`, 228 `entered-in-error`). Zero render failures, zero engine exceptions.
+- **The memory row is a near miss, not comfort.** The cgroup peak is monotonic, so the stage
+  column is a running high-water mark: 3.3 GB through materialize/store/provenance, 4.05 GB
+  after SHACL, and OWL reasoning adds the last 1.6 GB to finish 0.32 GB under the limit. That
+  consumer scales with **encounter count**, which is 19.9% of this corpus. More encounters, or a
+  larger reasoning batch, would exceed 6 GB.
+
+## Measurement caveat, stated rather than buried
+
+The `--cpus=4 --memory=8g` runner constraint **does not reach the engine containers**: they are
+siblings outside the benchmark's cgroup, because `EngineImage` hardcodes its `docker run`
+arguments. This makes the time a **lower bound** — so the miss is conservative — and the
+5.68 GB an **underestimate**, which matters more given the headroom.
+
+## Also fixed here
+
+`requirements-dev.txt` and `requirements-runtime.txt` pinned **different** rdflib versions
+(7.1.4 and 7.1.1) while CI installs both in a single `pip install`. Aligned to 7.1.4.
+
+## Resolution — the profile was acted on, and the row now passes
+
+The measurement above is kept because it is the evidence that justified the fix, not because
+it is the current state. Agent 4 acted on the diagnosis (DR-305).
+
+| Stage | Before | After | |
+| --- | ---: | ---: | ---: |
+| **materialize** | 4,491.5 s | **46.0 s** | **97.7×** |
+| shacl validation | 85.4 s | 85.6 s | — |
+| owl reasoning (HermiT) | 104.2 s | 93.3 s | 1.1× |
+| **TOTAL** | **4,685.1 s (78.1 min)** | **228.4 s (3.8 min)** | **20.5×** |
+| peak memory | 5.68 GB | **4.97 GB** | |
+
+| Gate 4 row | Target | Result |
+| --- | --- | --- |
+| time | ≤ 15 min | **PASS** — 3.8 min, 3.9× headroom |
+| memory | < 6 GB | **PASS** — 4.97 GB, 17% headroom (was 5%) |
+| no unexpected mapping failures | — | **PASS** |
+
+**Reproduced independently by the lead**, not accepted on report: `./benchmarks/run.sh` →
+**235.02 s (3.9 min), 5.17 GB peak, VERDICT PASS**, with the same failure categories
+(262 `dataAbsentReason`, 228 `entered-in-error`). Slightly above Agent 4's figures and within
+run-to-run noise; both pass.
+
+**Output is unchanged**, which is the claim that mattered: 9,510 mapped, 490 not, 261,236
+target triples — the same three numbers as the 78-minute run. Not inferred from the totals:
+`TestResidentOutputEqualsOneShot` runs each family through a resident *and* a one-shot engine
+and requires identical quads, lineage and graph key, with interleaved families and ten repeats
+through one process. A schema cache and a reused process are exactly what could make the
+second answer differ from the first.
+
+### What was done, and what was deliberately not
+
+Only step 1. The engine stays resident behind a newline-delimited JSON protocol on stdin;
+schemas are parsed once per `(text, baseIRI)` rather than once per resource. Both constraints
+held literally: the transport, `docker run --rm -i` and the absence of a bind mount are
+unchanged — only the container's lifetime changed, so the colima trap is untouched — and the
+container is **anonymous**, with no `--name`, owned by one host process and dying with it. A
+*named* long-lived container is precisely the CD-5 shape and was avoided on purpose.
+
+Step 2 (batching) was **built, measured and left disabled**: a resident round trip costs 0.28 ms
+against 42 ms of real work, so the overhead it would amortise is 1.3% of the cost. Wiring it in
+would complicate the path that carries the no-host-triple guard in exchange for a percent.
+Step 3 (parallelism) is moot at 3.8 min.
+
+### The bottleneck moved
+
+`materialize` is now 20% of the run. SHACL (85.6 s) and HermiT (93.3 s) dominate both time and
+the memory ceiling: the materialize stage's own cgroup peak is 3.27 GB, while the run's 4.97 GB
+peak arrives during reasoning. **The unmeasured sibling engine container is now quantified at
+about 0.1 GB** — soaked over 2,400 runs it oscillates 90–137 MiB and returns, with a 150-run
+leak guard in the suite. So CD-4's caveat about the runner cgroup not reaching the engine still
+stands, but the unknown it left is now small and measured rather than open.
+
+### One defect this surfaced
+
+`./benchmarks/run.sh` did not pass `--strictness`, which Agent 6 had correctly made **required**
+so that no run can silently pick an answer to R5. The wrapper was never updated, so the
+documented command failed outright. Fixed: `run.sh` supplies
+`--strictness concept-note-literal --quality-mode per-observation` by default, both overridable
+from the command line, both named in the report. Naming them is the point — it is not an answer
+to R5 or R2.

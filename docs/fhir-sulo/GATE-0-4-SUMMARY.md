@@ -1,0 +1,97 @@
+# Gates 0–4: what was built, what is proven, what is not
+
+A reading order for reviewers. The branch is large because it implements six parallel
+workstreams from the implementation plan; this page says what to read and in what order,
+and is honest about what does not hold.
+
+**Status in one line:** every gate's engineering conditions pass. Gate 0 awaits human
+clinical/ontology sign-off, and by the plan's own ordering rule every later gate is held
+behind it — **a human decision is the only thing outstanding.**
+
+```
+$ FHIR_SULO_REQUIRE_ENGINE=1 FHIR_SULO_ENGINE_TESTS=1 python3 tools/gate-check.py --all
+Gate 0 BLOCKED  (8 pass, 0 fail, 1 manual)   <- reviewer sign-off, 12 open items
+Gate 1 HELD     (6 pass, 0 fail, 0 manual)
+Gate 2 HELD     (5 pass, 0 fail, 0 manual)
+Gate 3 HELD     (4 pass, 0 fail, 0 manual)
+Gate 4 HELD     (5 pass, 0 fail, 0 manual)
+```
+
+## Read in this order
+
+1. **[`REVIEW-REQUEST.md`](REVIEW-REQUEST.md)** — 12 clinical and ontology questions. **Nothing
+   is approved.** Start here: R1 and R2 block the most, and should be answered together because
+   both re-key every quality IRI.
+2. **[`CONTRACT-DEVIATIONS.md`](CONTRACT-DEVIATIONS.md)** — six places the toolchain cannot meet
+   the acceptance contract literally, with the substitute and its justification. CD-1 (`id()`
+   does not exist) and CD-6 (the OWL consistency row overstates what the reasoner catches) are
+   the two that change what a row promises.
+3. **[`decisions/DR-007-integration-record.md`](decisions/DR-007-integration-record.md)** — what
+   the merge itself found, including three claims this repository made that were wrong, and the
+   Gate 4 measurement.
+4. **[`decisions/DR-302-one-repetition-per-path.md`](decisions/DR-302-one-repetition-per-path.md)**
+   — the architectural constraint everything else is shaped by.
+5. `maps/r4/` and `fixtures/expected/` — the actual mapping contract.
+
+## What is genuinely proven
+
+- **The blood-pressure requirement.** The multiset `{(bp-1,120,80),(bp-2,105,70)}` is asserted
+  **on the emitted target graph**, recovered via the graph's own `prov:wasDerivedFrom`, with
+  each slot decided by the class of the quality its quantity refers to. Injecting a
+  cross-wire into the target schema — and rehashing so the tamper check cannot mask it — fails
+  ten tests.
+- **No host-side triple construction.** Every emitted quad names a `TripleConstraint` its own
+  target schema declares; the host supplies root IRIs and static variables and unions passes.
+  A test asserts this over the real maps and fails on a forged quad.
+- **The PRO entailment**, with a working negative control: HermiT materializes
+  `encounter hasParticipant person` from the role chain, ELK demonstrably does not.
+- **Determinism**, across separate processes and separate engine invocations. This carries the
+  Gate 4 idempotence story, because the engine has no `id()` and node identity comes from the
+  identity service.
+- **Source fidelity.** The renderer is validated graph-isomorphically against HL7's own
+  published Turtle for the three examples the concept note cites, and 19 targeted mutations of
+  the canonical RDF must each be detected.
+- **Correction**, on one real resource lineage (`egfr-456` at v1, v2, v3) through the real
+  pipeline.
+
+- **Gate 4 scale**, on the real pipeline: 10,000 resources in **3.8 min** against a 15 min
+  target and **4.97 GB** against 6 GB. The first honest measurement was 78.1 min; the profile
+  showed 72% of the per-resource cost was Docker container start-up, the engine was made
+  resident, and the total fell 20.5× with output unchanged — 9,510 mapped, 490 not, 261,236
+  triples, identical to the slow run and asserted quad-for-quad against a one-shot engine.
+  The target was never moved and the corpus never shrunk.
+
+## What is not proven, stated plainly
+- **Iteration scopes are never exercised by a production map.** All three shipped pairs are
+  repetition depth 0 — BP discriminates components by LOINC code rather than position, which is
+  a stronger guarantee but a different one from the plan's repetition risk row. See DR-302.
+- **`Encounter.participant` is capped at cardinality 1**, so "who participated in this
+  encounter" answers only for single-clinician encounters. A second participant fails loudly.
+- **No OWL guard against a person typed as a Role** under the current `sulo:Object` typing —
+  SHACL catches it. CD-6, and input to R6.
+- **`Observation.method` is held at reject** rather than resolved: the profile lists it
+  source-only, concept note §2 says it must not be dropped while claiming an unqualified
+  numeric result. Review item N4.
+
+## Running it
+
+```bash
+make venv                 # pinned dev + runtime dependencies
+make contracts            # full suite (pytest, authoritative)
+make contracts-stdlib     # same invariants, standard library only, no install
+
+make engine-live          # engine + tools, live engine REQUIRED (Docker)
+make lint-schemas         # static analysis of every committed ShExMap pair
+./benchmarks/run.sh       # 10,000 resources under Gate 4's limits
+
+# end to end, FHIR JSON to store
+python -m fhir_sulo.pipeline.cli batch --family bp --quality-mode per-observation \
+  --out batch.jsonl --load store/ fixtures/r4/bp/bp-two-panels/bp-{1,2}.json
+python -m fhir_sulo.store.cli inspect --state store/state.json
+```
+
+`tools/gate-check.py` encodes the plan's pass conditions as executable checks. A condition with
+no mechanical check reports `MANUAL` and blocks; a check that raises reports `FAIL`; gates
+advance in order, so a later gate reports `HELD`, never `PASSED`, while an earlier one is
+blocked. `--fail-on mechanical` is what CI uses, so an unanswered review does not hold the build
+red forever; the default asks the stricter question.

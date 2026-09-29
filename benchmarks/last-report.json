@@ -16,7 +16,7 @@
     "Observation.status 'entered-in-error' is source-only under the pinned status policy": 228
   },
   "passed": true,
-  "peak_memory_bytes": 4965855232,
+  "peak_memory_bytes": 5165871104,
   "resources": 10000,
   "stages": [
     {
@@ -30,10 +30,10 @@
       "failure": "",
       "items": 10000,
       "name": "generate",
-      "peak_memory_bytes": 37634048,
+      "peak_memory_bytes": 36876288,
       "peak_memory_source": "cgroup",
-      "seconds": 0.032,
-      "throughput_per_second": 312465.07
+      "seconds": 0.036,
+      "throughput_per_second": 276407.34
     },
     {
       "detail": {
@@ -46,10 +46,10 @@
       "failure": "",
       "items": 10000,
       "name": "render",
-      "peak_memory_bytes": 157040640,
+      "peak_memory_bytes": 156962816,
       "peak_memory_source": "cgroup",
-      "seconds": 1.953,
-      "throughput_per_second": 5119.39
+      "seconds": 2.129,
+      "throughput_per_second": 4697.37
     },
     {
       "detail": {
@@ -64,10 +64,10 @@
       "failure": "",
       "items": 10000,
       "name": "materialize",
-      "peak_memory_bytes": 3269861376,
+      "peak_memory_bytes": 3269844992,
       "peak_memory_source": "cgroup",
-      "seconds": 45.957,
-      "throughput_per_second": 217.59
+      "seconds": 51.656,
+      "throughput_per_second": 193.59
     },
     {
       "detail": {
@@ -79,10 +79,10 @@
       "failure": "",
       "items": 10000,
       "name": "keying+lineage+store",
-      "peak_memory_bytes": 3313750016,
+      "peak_memory_bytes": 3313442816,
       "peak_memory_source": "cgroup",
-      "seconds": 0.981,
-      "throughput_per_second": 10195.17
+      "seconds": 0.998,
+      "throughput_per_second": 10019.98
     },
     {
       "detail": {
@@ -92,10 +92,10 @@
       "failure": "",
       "items": 10000,
       "name": "provenance",
-      "peak_memory_bytes": 3389067264,
+      "peak_memory_bytes": 3389820928,
       "peak_memory_source": "cgroup",
-      "seconds": 0.626,
-      "throughput_per_second": 15986.71
+      "seconds": 0.637,
+      "throughput_per_second": 15704.89
     },
     {
       "detail": {
@@ -109,10 +109,10 @@
       "failure": "",
       "items": 261236,
       "name": "shacl validation",
-      "peak_memory_bytes": 4061847552,
+      "peak_memory_bytes": 4022206464,
       "peak_memory_source": "cgroup",
-      "seconds": 85.556,
-      "throughput_per_second": 3053.39
+      "seconds": 86.089,
+      "throughput_per_second": 3034.48
     },
     {
       "detail": {
@@ -129,13 +129,13 @@
       "failure": "",
       "items": 1987,
       "name": "owl reasoning (HermiT)",
-      "peak_memory_bytes": 4965855232,
+      "peak_memory_bytes": 5165871104,
       "peak_memory_source": "cgroup",
-      "seconds": 93.276,
-      "throughput_per_second": 21.3
+      "seconds": 93.471,
+      "throughput_per_second": 21.26
     }
   ],
-  "total_seconds": 228.381,
+  "total_seconds": 235.016,
   "within_memory_budget": true,
   "within_time_budget": true
 }

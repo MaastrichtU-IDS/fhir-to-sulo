@@ -49,10 +49,25 @@ docker cp "$ROOT/policies" "$CONTAINER":/w/ > /dev/null
 docker cp "$ROOT/profiles" "$CONTAINER":/w/ > /dev/null 2>/dev/null || true
 docker cp "$ROOT/tools" "$CONTAINER":/w/ > /dev/null
 
+# --strictness is REQUIRED by run_benchmark.py: review item R5 is unanswered,
+# so the policy default rejects and every gate artefact must name what it ran
+# under. The wrapper supplies a default so `./benchmarks/run.sh` works with no
+# arguments, and anything passed on the command line still wins because "$@"
+# comes last. Naming it here is deliberate -- it appears in the report -- and
+# is NOT an answer to R5.
+STRICTNESS_DEFAULT="--strictness concept-note-literal"
+case " $* " in *" --strictness "*) STRICTNESS_DEFAULT="" ;; esac
+
+# Same reasoning: the quality identity policy (R2) has no default and rejects
+# when unset, so the benchmark must name a mode to run at all.
+QUALITY_DEFAULT="--quality-mode per-observation"
+case " $* " in *" --quality-mode "*) QUALITY_DEFAULT="" ;; esac
+
 echo "== running =="
 set +e
+# shellcheck disable=SC2086  # the defaults are two fixed flag pairs, not a path
 docker exec "$CONTAINER" python3 /w/benchmarks/run_benchmark.py \
-  --json /w/benchmark-report.json "$@"
+  --json /w/benchmark-report.json $STRICTNESS_DEFAULT $QUALITY_DEFAULT "$@"
 STATUS=$?
 set -e
 

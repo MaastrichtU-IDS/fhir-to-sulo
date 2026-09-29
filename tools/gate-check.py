@@ -543,7 +543,14 @@ def check_benchmark():
         return FAIL, f"benchmark took {secs}s; Gate 4 allows 900s"
 
     stages = d.get("stages") or {}
-    names = " ".join(str(k) for k in (stages.keys() if isinstance(stages, dict) else stages)).lower()
+    # Stage entries are dicts with timings and details; we only want their
+    # names. Dumping the whole structure made the gate line unreadable.
+    if isinstance(stages, dict):
+        stage_names = [str(k) for k in stages]
+    else:
+        stage_names = [str(st.get("name", st)) if isinstance(st, dict) else str(st)
+                       for st in stages]
+    names = " ".join(stage_names).lower()
     missing = [want for want, keys in (
         ("rendering", ("render", "ingest")),
         ("materialization", ("materiali", "map", "engine", "transform")),
@@ -553,7 +560,10 @@ def check_benchmark():
                       f"{', '.join(missing)}. Plan Gate 4 requires 'no unexpected "
                       f"mapping failures', which a run with no mapping cannot show. "
                       f"Stages present: {names or 'none recorded'}")
-    return PASS, f"{n} resources in {secs}s, stages: {names}"
+    peak = d.get("peak_memory_bytes")
+    peak_s = f", peak {peak / 1073741824:.2f} GB" % () if isinstance(peak, (int, float)) else ""
+    return PASS, (f"{n} resources in {secs}s{peak_s}; stages: "
+                  + ", ".join(stage_names))
 
 
 def check_egfr_one_association():

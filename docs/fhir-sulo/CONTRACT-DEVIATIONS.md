@@ -159,8 +159,43 @@ prebuilt image.
 (a stale image runs happily and gives the wrong answer) and because any agent adding a
 Docker-backed tool will hit it.
 
-**Extended (DR-305):** the engine is now a *resident* process, which is where this class of
-bug likes to live. It is kept out the same way: the container is **anonymous** (no `--name`,
-so nothing else can find or reuse it), owned by one host process, and destroyed when that
-process's stdin closes. A long-lived container that agents could share by name would have
-reintroduced exactly this.
+---
+
+## CD-6 — The "reasoner checks consistency" row overstates what the reasoner catches
+
+**Acceptance matrix row:** "PRO — Encounter target plus reasoner — *Typed roles belong to correct
+holders and process; expected direct participation is inferred; no `hasPatient` predicate.*"
+And concept note §7: *"an OWL reasoner checks consistency and expected PRO entailments."*
+
+**Reality, measured with HermiT** (Agent 6, DR-603 corrected):
+
+| person typed as | with a Quality or Role also asserted on them |
+| --- | --- |
+| `sulo:SpatialObject` | **INCONSISTENT** — caught |
+| `sulo:Object` — **what the maps actually emit** | **consistent** — not caught |
+
+`sulo:Quality ⊑ sulo:Feature ⊑ sulo:Object`, so typing a person `sulo:Object` and also typing
+them into a `Feature` branch produces no clash. **There is currently no OWL guard against a
+patient typed as a Role.**
+
+**What still holds.** SHACL catches it: the disjointness shapes reject a node in two `Feature`
+branches, so a misclassified person cannot reach the store. The PRO entailment itself is real
+and verified — HermiT materializes `encounter hasParticipant person` from the role chain, and
+ELK demonstrably does not, which is the negative control that proves the check is live.
+
+**Effect on the row.** Unchanged in substance — the property is still enforced — but the
+mechanism is SHACL, not OWL, for this particular failure. The row should be read as:
+
+> an OWL reasoner checks consistency and expected PRO entailments; under the current
+> `sulo:Object` person typing it does not catch a person also typed as a Quality or Role —
+> SHACL does.
+
+**Not resolved here.** Which class a person should carry is review item **R6**, still open. This
+deviation records what is true today so that nobody reads the acceptance matrix as promising a
+guard that is not there. If R6 is answered with `sulo:SpatialObject`, the OWL guard returns and
+this deviation can be closed.
+
+**Why this is recorded rather than fixed in the contract documents:** the concept note and the
+implementation plan are the acceptance contract. Editing them to match what was built would
+make the contract unfalsifiable. The proposed wording above is offered for the reviewer to
+accept or reject.
