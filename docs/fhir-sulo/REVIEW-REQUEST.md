@@ -48,6 +48,12 @@ SULO deliberately does not supply these — it is an upper-level ontology with 1
 
 **What we need from you:** the option, and if A or C, the namespace to mint under.
 
+**The concrete instance awaiting you (R1b):** three domain typings are currently transcribed
+from the concept note's examples and are *not* a reviewed commitment —
+`33914-3 → ex:EGFRResult` with quality `ex:RenalFiltrationQuality`, and the systolic/diastolic
+equivalents for `8480-6` / `8462-4`. Approve or correct them. Note the quality classes interact
+with **R4**: they presumably need to be `sulo:Quality`, not bare `sulo:Feature`.
+
 **Meanwhile:** target shapes are authored against SULO upper-level terms only, with domain
 typing emitted through a single indirection point so the vocabulary can be swapped.
 
@@ -77,7 +83,22 @@ by observation, time, and observable code so independent records do not merge un
 onto one quality (same code only? same code and method? same code, method and specimen?).
 
 **Meanwhile:** implemented as a switchable policy with **both** behaviours and a deliberately
-unset default, so no run can silently pick one.
+unset default that *rejects every request*, so no run can silently pick one.
+
+**Two things established since this item was written:**
+
+- **Your answer moves every quality IRI**, because the two modes key on different inputs.
+  Person IRIs are unaffected. This is a graph migration, not a configuration change — it has to
+  be sequenced, not just switched.
+- Person IRIs are **stable across unrelated policy edits**: seven edits (version bumps on all
+  three tables, adding a code entry, approving a unit, rewording prose, and answering this very
+  question) leave every person IRI byte-identical. So answering this does not disturb anything
+  else.
+
+**R2b — related, not blocking Gates 0–4.** What counts as recorded evidence for merging two
+references *across sources* into one person? Currently impossible by construction: the service
+has no merge rule and an empty `accepted_merge_evidence` list, guarded by a test. With synthetic
+single-source data this never arises, but it will before any clinical use.
 
 ---
 
@@ -94,7 +115,8 @@ The rest are genuinely open.
 | `status = entered-in-error` | no clinical quantity; source record retained | note §2, §4 — confirm |
 | `dataAbsentReason` present | no numeric `hasValue`; component record retained | note §4 — confirm |
 | `valueQuantity.comparator` (e.g. `<`) | requires a qualified-value mapping | note §4 says "requires"; **what is the qualified-value pattern in SULO?** open |
-| missing / unrecognised UCUM unit | fails the numeric target shape | note §4 — confirm |
+| missing / unrecognised UCUM unit | **open** — note §4 says it fails the numeric target shape (`rejected`), but `source-only` is equally defensible and parallels `dataAbsentReason`. Visibly different graphs for the same input. | note §4 vs consistency |
+| unit needs conversion (e.g. kPa → `mm[Hg]`) | **open** — currently never converted, conversion disabled | not specified |
 | unknown or unmapped LOINC code | **open** — source-only or rejected? | not specified |
 | `status = preliminary` | **open** | not specified |
 | `status = amended` / `corrected` | **open** — treat as a new version, or as current? | not specified |
@@ -200,6 +222,62 @@ What we are asking you to confirm:
    supports it. (Concept note §4.)
 
 **What we need from you:** sign-off, or the specific point you want changed.
+
+---
+
+## R8 — Does a `Practitioner` reference mint a *person*?
+
+**Blocks:** Gate 3 Encounter roles.
+
+`Encounter.participant.individual = Practitioner/c7` currently mints a **person** entity, the
+same entity kind as a patient. Two sub-questions:
+
+- **R8a.** Is a person the right entity kind for a practitioner, or should it be an
+  organisational or agent entity distinct from a patient?
+- **R8b.** If someone appears as both a `Practitioner` and a `Patient` in the same source, they
+  currently become **two distinct entities** — there is no merge rule. Correct, or should they
+  merge, and on what evidence?
+
+Concept note §6 types the clinician role holder as `ex:clinician-c7` without saying what it is.
+Interacts with **R1** and **R6**.
+
+---
+
+## R9 — Should the BP panel code type the panel record node?
+
+**Blocks:** Gate 3 BP target shape.
+
+LOINC `85354-9` (blood pressure panel) is present on the parent `Observation`. Concept note §5
+describes "the BP panel record" relating to both component results, but does not say whether the
+panel code becomes a class assertion on that node.
+
+**Options** — **A.** the panel code types the panel record node; **B.** the panel record stays an
+untyped `ex:ObservationRecord` and the code is retained only in the source layer.
+
+Currently **B** (the entry is marked `proposed` and types nothing), consistent with concept
+note §2: "a FHIR code literal alone is not an OWL class assertion".
+
+---
+
+## R10 — Is `pilot-provisional` an acceptable engineering status?
+
+**Blocks:** nothing yet, but decides how much of Gates 1–3 can run before you answer R1–R9.
+
+The three pinned LOINC codes and two pinned UCUM units carry review status
+**`pilot-provisional`**: interpretable, so the eGFR and BP slices can execute on synthetic data,
+but every outcome reports `clinical_signoff: False` and a test fails the moment anything claims
+`approved`. Nothing is marked approved anywhere.
+
+**Options**
+
+- **A. Accept `pilot-provisional`.** Gates 1–3 run end-to-end on synthetic data now; no output is
+  ever presentable as clinically reviewed.
+- **B. Reject it.** The three entries drop to `proposed`, and the entire eGFR slice becomes
+  `source-only` until you have answered R1, R4 and Q-T-1 — meaning Gate 2 cannot demonstrate a
+  materialized graph at all until then.
+
+**Recommendation from engineering (not a decision):** A, because the distinction that matters —
+that no output is clinically signed off — is enforced mechanically rather than by convention.
 
 ---
 
