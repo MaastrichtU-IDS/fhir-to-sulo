@@ -1,0 +1,2 @@
+PREFIX : <http://ex.example/>
+<http://ex.example/x> :name "Alice" .

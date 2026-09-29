@@ -1,0 +1,22 @@
+PREFIX : <http://ex.example/>
+PREFIX v: <http://ex.example/var#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX Map: <http://shex.io/extensions/Map/#>
+
+start = @<Patient>
+
+# the repeated group's own IRI is bound, so it can serve as the join key
+<Patient> {
+  :name xsd:string %Map:{ v:name %};
+  :report @<Report>* %Map:{ v:reportIri %}
+}
+
+<Report> {
+  :reportNo xsd:string %Map:{ v:reportNo %};
+  :panel @<Panel>*
+}
+
+<Panel> {
+  :sys xsd:integer %Map:{ v:sys %};
+  :dia xsd:integer %Map:{ v:dia %}
+}

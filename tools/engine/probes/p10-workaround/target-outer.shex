@@ -1,0 +1,13 @@
+PREFIX t: <http://target.example/>
+PREFIX v: <http://ex.example/var#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX Map: <http://shex.io/extensions/Map/#>
+
+start = @<Coll>
+
+# pass A: the skeleton only. t:report gets the SOURCE IRI as a leaf object,
+# which is exactly the join key pass B roots each sub-graph at.
+<Coll> {
+  t:subjectName xsd:string %Map:{ v:name %};
+  t:report IRI* %Map:{ v:reportIri %}
+}

@@ -162,17 +162,78 @@ def check_engine_pinned():
     return PASS, f"engine lockfile + {len(findings)} engine decision record(s)"
 
 
+def _dr301_verdicts():
+    """Parse the recorded probe verdict block out of DR-301."""
+    p = os.path.join(ROOT, "docs", "fhir-sulo", "decisions",
+                     "DR-301-engine-pin-and-capability-verdict.md")
+    if not os.path.exists(p):
+        return {}
+    out = {}
+    for m in re.finditer(r"^(PASS|FAIL)\s+(\S+)\s+(.*)$", open(p, encoding="utf-8").read(), re.M):
+        out[m.group(2)] = (m.group(1), m.group(3).strip())
+    return out
+
+
 def check_bp_tuple_test():
-    """Gate 3's headline condition must exist as an executable test."""
-    hits = []
-    for d in ("tests",):
-        for rel in _glob_any(d, r"\.py$"):
-            t = open(os.path.join(ROOT, rel), encoding="utf-8").read()
-            if "105" in t and "120" in t and ("80" in t and "70" in t):
-                hits.append(rel)
-    if not hits:
-        return FAIL, "no test asserts the {(bp-1,120,80),(bp-2,105,70)} multiset"
-    return PASS, f"asserted in {', '.join(hits)}"
+    """Gate 1/3: the ENGINE must preserve within-panel pairing.
+
+    A passing assertion in our own dataclass tests is not evidence about the
+    engine, so require both: a committed, runnable engine probe and a recorded
+    PASS verdict for it.
+    """
+    probe = _exists("tools", "engine", "probes", "p03-iteration")
+    verdicts = _dr301_verdicts()
+    v = verdicts.get("3")
+    unit = []
+    for rel in _glob_any("tests", r"\.py$"):
+        t = open(os.path.join(ROOT, rel), encoding="utf-8").read()
+        if "105" in t and "120" in t and "80" in t and "70" in t:
+            unit.append(rel)
+    if not probe:
+        return FAIL, "no committed engine probe tools/engine/probes/p03-iteration"
+    if not v:
+        return FAIL, "engine probe present but DR-301 records no verdict for probe 3"
+    if v[0] != PASS:
+        return FAIL, f"engine probe 3 recorded as {v[0]}: {v[1]}"
+    if not unit:
+        return FAIL, "engine passes but no unit test asserts the multiset"
+    return PASS, f"engine probe 3 PASS + asserted in {', '.join(unit)}"
+
+
+def check_determinism_recorded():
+    v = _dr301_verdicts().get("4a")
+    if not v:
+        return FAIL, "DR-301 records no determinism verdict (probe 4a)"
+    if v[0] != PASS:
+        return FAIL, f"probe 4a recorded as {v[0]}: {v[1]}"
+    return PASS, "probe 4a PASS - byte-identical across runs incl. blank-node labels"
+
+
+def check_engine_gaps_documented():
+    """Gate 1: unsupported behaviour documented as blocking, not hidden."""
+    dev = os.path.join(ROOT, "docs", "fhir-sulo", "CONTRACT-DEVIATIONS.md")
+    if not os.path.exists(dev):
+        return FAIL, "no CONTRACT-DEVIATIONS.md"
+    verdicts = _dr301_verdicts()
+    fails = [k for k, (st, _) in verdicts.items() if st == FAIL]
+    if not verdicts:
+        return FAIL, "DR-301 records no probe verdicts at all"
+    if not fails:
+        return MANUAL, "no FAIL verdicts recorded; confirm the probe set was adversarial"
+    text = open(dev, encoding="utf-8").read()
+    cds = re.findall(r"^## (CD-\d+)", text, re.M)
+    if not cds:
+        return FAIL, f"{len(fails)} engine FAILs but no CD- entries documenting them"
+    return PASS, f"{len(fails)} engine FAILs recorded; deviations {', '.join(cds)} documented"
+
+
+def check_mock_services():
+    ident = _exists("src", "fhir_sulo", "identity")
+    term = _exists("src", "fhir_sulo", "terminology")
+    if not (ident and term):
+        missing = [n for n, ok in (("identity", ident), ("terminology", term)) if not ok]
+        return FAIL, f"missing service package(s): {', '.join(missing)}"
+    return PASS, "identity and terminology packages present"
 
 
 CONDITIONS: List[Condition] = [
@@ -190,9 +251,9 @@ CONDITIONS: List[Condition] = [
     Condition(1, "plan Gate 1", "Engine build pinned with a recorded capability verdict", check_engine_pinned),
     Condition(1, "plan Gate 1", "FHIR JSON to RDF proven for the fixtures, references resolved"),
     Condition(1, "plan Gate 1", "Two BP panels preserve their component pairing", check_bp_tuple_test),
-    Condition(1, "plan Gate 1", "Running the same map twice yields the same graph identity"),
-    Condition(1, "plan Gate 1", "Unsupported engine behaviour documented as a blocking issue, not hidden in a postprocessor"),
-    Condition(1, "plan Gate 1", "Deterministic mock terminology/identity service available"),
+    Condition(1, "plan Gate 1", "Running the same map twice yields the same graph identity", check_determinism_recorded),
+    Condition(1, "plan Gate 1", "Unsupported engine behaviour documented as a blocking issue, not hidden in a postprocessor", check_engine_gaps_documented),
+    Condition(1, "plan Gate 1", "Deterministic mock terminology/identity service available", check_mock_services),
     # ---- Gate 2 -----------------------------------------------------------
     Condition(2, "plan Gate 2", "Normal eGFR fixture yields exactly one value/unit/quality/patient association"),
     Condition(2, "plan Gate 2", "Every negative fixture takes its specified source-only or rejected path"),
