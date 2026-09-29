@@ -7,7 +7,7 @@
     "maps/r4/encounter/encounter-target.v1.shex",
     "maps/r4/encounter/encounter-bindings.v1.json"
   ],
-  "pairing_hash": "652e3d4916991f8f0bc10022f2be92f3fb2c36da74ee87535d2a1f13d794c5f2",
+  "pairing_hash": "7705e056ec15169ac7784ecd420394b2a6fa6fde3a8b59bfd0e38f1d2fb11ad0",
   "pairing_hash_note": "Recomputed and checked by tests/contracts/maps/test_map_contracts.py; written by `python3 maps/r4/rehash.py`.",
   "source_release": "R4",
   "source_profiles": [

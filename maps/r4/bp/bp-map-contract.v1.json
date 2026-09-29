@@ -7,7 +7,7 @@
     "maps/r4/bp/bp-target.v1.shex",
     "maps/r4/bp/bp-bindings.v1.json"
   ],
-  "pairing_hash": "ed3d572dc839d61ad271dc5d3c12d12dab5986c3c638206b0f226686d1b8372e",
+  "pairing_hash": "74e7ee4168ea3a4e09cc2b76a02b4b876384237522f0e705a4d8055e8b67e2c8",
   "pairing_hash_note": "Recomputed and checked by tests/contracts/maps/test_map_contracts.py; written by `python3 maps/r4/rehash.py`.",
   "source_release": "R4",
   "source_profiles": [

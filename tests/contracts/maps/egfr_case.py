@@ -34,16 +34,18 @@ def focus_iri(fixture_id: str) -> str:
     return "https://fhir.example/Observation/%s" % source_json(fixture_id).stem
 
 
-def bind(fixture_id: str) -> Dict[str, Any]:
-    return mapjob.bind(FAMILY, fixture_dir(fixture_id) / "canonical.nt", focus_iri(fixture_id))
+def bind(fixture_id: str, data_override: Optional[str] = None) -> Dict[str, Any]:
+    return mapjob.bind(FAMILY, fixture_dir(fixture_id) / "canonical.nt",
+                       focus_iri(fixture_id), data_override=data_override)
 
 
 def run(fixture_id: str, *, quality_mode: str = "per-observation",
         bindings_override: Optional[Mapping[str, Any]] = None,
-        vocabulary_override: Optional[Mapping[str, str]] = None) -> Dict[str, Any]:
+        vocabulary_override: Optional[Mapping[str, str]] = None,
+        data_override: Optional[str] = None) -> Dict[str, Any]:
     """Bind, resolve identity and terminology, then materialize every pass."""
     manifest = mapjob.load_manifest(FAMILY)
-    bound = bind(fixture_id)
+    bound = bind(fixture_id, data_override)
     if not bound["validation"]["ok"]:
         return bound
 
@@ -97,7 +99,9 @@ def run(fixture_id: str, *, quality_mode: str = "per-observation",
     job = {
         "sourceSchema": engine.cpath("maps/r4/egfr/egfr-source.v1.shex"),
         "targetSchema": engine.cpath("maps/r4/egfr/egfr-target.v1.shex"),
-        "data": engine.cpath(str((fixture_dir(fixture_id) / "canonical.nt").relative_to(REPO))),
+        "data": None if data_override is not None else engine.cpath(
+            str((fixture_dir(fixture_id) / "canonical.nt").relative_to(REPO))),
+        "dataInline": data_override,
         "focus": canonical_url,
         "startShape": None,
         "passes": mapjob.build_passes(manifest, values),

@@ -33,7 +33,39 @@ start = @sh:BPObservation
 sh:BPObservation CLOSED {
   rdf:type       [fhir:Observation] ;
   fhir:nodeRole  [fhir:treeRoot] ;
-  fhir:DomainResource.contained . * ;                      # tolerated, never mapped
+  # TOLERATED AND NEVER MAPPED -- `source_only_elements` in
+  # profiles/fhir-r4-pilot.json. A CLOSED shape must list them or it rejects
+  # the resource outright; HL7's own observation-example-f205-egfr carries
+  # `issued`, `identifier`, `interpretation`, `note`, `performer` and `text`.
+  # None of these qualifies the numeric claim, so retaining them in the source
+  # layer while asserting the quantity is exactly what section 2 permits.
+  # The value expression is the wildcard `.`, so there is no sub-shape beneath
+  # any of them and no Map variable on any of them: depth stays 1 (DR-302) and
+  # nothing here can reach the target graph.
+  fhir:DomainResource.text        . * ;
+  fhir:DomainResource.contained   . * ;
+  fhir:Observation.identifier     . * ;
+  fhir:Observation.issued         . * ;
+  fhir:Observation.performer      . * ;
+  fhir:Observation.interpretation . * ;
+  fhir:Observation.note           . * ;
+  fhir:Observation.bodySite       . * ;
+  fhir:Observation.specimen       . * ;
+  fhir:Observation.device         . * ;
+  #
+  # DELIBERATELY ABSENT: fhir:Observation.method. It is listed in
+  # source_only_elements, but concept note section 2 names `method` among the
+  # things that must never be dropped "while claiming an unqualified numeric
+  # result" -- a creatinine-based and a cystatin-C-based eGFR are not the same
+  # measurement. Retaining it in the source layer does not make the unqualified
+  # quantity in the semantic layer correct. So a resource carrying `method`
+  # fails here, loudly, and the conflict between the two documents is reported
+  # rather than resolved unilaterally (DR-205).
+  #
+  # Also absent: fhir:Observation.valueString and .valueCodeableConcept. A
+  # resource carrying one INSTEAD of valueQuantity already fails, because
+  # valueQuantity is required; one carrying both is invalid FHIR and should
+  # fail rather than have the string silently dropped.
   fhir:Resource.id   { fhir:value xsd:string %Map:{ v:panel %} } ;
   fhir:Resource.meta { fhir:Meta.versionId { fhir:value xsd:string %Map:{ v:versionId %} } } ;
   fhir:Observation.status  { fhir:value ["final"] %Map:{ v:status %} } ;
@@ -66,6 +98,7 @@ sh:SubjectReference CLOSED {
 }
 
 sh:SystolicComponent CLOSED {
+  fhir:Observation.component.interpretation . * ;   # tolerated, never mapped
   fhir:index . ? ;
   fhir:Observation.component.code @sh:SystolicCode ;
   fhir:Observation.component.valueQuantity @sh:SystolicQuantity
@@ -88,6 +121,7 @@ sh:SystolicQuantity CLOSED {
 }
 
 sh:DiastolicComponent CLOSED {
+  fhir:Observation.component.interpretation . * ;   # tolerated, never mapped
   fhir:index . ? ;
   fhir:Observation.component.code @sh:DiastolicCode ;
   fhir:Observation.component.valueQuantity @sh:DiastolicQuantity

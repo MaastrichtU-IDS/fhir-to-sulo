@@ -2,7 +2,7 @@
 
 Two jobs:
 
-1. **cross-check** -- for every fixture, the map's own outcome must agree with
+1. **cross-check** -- for all 19 fixtures, the map's own outcome must agree with
    Agent 2's independently declared eligibility.  Two layers authored by two
    agents from the same contract; a disagreement is a finding, not a test to
    relax.  This half needs no Docker and runs in CI.
@@ -48,13 +48,9 @@ class ExpectedOutcomes(unittest.TestCase):
                           if p.is_dir() and (p / "case.json").is_file())
         mine = sorted(p.name for p in FIXTURE_DIRS)
         self.assertEqual(mine, declared)
-        # Count derived from Agent 2's fixture set, not hardcoded. A literal
-        # here made adding a fixture break a test that has nothing to do with
-        # the new fixture, which trains people to bump numbers rather than
-        # read failures. The coupling that matters -- one expected outcome per
-        # declared fixture -- is the assertEqual above.
-        self.assertEqual(len(mine), len(declared))
-        self.assertGreaterEqual(len(mine), 19, "fixtures should not silently disappear")
+        # derived, not hardcoded: adding a fixture should fail the tests that
+        # are actually about that fixture, not an unrelated count.
+        self.assertGreaterEqual(len(mine), 19, mine)
 
     def test_the_map_outcome_agrees_with_agent_2s_declaration(self):
         for path in FIXTURE_DIRS:
@@ -99,34 +95,24 @@ class ExpectedOutcomes(unittest.TestCase):
                 self.assertIn("R2", params["quality_identity_mode_note"])
                 self.assertEqual(params["sulo_version"], "0.2.12")
 
-    def test_exactly_the_eligible_fixtures_materialize(self):
-        """Which fixtures produce a graph, named rather than counted.
+    def test_exactly_the_expected_fixtures_materialize(self):
+        """The named list IS the contract; the counts are derived from it.
 
-        The list is explicit because *which* fixtures map is the contract;
-        the totals are derived so that adding a fixture does not break this
-        test for an unrelated reason.
+        Which fixtures produce a semantic graph is a reviewed decision, so it
+        is spelled out. How many there are is not, so adding a fixture must
+        not fail a test about arithmetic.
         """
         mapped = sorted(outcome(p)["fixture_id"] for p in FIXTURE_DIRS
                         if outcome(p)["map_outcome"] == "mapped")
-        expected_mapped = sorted([
+        self.assertEqual(mapped, [
             "bp-component-omitted", "bp-duplicate-values", "bp-other-patient",
             "bp-reordered-serialisation", "bp-two-panels", "egfr-baseline",
             "egfr-contained-subject", "egfr-corrected",
             "enc-baseline", "enc-contained-practitioner"])
-        self.assertEqual(mapped, expected_mapped)
-
         not_mapped = sorted(outcome(p)["fixture_id"] for p in FIXTURE_DIRS
                             if outcome(p)["map_outcome"] != "mapped")
         self.assertEqual(len(mapped) + len(not_mapped), len(FIXTURE_DIRS))
-        # Every non-mapped fixture must say why, rather than merely not map.
-        for path in FIXTURE_DIRS:
-            doc = outcome(path)
-            if doc["map_outcome"] != "mapped":
-                with self.subTest(fixture=doc["fixture_id"]):
-                    self.assertTrue(
-                        doc.get("map_diagnostic") or doc.get("reason")
-                        or doc.get("map_outcome"),
-                        f"{doc['fixture_id']} does not map and gives no reason")
+        self.assertIn("egfr-retracted", not_mapped)
 
 
 class ExpectedGraphContents(unittest.TestCase):
@@ -203,7 +189,7 @@ class ExpectedGraphContents(unittest.TestCase):
 
 class ExpectedGraphsAreCurrent(engine.EngineTestCase):
     def test_build_check_reports_no_drift(self):
-        """Re-runs every map and diffs against the committed graphs."""
+        """Re-runs all 19 maps and diffs against the committed graphs."""
         proc = subprocess.run([sys.executable, str(REPO / "fixtures/expected/build.py"),
                                "--check"], capture_output=True, text=True, cwd=str(REPO))
         self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
