@@ -198,12 +198,39 @@ class RealMapOutputConforms(unittest.TestCase):
         )
         self.assertTrue(all("R5 option A" in v.message for v in report.violations))
 
-    def test_a_whole_batch_of_emitted_graphs_conforms_together(self):
+    def test_a_whole_batch_of_current_graphs_conforms_together(self):
         """Per-fixture conformance does not imply the union conforms: the
-        orphan and cross-patient constraints are graph-wide."""
-        graph = mapoutput.merged_graph(*[m.fixture_id for m in mapoutput.MAPPED])
+        orphan and cross-patient constraints are graph-wide.
+
+        The union is over CURRENT graphs, one per subject. `egfr-456` ships
+        at v1, v2 and v3, and v1 and v2 emit the same result node IRI -- so
+        merging both puts two `sulo:hasValue` literals on one quantity and
+        violates DR-002 axiom 1. That is not a shape bug; it is the reason
+        the store replaces a superseded version instead of accumulating it.
+        Merging every version would assert a graph the pipeline never
+        produces.
+        """
+        graph = mapoutput.merged_graph(
+            *[m.fixture_id for m in mapoutput.CURRENT_MAPPED])
         report = shapes_check.validate_graph(graph, LITERAL)
         self.assertTrue(report.conforms, report.text)
+
+    def test_merging_two_versions_of_one_resource_does_violate(self):
+        """Control: the exclusion above is load-bearing, not cosmetic.
+
+        If this ever conforms, either the correction scenario stopped
+        sharing node IRIs or the functional-hasValue shape stopped being
+        enforced -- both worth knowing.
+        """
+        ids = {m.fixture_id for m in mapoutput.MAPPED}
+        if not {"egfr-baseline", "egfr-corrected"} <= ids:
+            self.skipTest("needs both versions of egfr-456 as mapped fixtures")
+        graph = mapoutput.merged_graph("egfr-baseline", "egfr-corrected")
+        report = shapes_check.validate_graph(graph, LITERAL)
+        self.assertFalse(
+            report.conforms,
+            "merging v1 and v2 of one resource should violate the functional "
+            "hasValue constraint; it did not")
 
 
 @unittest.skipUnless(HAVE_SHACL, SKIP)

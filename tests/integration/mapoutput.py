@@ -133,6 +133,85 @@ SKIP_NO_FIXTURES = (
 )
 
 
+
+def _subject_of(item: "MapOutput"):
+    """(resource identity, version) for a mapped fixture.
+
+    Read from the FHIR source document under ``fixtures/r4/``, because
+    ``outcome.json`` records the map result and not the source version.
+    Identity is ``resourceType/id`` -- two fixtures are versions of the same
+    resource exactly when those match.
+    """
+    import glob as _glob
+
+    src_dir = os.path.join(REPO, "fixtures", "r4", item.family, item.fixture_id)
+    for path in sorted(_glob.glob(os.path.join(src_dir, "*.json"))):
+        name = os.path.basename(path)
+        if name in ("case.json", "expected-bindings.json", "outcome.json"):
+            continue
+        try:
+            doc = json.loads(open(path, encoding="utf-8").read())
+        except Exception:
+            continue
+        rtype, rid = doc.get("resourceType"), doc.get("id")
+        if not (rtype and rid):
+            continue
+        ver = ((doc.get("meta") or {}).get("versionId"))
+        try:
+            ver_n = int(ver)
+        except (TypeError, ValueError):
+            ver_n = None
+        return "%s/%s" % (rtype, rid), ver_n
+    return None, None
+
+
+CURRENT_MAPPED = None
+"""Mapped fixtures minus superseded versions of the same resource.
+
+`egfr-456` now ships at v1, v2 and v3. v1 and v2 both emit the SAME result
+node IRI -- that is the point of the correction scenario, and it is why the
+store replaces rather than accumulates. So a naive union of every mapped
+fixture is not a graph the pipeline would ever produce: the shared quantity
+node ends up with two `sulo:hasValue` literals, which violates DR-002
+axiom 1 (hasValue is functional).
+
+A graph-wide conformance check must therefore merge the CURRENT graphs --
+one per subject -- exactly as the store holds them.
+"""
+
+
+def _compute_current_mapped():
+    """Drop only SUPERSEDED versions, never variants.
+
+    Several BP fixtures reuse `Observation/bp-1` at versionId 1 --
+    `bp-two-panels`, `bp-reordered-serialisation`, `bp-component-omitted`,
+    `bp-other-patient`. Those are alternative scenarios, not a version
+    history, and they merged fine before the lineage fixtures arrived.
+    Collapsing them would silently shrink the batch and weaken the
+    graph-wide orphan and cross-patient checks.
+
+    So a fixture is superseded only when another fixture has the same
+    resource identity AND a strictly greater versionId.
+    """
+    versions = {}
+    for item in MAPPED:
+        ident, ver = _subject_of(item)
+        if ident is None or ver is None:
+            continue
+        versions.setdefault(ident, set()).add(ver)
+
+    keep = []
+    for item in MAPPED:
+        ident, ver = _subject_of(item)
+        if ident is None or ver is None:
+            keep.append(item)
+            continue
+        if ver < max(versions[ident]):
+            continue          # superseded by a later version of this resource
+        keep.append(item)
+    return tuple(sorted(keep, key=lambda m: m.fixture_id))
+
+
 def by_id(fixture_id: str) -> MapOutput:
     for item in ALL:
         if item.fixture_id == fixture_id:
@@ -167,3 +246,5 @@ def merged_graph(*fixture_ids: str):
     for fixture_id in fixture_ids:
         graph.parse(data=by_id(fixture_id).triples(), format="nt")
     return graph
+
+CURRENT_MAPPED = _compute_current_mapped()
