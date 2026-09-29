@@ -117,7 +117,7 @@ directly has made the record/fact error §2 forbids.
 
 ## 3. Fixture inventory
 
-**eGFR (concept note §4)** — 10 cases, one per line, each its own directory:
+**eGFR (concept note §4)** — 12 cases, one per line, each its own directory:
 
 | Fixture | What it is | Declared outcome |
 | --- | --- | --- |
@@ -131,6 +131,70 @@ directly has made the record/fact error §2 forbids.
 | `egfr-reference-ambiguous` | two contained Patients share id `p` | rejected |
 | `egfr-entered-in-error` | `status = entered-in-error` | source-only |
 | `egfr-contained-subject` | `subject` = `#p-inline`, resolves | eligible |
+| `egfr-corrected` | **v2 of `egfr-456`**: `versionId 2`, value restated 55.0 → 58.5 | eligible |
+| `egfr-retracted` | **v3 of `egfr-456`**: `versionId 3`, `status = entered-in-error`, value unchanged | source-only |
+
+### The `egfr-456` version lineage
+
+`egfr-baseline`, `egfr-corrected` and `egfr-retracted` are **three versions of
+one resource**, not three resources. They share the resource id `egfr-456` and
+therefore the canonical URL `https://fhir.example/Observation/egfr-456`, and
+differ in `meta.versionId` (1, 2, 3).
+
+This exists because Gate 4's correction row — "version 2 removes stale
+version-1 derived assertions from the current semantic graph while preserving
+version-1 lineage" — cannot be evidenced by two *different* resources.
+`egfr-entered-in-error` is a separate resource (`egfr-456-eie`) and is kept, as
+the single-resource negative case; `egfr-retracted` is the same resource later
+retracted, which is what actually happens.
+
+Four properties are asserted in `tests/contracts/ingest/test_version_lineage.py`:
+
+| Property | Why it matters |
+| --- | --- |
+| one canonical URL across all three | the store sees one subject key, three graph keys; `subject_of(graph_key(v))` is identical for all three |
+| three distinct `source_json_digest` values | a v2 whose bytes matched v1 would short-circuit the replacement path, and the store's reused-`versionId` guard would have nothing to catch |
+| one stable subject entity IRI | correcting a result does not change who the patient is |
+| `effective[x]` fixed while `meta.lastUpdated` moves | concept note §2 requires the clinically relevant time and the resource update time to stay distinguishable. A single resource cannot demonstrate that, because nothing moves; a correction can. |
+
+The value genuinely changes at v2 (55.0 → 58.5, a restatement after the
+creatinine it was computed from was corrected), so the derived graph differs
+and the replacement is real rather than a no-op. The value does **not** change
+at v3, because a retraction invalidates the record rather than restating the
+result.
+
+All three source files are named `egfr-456.json`, one per directory. The file
+is named after the resource it holds, which is also what
+`tests/contracts/maps/egfr_case.py` assumes when it derives the focus IRI from
+the filename stem.
+
+Both carry a `lineage` block in `case.json` (`resource_id`, `canonical_url`,
+`version_id`, `supersedes`) so a consumer can walk the chain without parsing
+directory names.
+
+#### Two things these fixtures deliberately do not do
+
+**v2 is `status = "final"`, not `"corrected"`.** FHIR `corrected` is the more
+precise status for a restated result, but review item R3 lists
+`amended`/`corrected` as open and `maps/r4/egfr/egfr-source.v1.shex` guards
+`Observation.status` to `["final"]`. A `corrected` v2 would be rejected by the
+map, and Gate 4's correction row could not run on it. Revisit when R3 is
+answered.
+
+**None of the three carries `Observation.issued`.** The same source shape is
+CLOSED and does not list `fhir:Observation.issued`, so a fixture carrying it
+fails source validation. Verified by bisection: with `issued` the map reports
+`stage=validate, ok=false`; without it, `stage=done, 21 triples`.
+`meta.lastUpdated` *is* tolerated, because the nested meta shape is open, which
+is why the time distinction above is stated in terms of `lastUpdated`.
+
+That second one is a shape gap rather than a fixture choice, and is reported to
+Agent 1 for Agent 3: HL7's own `observation-example-f205-egfr` carries
+`issued`, so the current shape would reject the published example the concept
+note §4 is modelled on. `Observation.issued` is in this pilot's
+`source_only_elements`, so the fix is one tolerated-but-unmapped line in the
+shape, in the style of the existing `fhir:DomainResource.contained . *`.
+Recorded here rather than patched, because `maps/` is not this agent's path.
 
 **Blood pressure (concept note §5)** — 5 cases, each two `Observation`s:
 
@@ -206,6 +270,22 @@ resource. **Question: is a finished Encounter with no `period.end` a case the
 pilot must handle, and if so, is it source-only, rejected, or materialised with
 an unknown endpoint?** Concept note §2 requires preserving unknown endpoints,
 which suggests it should be representable rather than rejected.
+
+### Q-A2-5 — `amended` / `corrected` were being asserted, and are not
+
+Recorded as a correction to this pilot's own manifest rather than a new
+question. `profiles/fhir-r4-pilot.json` originally declared Observation
+`amended` and `corrected` **eligible**, which asserted an answer to R3's
+"`status = amended` / `corrected` — open — treat as a new version, or as
+current?". Corrected on 2026-09-29: both are now **source-only**, alongside
+`preliminary` and `registered`, which were already held that way. The record is
+retained in full and no clinical assertion is made.
+
+This also removes a disagreement with `maps/r4/egfr/egfr-map-contract.v1.json`,
+whose `status_eligibility` is `["final"]` only. The two layers — ingestion
+eligibility and map acceptance — now agree that nothing but `final` produces
+clinical assertions. **The reviewer answer to R3 still governs;** this is just
+the manifest no longer pre-empting it.
 
 ### Q-A2-4 (minor, for the record) — `Observation.code` on a BP panel
 

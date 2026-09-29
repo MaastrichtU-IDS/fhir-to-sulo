@@ -40,10 +40,20 @@ name (`bp-1-b7`), so two panels can never share a node by accident.
 
 ## Inventory
 
-**eGFR** (concept note §4) — 10 cases: `egfr-baseline`,
+**eGFR** (concept note §4) — 12 cases: `egfr-baseline`,
 `egfr-data-absent-reason`, `egfr-comparator`, `egfr-unit-missing`,
 `egfr-unit-unrecognised`, `egfr-code-unmapped`, `egfr-reference-unresolvable`,
-`egfr-reference-ambiguous`, `egfr-entered-in-error`, `egfr-contained-subject`.
+`egfr-reference-ambiguous`, `egfr-entered-in-error`, `egfr-contained-subject`,
+`egfr-corrected`, `egfr-retracted`.
+
+Three of those — `egfr-baseline`, `egfr-corrected`, `egfr-retracted` — are
+**the same resource at versions 1, 2 and 3**. Same resource id `egfr-456`,
+same canonical URL, different `meta.versionId` and different source digest.
+That is the lineage Gate 4's correction row needs; `egfr-entered-in-error` is
+a *different* resource and cannot supply it. All three source files are called
+`egfr-456.json`, one per directory, because the file is named after the
+resource it holds. See DR-102 §3 and
+`tests/contracts/ingest/test_version_lineage.py`.
 
 **Blood pressure** (concept note §5) — 5 cases, each two separate `Observation`
 resources: `bp-two-panels` (the baseline `{(bp-1,120,80),(bp-2,105,70)}`),

@@ -1,0 +1,28 @@
+{
+  "fixture_id": "egfr-corrected",
+  "family": "egfr",
+  "concept_note_section": "4",
+  "synthetic": true,
+  "description": "Version 2 of the SAME resource as egfr-baseline: id egfr-456, canonical URL https://fhir.example/Observation/egfr-456, meta.versionId 2. The reported eGFR is restated from 55.0 to 58.5 after the creatinine it was computed from was corrected. It carries meta.lastUpdated but not Observation.issued, which the pinned eGFR source shape rejects. The status stays 'final': FHIR 'corrected' would be the more precise status, but review item R3 holds amended/corrected open and Agent 3's egfr-source.v1.shex guards status to 'final', so a 'corrected' v2 would be rejected by the map and Gate 4's correction row could not run on it. The clinically relevant time is unchanged, because the measurement still concerns 2026-09-02T14:00:00Z; only meta.lastUpdated moves. This is the fixture Gate 4's correction row needs: same subject key, different version key, genuinely different source digest.",
+  "sources": [
+    "egfr-456.json"
+  ],
+  "lineage": {
+    "resource_id": "egfr-456",
+    "canonical_url": "https://fhir.example/Observation/egfr-456",
+    "version_id": "2",
+    "supersedes": "1",
+    "note": "Supersedes version 1 (fixtures/r4/egfr/egfr-baseline). Derived version-1 assertions must be removed from the current semantic graph while version-1 lineage remains auditable."
+  },
+  "expected": {
+    "eligibility": "eligible",
+    "eligibility_reason_contains": [],
+    "references": {
+      "Observation.subject": {
+        "kind": "literal-relative",
+        "resolved_target": "https://fhir.example/Patient/p123",
+        "entity_iri_established": true
+      }
+    }
+  }
+}
