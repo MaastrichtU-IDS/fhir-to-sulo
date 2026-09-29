@@ -1,0 +1,24 @@
+# SP003, the route CD-1 is named after. `id(...)` does not exist in this engine.
+#
+# What the engine does (DR-301 probe 4b): variablePattern is tried BEFORE
+# functionPattern, and `id(v:componentCode)` contains a colon, so it is read as
+# a variable in a prefix called `id(v` -- which is undeclared, never binds, and
+# takes the whole <Measurement> shape down with it. Output: the Panel triples
+# only, exit 0, empty stderr.
+PREFIX ex:  <https://w3id.org/fhir-sulo/>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX Map: <http://shex.io/extensions/Map/#>
+PREFIX v:   <https://w3id.org/fhir-sulo/var#>
+
+start = @<Panel>
+
+<Panel> {
+  ex:aboutParticipant IRI %Map:{ v:subject %};
+  ex:hasMeasurement   @<Measurement>*
+}
+
+<Measurement> {
+  ex:iri       IRI         %Map:{ id(v:componentCode) %};
+  ex:magnitude xsd:decimal %Map:{ v:componentValue %};
+  ex:unit      xsd:string  %Map:{ v:componentUnit %}
+}

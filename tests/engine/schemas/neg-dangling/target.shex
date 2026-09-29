@@ -1,0 +1,12 @@
+# SP007. <Measurement> is referenced but never declared. ShExC parses this
+# happily; the engine raises "shape ... not found" only once data arrives.
+PREFIX ex:  <https://w3id.org/fhir-sulo/>
+PREFIX Map: <http://shex.io/extensions/Map/#>
+PREFIX v:   <https://w3id.org/fhir-sulo/var#>
+
+start = @<Panel>
+
+<Panel> {
+  ex:aboutParticipant IRI %Map:{ v:subject %};
+  ex:hasMeasurement   @<Measurement>*
+}

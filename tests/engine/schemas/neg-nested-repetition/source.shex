@@ -1,0 +1,28 @@
+# SP002 / DR-302. Patient -> Observation* -> component*: two repeating
+# constraints on one path from the root.
+#
+# What the engine does (DR-301 probe 3b): normalizeBindingTree flattens the
+# correctly-nested binding tree into a frame tape with no outer-group boundary
+# and duplicates the outer variables into every inner frame. Groups come back
+# mislabelled, at least one member is dropped, and no guard setting changes it.
+PREFIX fhir: <http://hl7.org/fhir/>
+PREFIX xsd:  <http://www.w3.org/2001/XMLSchema#>
+PREFIX Map:  <http://shex.io/extensions/Map/#>
+PREFIX v:    <https://w3id.org/fhir-sulo/var#>
+
+start = @<Patient>
+
+<Patient> {
+  fhir:identifier xsd:string %Map:{ v:mrn %};
+  fhir:observation @<BPObservation>*
+}
+
+<BPObservation> {
+  fhir:effective xsd:dateTime %Map:{ v:effective %};
+  fhir:component @<BPComponent>*
+}
+
+<BPComponent> {
+  fhir:value xsd:decimal %Map:{ v:componentValue %};
+  fhir:unit  xsd:string  %Map:{ v:componentUnit %}
+}

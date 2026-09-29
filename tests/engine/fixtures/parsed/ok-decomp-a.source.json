@@ -1,0 +1,58 @@
+{
+ "prefixes": {
+  "Map": "http://shex.io/extensions/Map/#",
+  "fhir": "http://hl7.org/fhir/",
+  "v": "https://w3id.org/fhir-sulo/var#",
+  "xsd": "http://www.w3.org/2001/XMLSchema#"
+ },
+ "schema": {
+  "shapes": [
+   {
+    "id": "Patient",
+    "shapeExpr": {
+     "expression": {
+      "expressions": [
+       {
+        "predicate": "http://hl7.org/fhir/identifier",
+        "semActs": [
+         {
+          "code": " v:mrn ",
+          "name": "http://shex.io/extensions/Map/#",
+          "type": "SemAct"
+         }
+        ],
+        "type": "TripleConstraint",
+        "valueExpr": {
+         "datatype": "http://www.w3.org/2001/XMLSchema#string",
+         "type": "NodeConstraint"
+        }
+       },
+       {
+        "max": -1,
+        "min": 0,
+        "predicate": "http://hl7.org/fhir/observation",
+        "semActs": [
+         {
+          "code": " v:panelIri ",
+          "name": "http://shex.io/extensions/Map/#",
+          "type": "SemAct"
+         }
+        ],
+        "type": "TripleConstraint",
+        "valueExpr": {
+         "nodeKind": "iri",
+         "type": "NodeConstraint"
+        }
+       }
+      ],
+      "type": "EachOf"
+     },
+     "type": "Shape"
+    },
+    "type": "ShapeDecl"
+   }
+  ],
+  "start": "Patient",
+  "type": "Schema"
+ }
+}

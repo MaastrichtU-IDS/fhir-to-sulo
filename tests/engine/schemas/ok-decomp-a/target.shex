@@ -1,0 +1,13 @@
+PREFIX ex:  <https://w3id.org/fhir-sulo/>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX Map: <http://shex.io/extensions/Map/#>
+PREFIX v:   <https://w3id.org/fhir-sulo/var#>
+
+start = @<Subject>
+
+# ex:hasPanel is IRI-valued, not shape-valued, so this is NOT the SP004 mistake:
+# emitting the bound IRI as a leaf is the whole intent. Pass B fills that node.
+<Subject> {
+  ex:mrn      xsd:string %Map:{ v:mrn %};
+  ex:hasPanel IRI*       %Map:{ v:panelIri %}
+}

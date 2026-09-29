@@ -1,0 +1,136 @@
+{
+ "prefixes": {
+  "Map": "http://shex.io/extensions/Map/#",
+  "ex": "https://w3id.org/fhir-sulo/",
+  "sulo": "https://w3id.org/sulo/",
+  "v": "https://w3id.org/fhir-sulo/var#",
+  "xsd": "http://www.w3.org/2001/XMLSchema#"
+ },
+ "schema": {
+  "shapes": [
+   {
+    "id": "Panel",
+    "shapeExpr": {
+     "expression": {
+      "expressions": [
+       {
+        "predicate": "https://w3id.org/fhir-sulo/recordStatus",
+        "semActs": [
+         {
+          "code": " v:status ",
+          "name": "http://shex.io/extensions/Map/#",
+          "type": "SemAct"
+         }
+        ],
+        "type": "TripleConstraint",
+        "valueExpr": {
+         "datatype": "http://www.w3.org/2001/XMLSchema#string",
+         "type": "NodeConstraint"
+        }
+       },
+       {
+        "predicate": "https://w3id.org/fhir-sulo/aboutParticipant",
+        "semActs": [
+         {
+          "code": " v:subject ",
+          "name": "http://shex.io/extensions/Map/#",
+          "type": "SemAct"
+         }
+        ],
+        "type": "TripleConstraint",
+        "valueExpr": {
+         "nodeKind": "iri",
+         "type": "NodeConstraint"
+        }
+       },
+       {
+        "predicate": "https://w3id.org/fhir-sulo/atTime",
+        "semActs": [
+         {
+          "code": " v:effective ",
+          "name": "http://shex.io/extensions/Map/#",
+          "type": "SemAct"
+         }
+        ],
+        "type": "TripleConstraint",
+        "valueExpr": {
+         "datatype": "http://www.w3.org/2001/XMLSchema#dateTime",
+         "type": "NodeConstraint"
+        }
+       },
+       {
+        "max": -1,
+        "min": 0,
+        "predicate": "https://w3id.org/fhir-sulo/hasMeasurement",
+        "type": "TripleConstraint",
+        "valueExpr": "Measurement"
+       }
+      ],
+      "type": "EachOf"
+     },
+     "type": "Shape"
+    },
+    "type": "ShapeDecl"
+   },
+   {
+    "id": "Measurement",
+    "shapeExpr": {
+     "expression": {
+      "expressions": [
+       {
+        "predicate": "https://w3id.org/fhir-sulo/measures",
+        "semActs": [
+         {
+          "code": " v:componentCode ",
+          "name": "http://shex.io/extensions/Map/#",
+          "type": "SemAct"
+         }
+        ],
+        "type": "TripleConstraint",
+        "valueExpr": {
+         "nodeKind": "iri",
+         "type": "NodeConstraint"
+        }
+       },
+       {
+        "predicate": "https://w3id.org/fhir-sulo/magnitude",
+        "semActs": [
+         {
+          "code": " v:componentValue ",
+          "name": "http://shex.io/extensions/Map/#",
+          "type": "SemAct"
+         }
+        ],
+        "type": "TripleConstraint",
+        "valueExpr": {
+         "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+         "type": "NodeConstraint"
+        }
+       },
+       {
+        "predicate": "https://w3id.org/fhir-sulo/unit",
+        "semActs": [
+         {
+          "code": " v:componentUnit ",
+          "name": "http://shex.io/extensions/Map/#",
+          "type": "SemAct"
+         }
+        ],
+        "type": "TripleConstraint",
+        "valueExpr": {
+         "datatype": "http://www.w3.org/2001/XMLSchema#string",
+         "type": "NodeConstraint"
+        }
+       }
+      ],
+      "type": "EachOf"
+     },
+     "type": "Shape"
+    },
+    "type": "ShapeDecl"
+   }
+  ],
+  "start": "Panel",
+  "type": "Schema"
+ }
+}

@@ -1,0 +1,25 @@
+# SP004. A Map annotation on a shape-valued constraint in the TARGET.
+#
+# What the engine does (DR-301 probe 4b): _stepTripleConstraint takes the Map
+# branch and returns before the shape branch, so `v:componentCode` is emitted as
+# a leaf object and <Measurement> is never entered. You get the IRI or the
+# contents, never both.
+#
+# The same annotation in the SOURCE schema is correct and is how DR-302's
+# decomposition binds its join key, so this check is target-only.
+PREFIX ex:  <https://w3id.org/fhir-sulo/>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX Map: <http://shex.io/extensions/Map/#>
+PREFIX v:   <https://w3id.org/fhir-sulo/var#>
+
+start = @<Panel>
+
+<Panel> {
+  ex:aboutParticipant IRI %Map:{ v:subject %};
+  ex:hasMeasurement   @<Measurement>* %Map:{ v:componentCode %}
+}
+
+<Measurement> {
+  ex:magnitude xsd:decimal %Map:{ v:componentValue %};
+  ex:unit      xsd:string  %Map:{ v:componentUnit %}
+}

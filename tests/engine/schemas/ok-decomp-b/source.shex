@@ -1,0 +1,19 @@
+# Pass B of the DR-302 decomposition: one Observation, rooted at its own IRI.
+# One repeating constraint (fhir:component*), so the pair lints clean and sits
+# in the regime DR-301 probe 3 proved correct under any triple order.
+PREFIX fhir: <http://hl7.org/fhir/>
+PREFIX xsd:  <http://www.w3.org/2001/XMLSchema#>
+PREFIX Map:  <http://shex.io/extensions/Map/#>
+PREFIX v:    <https://w3id.org/fhir-sulo/var#>
+
+start = @<BPObservation>
+
+<BPObservation> {
+  fhir:effective xsd:dateTime %Map:{ v:effective %};
+  fhir:component @<BPComponent>*
+}
+
+<BPComponent> {
+  fhir:value xsd:decimal %Map:{ v:componentValue %};
+  fhir:unit  xsd:string  %Map:{ v:componentUnit %}
+}
