@@ -1,0 +1,156 @@
+{
+  "policy_id": "identity-policy",
+  "version": "1.0.0",
+  "status": "draft-awaiting-reviewer",
+  "owner": "Agent 5 (identity and terminology)",
+  "notes": [
+    "Machine-readable policy table. Loaded by src/fhir_sulo/identity.",
+    "No entry here asserts owl:sameAs between a FHIR resource and a person.",
+    "A resolved FHIR reference is lineage, not a person-equivalence claim."
+  ],
+
+  "entity_iri": {
+    "base": "https://example.org/fhir-sulo/",
+    "person_segment": "person-",
+    "quality_segment": "quality-",
+    "key_style": "scoped-hash",
+    "key_style_options": {
+      "scoped-hash": "person-<32 lowercase hex chars>. Source-scoped by construction; two sources that both hold Patient/p123 get different IRIs. Safe default.",
+      "scoped-slug": "person-<source-scope-slug>-<resource-id-slug>-<8 hex>. Readable and still source-scoped.",
+      "legacy-concept-note": "person-<resource-id-slug>, matching the concept note's ex:person-p123. ONLY valid when entity_iri.single_source_scope is set; a request from any other scope is rejected, not silently keyed."
+    },
+    "single_source_scope": null,
+    "key_hash_algorithm": "sha256",
+    "key_length_hex_chars": 32,
+    "key_revision": "1",
+    "key_revision_note": "Deliberately NOT the table's semantic version. Entity IRIs are stable across every policy edit that does not change the keying answer; bumping this revision is an explicit, breaking re-keying decision that needs a DR-4xx record. Agent 6 can therefore treat an entity IRI as stable while identity-policy.version moves.",
+    "key_input_fields": [
+      "key_scheme",
+      "key_revision",
+      "entity_kind",
+      "source_scope_id",
+      "resource_type",
+      "resource_id"
+    ],
+    "key_input_normalisation": "Unicode NFC, then canonical JSON (sorted keys, no whitespace, ASCII-escaped), then sha256. No timestamps, no process state, no Python hash()."
+  },
+
+  "reference_scope": {
+    "default": "source-scoped",
+    "rationale": "Concept note section 2 and plan section 7: never merge two references into one person without recorded evidence.",
+    "cross_source_merge": "requires-recorded-evidence",
+    "accepted_merge_evidence": [],
+    "accepted_merge_evidence_note": "Empty on purpose. No cross-source merge rule has been reviewed, so no cross-source merge can occur. Adding an entry here is a reviewed decision, not an implementation detail."
+  },
+
+  "resolution_rules": [
+    {
+      "rule_id": "ID-R1-single-candidate",
+      "when": "Exactly one candidate whose resolved_resource_type is in the request's expected_resource_types.",
+      "then": "resolved"
+    },
+    {
+      "rule_id": "ID-R2-no-candidate",
+      "when": "Zero candidates supplied by reference resolution.",
+      "then": "rejected",
+      "reason_code": "unresolved-reference"
+    },
+    {
+      "rule_id": "ID-R3-discordant-candidates",
+      "when": "More than one candidate and they do not all agree on (source_scope_id, resource_type, resource_id).",
+      "then": "rejected",
+      "reason_code": "ambiguous-reference"
+    },
+    {
+      "rule_id": "ID-R4-concordant-candidates",
+      "when": "More than one candidate and all agree on (source_scope_id, resource_type, resource_id).",
+      "then": "resolved",
+      "note": "Not a merge across identities: it is the same triple of key inputs observed more than once."
+    },
+    {
+      "rule_id": "ID-R5-unexpected-type",
+      "when": "A candidate's resource_type is not in expected_resource_types.",
+      "then": "rejected",
+      "reason_code": "unexpected-resource-type"
+    },
+    {
+      "rule_id": "ID-R6-incomplete-key-inputs",
+      "when": "A required key input field is absent or empty after normalisation.",
+      "then": "rejected",
+      "reason_code": "incomplete-key-inputs"
+    },
+    {
+      "rule_id": "ID-R7-cross-scope-under-legacy-key",
+      "when": "key_style is legacy-concept-note and the candidate's source_scope_id differs from entity_iri.single_source_scope.",
+      "then": "rejected",
+      "reason_code": "cross-scope-under-unscoped-key",
+      "note": "Guards the readable key style against the exact failure it invites."
+    }
+  ],
+
+  "ambiguity": {
+    "unresolved_reference": "rejected",
+    "multiple_discordant_candidates": "rejected",
+    "unexpected_resource_type": "rejected",
+    "incomplete_key_inputs": "rejected",
+    "cross_source_without_evidence": "rejected",
+    "guessing_permitted": false,
+    "api_contract": "Rejection is a distinct return type with no entity IRI attribute. There is no Optional-IRI return anywhere in the identity API."
+  },
+
+  "lineage": {
+    "retain_source_reference_literal": true,
+    "retain_source_canonical_url": true,
+    "retain_source_scope_id": true,
+    "retain_key_inputs": true,
+    "forbidden_predicates_between_fhir_resource_and_entity": [
+      "http://www.w3.org/2002/07/owl#sameAs",
+      "http://www.w3.org/2002/07/owl#equivalentClass"
+    ],
+    "permitted_lineage_predicate": "http://www.w3.org/ns/prov#wasDerivedFrom"
+  },
+
+  "quality_identity": {
+    "mode": null,
+    "mode_status": "UNSET - RESERVED FOR THE CLINICAL/ONTOLOGY REVIEWER",
+    "key_revision": "1",
+    "key_revision_note": "As for entity_iri.key_revision: quality IRIs are stable across policy edits that do not change the keying answer. Note that CHANGING quality_identity.mode does change every quality IRI, unavoidably, because the two modes key on different inputs. That is a graph-key-affecting decision, not an incidental version bump.",
+    "unset_behaviour": "reject",
+    "unset_behaviour_note": "While mode is null every quality-identity request returns a rejection with reason_code quality-identity-policy-unset. Nothing downstream can accidentally ship a guessed policy.",
+    "allowed_modes": {
+      "persistent-per-person-code": {
+        "description": "One persisting quality entity per (person, observable code). The same renal-filtration quality IRI is reused across every eGFR observation for that person.",
+        "key_input_fields": [
+          "key_scheme",
+          "key_revision",
+          "person_entity_iri",
+          "quality_class_iri",
+          "observable_system",
+          "observable_code"
+        ],
+        "implication": "Independent records about the same person and code converge on one quality node. Matches the concept note's ex:renal-quality-p123 example graph.",
+        "risk": "Two records the project does not actually intend to be about one persisting quality will merge."
+      },
+      "per-observation": {
+        "description": "A quality entity keyed by person, observable code, the source observation version, and the clinically relevant time.",
+        "key_input_fields": [
+          "key_scheme",
+          "key_revision",
+          "person_entity_iri",
+          "quality_class_iri",
+          "observable_system",
+          "observable_code",
+          "source_resource_canonical_url",
+          "source_resource_version_id",
+          "effective_time"
+        ],
+        "implication": "Independent records never merge unknowingly (concept note section 4).",
+        "risk": "A query for 'the patient's renal filtration quality' returns many distinct nodes; cross-observation trend queries must join on the code rather than on the quality IRI."
+      }
+    },
+    "reviewer_question": "Does a quality IRI persist across observations for a patient (persistent-per-person-code), or is it keyed per observation plus time plus code (per-observation)? Concept note section 4 and plan Gate 0 both flag this as a reviewer decision. Both behaviours are implemented; the default is deliberately unset and rejects.",
+    "reviewer_decision": null,
+    "reviewer": null,
+    "reviewed_on": null
+  }
+}

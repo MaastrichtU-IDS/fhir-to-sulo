@@ -1,0 +1,120 @@
+{
+  "policy_id": "code-interpretation",
+  "version": "1.0.0",
+  "status": "draft-awaiting-reviewer",
+  "owner": "Agent 5 (identity and terminology)",
+  "notes": [
+    "Concept note section 2: a FHIR code literal alone is not an OWL class assertion.",
+    "A code becomes a domain class ONLY through an entry in this reviewed table.",
+    "The source system and code are retained on every outcome, including rejected."
+  ],
+
+  "domain_namespace": "https://example.org/fhir-sulo/",
+  "sulo_version": "0.2.12",
+  "sulo_pin_commit": "1a4abc1699471187e94fbc59591101b2b635d6ea",
+
+  "terminology_snapshot": {
+    "snapshot_id": "pilot-pinned-subset-2026-09-29",
+    "acquisition": "offline. Hand-pinned from the concept note's worked examples (sections 4 and 5), which cite the HL7 R4 examples observation-example-f205-egfr and observation-example-bloodpressure.",
+    "live_lookup_at_runtime": false,
+    "live_lookup_note": "Plan Gate 1 requires a deterministic mock terminology service. There is no network call at run time; the resolver reads this file only."
+  },
+
+  "review_status_values": {
+    "approved": "The clinical/ontology reviewer signed this entry off. Interpretable, clinical_signoff true.",
+    "pilot-provisional": "Engineering default taken verbatim from the concept note's worked examples so Gates 1-3 can run on synthetic data. Interpretable, but clinical_signoff FALSE. Must not be used on clinical data.",
+    "proposed": "Drafted, not usable. Yields source-only.",
+    "rejected": "Explicitly must not be interpreted. Yields rejected."
+  },
+  "interpretable_statuses": ["approved", "pilot-provisional"],
+  "clinically_signed_off_statuses": ["approved"],
+
+  "defaults": {
+    "unknown_code_in_known_system": "source-only",
+    "unknown_system": "source-only",
+    "review_status_proposed": "source-only",
+    "review_status_rejected": "rejected",
+    "silent_pass_through": false,
+    "invent_class_for_unknown_code": false
+  },
+  "defaults_rationale": "Concept note section 2: unsupported cases are rejected or represented only in the source/record layer. An unknown observable code is retained as a source record rather than rejected outright; it is the map's own code guard that rejects an eGFR fixture carrying the wrong code, not this table.",
+
+  "code_systems": {
+    "http://loinc.org": {
+      "system_id": "loinc",
+      "in_scope": true,
+      "pinned_subset": true,
+      "note": "Only the codes listed in entries are known. LOINC itself is not redistributed."
+    },
+    "http://snomed.info/sct": {
+      "system_id": "snomed-ct",
+      "in_scope": false,
+      "note": "Recognised system, no reviewed entries. Codes yield source-only."
+    }
+  },
+
+  "entries": [
+    {
+      "entry_id": "CODE-LOINC-33914-3",
+      "system": "http://loinc.org",
+      "code": "33914-3",
+      "display_source": "Glomerular filtration rate/1.73 sq M.predicted",
+      "observation_kind": "quantitative",
+      "result_class": "https://example.org/fhir-sulo/EGFRResult",
+      "quality_class": "https://example.org/fhir-sulo/RenalFiltrationQuality",
+      "expected_unit_dimension": "egfr-rate",
+      "component_of": null,
+      "review_status": "pilot-provisional",
+      "reviewer": null,
+      "reviewed_on": null,
+      "provenance": "Concept note section 4 worked example A and its schematic target graph.",
+      "reviewer_note": "The result is a reported estimate, not an asserted physiological fact. The map must not assert a measurement process, device, specimen, or diagnosis."
+    },
+    {
+      "entry_id": "CODE-LOINC-8480-6",
+      "system": "http://loinc.org",
+      "code": "8480-6",
+      "display_source": "Systolic blood pressure",
+      "observation_kind": "quantitative",
+      "result_class": "https://example.org/fhir-sulo/SystolicBloodPressureResult",
+      "quality_class": "https://example.org/fhir-sulo/SystolicBloodPressureQuality",
+      "expected_unit_dimension": "pressure",
+      "component_of": "blood-pressure-panel",
+      "review_status": "pilot-provisional",
+      "reviewer": null,
+      "reviewed_on": null,
+      "provenance": "Concept note section 5 worked example B."
+    },
+    {
+      "entry_id": "CODE-LOINC-8462-4",
+      "system": "http://loinc.org",
+      "code": "8462-4",
+      "display_source": "Diastolic blood pressure",
+      "observation_kind": "quantitative",
+      "result_class": "https://example.org/fhir-sulo/DiastolicBloodPressureResult",
+      "quality_class": "https://example.org/fhir-sulo/DiastolicBloodPressureQuality",
+      "expected_unit_dimension": "pressure",
+      "component_of": "blood-pressure-panel",
+      "review_status": "pilot-provisional",
+      "reviewer": null,
+      "reviewed_on": null,
+      "provenance": "Concept note section 5 worked example B."
+    },
+    {
+      "entry_id": "CODE-LOINC-85354-9",
+      "system": "http://loinc.org",
+      "code": "85354-9",
+      "display_source": "Blood pressure panel with all children optional",
+      "observation_kind": "panel",
+      "result_class": null,
+      "quality_class": null,
+      "expected_unit_dimension": null,
+      "component_of": null,
+      "review_status": "proposed",
+      "reviewer": null,
+      "reviewed_on": null,
+      "provenance": "The HL7 blood-pressure example's panel code. The concept note names only the two component codes, so the panel code is drafted but NOT interpretable; it yields source-only.",
+      "reviewer_note": "Reviewer question T1: should the BP panel code type the panel record node, or does the panel stay an untyped ex:ObservationRecord?"
+    }
+  ]
+}

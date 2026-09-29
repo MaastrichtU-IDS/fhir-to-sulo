@@ -1,0 +1,9 @@
+# Python test dependencies for the host services (Agent 5 scope so far).
+# Exact pins; the services themselves are stdlib-only.
+#
+#   python3 -m venv .venv
+#   .venv/bin/pip install -r requirements-dev.txt
+#   .venv/bin/python -m pytest tests/contracts -q
+#
+# Verified on the pilot host: CPython 3.9.6 (system python3 on macOS 25.4).
+pytest==7.4.4
