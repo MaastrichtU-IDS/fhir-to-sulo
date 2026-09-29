@@ -1,0 +1,22 @@
+# Development-only dependencies for the FHIR ingestion workstream (Agent 2).
+#
+# NOTHING in src/ imports these. The runtime renderer, the inverse renderer,
+# the N-Triples reader/writer, reference resolution and the binding extractor
+# are standard library only, which is why CI can run the whole ingestion suite
+# with no install step (see .github/workflows/ci.yml, `make contracts`).
+#
+# These are pinned exactly so that a local run reproduces:
+#
+#   python3 -m venv .venv
+#   .venv/bin/python -m pip install -r requirements-dev.txt
+#   PYTHONPATH=src .venv/bin/python -m unittest discover -s tests/contracts -p 'test_*.py'
+#
+# rdflib is used by tests/contracts/ingest/test_oracle_conformance.py only, to
+# check graph isomorphism against HL7's published R4 Turtle (DR-101). Without
+# it those four tests skip; every test that could hide a fidelity loss still
+# runs.
+#
+# Verified on the pinned interpreter: Python 3.9.6 (system, darwin/arm64).
+
+rdflib==7.1.4
+pytest==8.3.5
