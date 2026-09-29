@@ -1,0 +1,117 @@
+# Encounter target schema -- SULO 0.2.12 PRO roles, concept note section 6.
+#
+# ONE INDIRECTION POINT FOR DOMAIN VOCABULARY (REVIEW ITEM R1).
+# No domain class IRI and no node IRI is written in this file; every one is a
+# run binding declared in `maps/r4/encounter/encounter-bindings.v1.json`.
+#
+# NO `hasPatient` AND NO RESOURCE-SPECIFIC SHORTCUT (concept note section 2,
+# section 6).  The process reaches the people only through PRO:
+#
+#     process sulo:hasParticipant role ,  role sulo:isFeatureOf holder
+#
+# and SULO 0.2.12 asserts the chain
+#     sulo:hasParticipant o (inverse sulo:hasFeature) -> sulo:hasParticipant
+# which is exactly hasParticipant o isFeatureOf -> hasParticipant (DR-002,
+# verified against the axiom).  So a reasoner entails
+# `encounter hasParticipant person` without the map ever asserting it.
+# `test_encounter_gate3.py` computes that entailment and asserts the map did
+# NOT assert it directly.
+#
+# Range check (DR-002): sulo:hasParticipant rdfs:range sulo:Object, and
+# sulo:Role subClassOf sulo:Feature subClassOf sulo:Object, so a role is in
+# range.  Note sulo:Feature owl:disjointWith sulo:SpatialObject, which is why
+# v:personSuloClass defaults to bare sulo:Object -- see R6.
+#
+# EVERY TRIPLE CONSTRAINT IS REQUIRED, so a non-empty
+# lastReport.unboundVariables is always an error (DR-301 blocker 8c).
+
+PREFIX sulo: <https://w3id.org/sulo/>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX xsd:  <http://www.w3.org/2001/XMLSchema#>
+PREFIX Map:  <http://shex.io/extensions/Map/#>
+PREFIX v:    <https://w3id.org/fhir-sulo/map/encounter/var#>
+PREFIX sh:   <https://w3id.org/fhir-sulo/map/encounter/shape#>
+
+start = @sh:EncounterProcessNode
+
+# --- the encounter process -------------------------------------------------
+# The Encounter's FHIR `class` code (AMB) does NOT type this node: concept
+# note section 2, "a FHIR code literal alone is not an OWL class assertion",
+# and v3-ActCode has no reviewed entry in the code-interpretation table.
+# v:encounterClass is the reviewed domain class (ex:ClinicalEncounter).
+#
+# Both roles are emitted by THIS shape, in one pass, rather than by a shape
+# each.  Measured reason: a node that receives arcs of the same predicate from
+# two passes carries more of them than any single entry shape declares, so the
+# target schema cannot validate its own output and pivot recovery fails with an
+# ExcessTripleViolation.  `EXTRA sulo:hasParticipant` does not help --
+# shex@1.0.0-alpha.33 excuses only an arc that FAILS the constraint, not a
+# surplus arc that satisfies it.
+sh:EncounterProcessNode {
+  rdf:type [sulo:Process] ;
+  rdf:type IRI %Map:{ v:encounterClass %} ;
+  sulo:hasParticipant IRI %Map:{ v:patientRole %} ;
+  sulo:hasParticipant IRI %Map:{ v:clinicianRole %} ;
+  sulo:atTime IRI %Map:{ v:interval %} ;
+  prov:wasDerivedFrom IRI %Map:{ v:sourceVersionIri %}
+}
+
+# --- the two PRO roles -----------------------------------------------------
+sh:PatientRoleNode {
+  rdf:type [sulo:Role] ;
+  rdf:type IRI %Map:{ v:patientRoleClass %} ;
+  sulo:isFeatureOf IRI %Map:{ v:person %}
+}
+
+sh:ClinicianRoleNode {
+  rdf:type [sulo:Role] ;
+  rdf:type IRI %Map:{ v:clinicianRoleClass %} ;
+  sulo:isFeatureOf IRI %Map:{ v:clinician %}
+}
+
+# --- the two role holders --------------------------------------------------
+# R8 is open: a Practitioner reference currently mints the same entity kind as
+# a Patient, and the two never merge.  v:clinicianClass is separate from
+# v:personClass so that an answer to R8a is a manifest edit.
+sh:PersonNode {
+  rdf:type IRI %Map:{ v:personSuloClass %} ;
+  rdf:type IRI %Map:{ v:personClass %} ;
+  sulo:hasFeature IRI %Map:{ v:patientRole %}
+}
+
+sh:ClinicianNode {
+  rdf:type IRI %Map:{ v:clinicianSuloClass %} ;
+  rdf:type IRI %Map:{ v:clinicianClass %} ;
+  sulo:hasFeature IRI %Map:{ v:clinicianRole %}
+}
+
+# --- the time interval -----------------------------------------------------
+# sulo:Time is a disjoint union of Duration/TimeInstant/TimeInterval and is
+# disjoint with sulo:Unit (DR-002 axiom 5), so the interval's endpoints are
+# their own nodes rather than literals on the interval.
+sh:TimeIntervalNode {
+  rdf:type [sulo:TimeInterval] ;
+  sulo:hasPart IRI %Map:{ v:startTime %} ;
+  sulo:hasPart IRI %Map:{ v:endTime %}
+}
+
+sh:StartTimeNode {
+  rdf:type [sulo:StartTime] ;
+  sulo:hasValue xsd:dateTime %Map:{ v:start %}
+}
+
+sh:EndTimeNode {
+  rdf:type [sulo:EndTime] ;
+  sulo:hasValue xsd:dateTime %Map:{ v:end %}
+}
+
+# --- the record layer ------------------------------------------------------
+# The FHIR Encounter record and its status stay in the source/record layer
+# (concept note section 6); no owl:sameAs joins them to the process.
+sh:EncounterRecordNode {
+  rdf:type [sulo:InformationObject] ;
+  rdf:type IRI %Map:{ v:recordClass %} ;
+  sulo:refersTo IRI %Map:{ v:process %} ;
+  prov:wasDerivedFrom IRI %Map:{ v:sourceVersionIri %}
+}

@@ -1,0 +1,68 @@
+# eGFR source schema -- FHIR R4 Observation, concept note section 4.
+#
+# Rooted at exactly ONE Observation resource (DR-302).  Repetition depth on
+# every path from the root is <= 1 (only fhir:DomainResource.contained, which
+# is tolerated-but-unmapped).
+#
+# Guards are deliberately *loud*: every shape below is CLOSED, so an element
+# the pilot does not interpret -- a comparator, a method, a modifier extension,
+# a second coding -- makes shex-validate exit 1 with a parseable Failure rather
+# than being silently dropped.  Concept note section 2: "Never drop a
+# comparator, absent-value reason, method, unit code/system, component
+# association, or a modifier extension while claiming an unqualified numeric
+# result."
+#
+# No domain vocabulary appears here.  Source codes (LOINC 33914-3, UCUM
+# mL/min/{1.73_m2}) are *source* value guards, not OWL class assertions.
+
+PREFIX fhir: <http://hl7.org/fhir/>
+PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX xsd:  <http://www.w3.org/2001/XMLSchema#>
+PREFIX Map:  <http://shex.io/extensions/Map/#>
+PREFIX v:    <https://w3id.org/fhir-sulo/map/egfr/var#>
+PREFIX sh:   <https://w3id.org/fhir-sulo/map/egfr/shape#>
+
+start = @sh:EGFRObservation
+
+sh:EGFRObservation CLOSED {
+  rdf:type       [fhir:Observation] ;
+  fhir:nodeRole  [fhir:treeRoot] ;
+  fhir:DomainResource.contained . * ;                      # tolerated, never mapped
+  fhir:Resource.id   { fhir:value xsd:string %Map:{ v:obsId %} } ;
+  fhir:Resource.meta { fhir:Meta.versionId { fhir:value xsd:string %Map:{ v:versionId %} } } ;
+  fhir:Observation.status  { fhir:value ["final"] %Map:{ v:status %} } ;
+  fhir:Observation.code    @sh:EGFRCode ;
+  fhir:Observation.subject @sh:SubjectReference ;
+  fhir:Observation.effectiveDateTime { fhir:value xsd:dateTime %Map:{ v:effective %} } ;
+  fhir:Observation.valueQuantity     @sh:EGFRQuantity
+}
+
+# Exactly one coding.  A CodeableConcept carrying a second coding fails here
+# rather than having one of them silently chosen.
+sh:EGFRCode CLOSED {
+  fhir:CodeableConcept.coding @sh:EGFRCoding
+}
+
+sh:EGFRCoding CLOSED {
+  fhir:index . ? ;
+  fhir:Coding.system  { fhir:value ["http://loinc.org"] %Map:{ v:codeSystem %} } ;
+  fhir:Coding.code    { fhir:value ["33914-3"]          %Map:{ v:code %} } ;
+  fhir:Coding.display { fhir:value xsd:string } ?
+}
+
+# The reference literal is bound; fhir:link is evidence only and is NOT bound.
+# Binding a person from either of these is the record/fact error section 2
+# forbids -- v:person is an identity-provided run binding (staticVar).
+sh:SubjectReference CLOSED {
+  fhir:Reference.reference { fhir:value xsd:string %Map:{ v:subjectRef %} } ;
+  fhir:link . ?
+}
+
+# CLOSED, and with no fhir:Quantity.comparator constraint: a comparator makes
+# this shape fail.  Concept note section 4 failure variants.
+sh:EGFRQuantity CLOSED {
+  fhir:Quantity.value  { fhir:value xsd:decimal %Map:{ v:value %} } ;
+  fhir:Quantity.unit   { fhir:value xsd:string  %Map:{ v:unitText %} } ? ;
+  fhir:Quantity.system { fhir:value ["http://unitsofmeasure.org"] %Map:{ v:unitSystem %} } ;
+  fhir:Quantity.code   { fhir:value ["mL/min/{1.73_m2}"]          %Map:{ v:unitCode %} }
+}

@@ -1,0 +1,193 @@
+{
+  "format": "fhir-sulo/map-run-bindings/0.1.0",
+  "map_id": "fhir-r4-encounter-pro",
+  "semantic_version": "1.0.0",
+  "var_namespace": "https://w3id.org/fhir-sulo/map/encounter/var#",
+  "shape_namespace": "https://w3id.org/fhir-sulo/map/encounter/shape#",
+  "purpose": [
+    "THE SINGLE INDIRECTION POINT for review items R1, R6 and R8.",
+    "Neither encounter-source.v1.shex nor encounter-target.v1.shex contains a domain class IRI, a person IRI or a clinician IRI."
+  ],
+  "domain_namespace": {
+    "value": "https://example.org/fhir-sulo/",
+    "source": "policies/code-interpretation.v1.json :: domain_namespace",
+    "review_item": "R1",
+    "status": "placeholder-awaiting-owner"
+  },
+  "vocabulary": {
+    "encounterClass": {
+      "iri": "https://example.org/fhir-sulo/ClinicalEncounter",
+      "source": "concept note section 6 example graph (ex:ClinicalEncounter)",
+      "review_item": "R1",
+      "status": "placeholder-awaiting-owner",
+      "note": "NOT derived from the FHIR Encounter.class code (v3-ActCode AMB). That code has no reviewed entry in the code-interpretation table, and concept note section 2 forbids treating a code literal as a class assertion. It is bound by the source schema and retained in the source layer."
+    },
+    "patientRoleClass": {
+      "iri": "https://example.org/fhir-sulo/PatientRole",
+      "source": "concept note section 6 example graph (ex:PatientRole)",
+      "review_item": "R1",
+      "status": "placeholder-awaiting-owner"
+    },
+    "clinicianRoleClass": {
+      "iri": "https://example.org/fhir-sulo/ClinicianRole",
+      "source": "concept note section 6 example graph (ex:ClinicianRole)",
+      "review_item": "R1",
+      "status": "placeholder-awaiting-owner",
+      "note": "The FHIR participation type PPRF (primary performer) is bound by the source schema and guarded to PPRF, but it does not itself type this role. A reviewed participation-type-to-role-class table is the natural home for that mapping and does not exist yet."
+    },
+    "personClass": {
+      "iri": "https://example.org/fhir-sulo/Person",
+      "source": "concept note section 4 example graph (ex:Person)",
+      "review_item": "R1",
+      "status": "placeholder-awaiting-owner"
+    },
+    "personSuloClass": {
+      "iri": "https://w3id.org/sulo/Object",
+      "source": "REVIEW-REQUEST R6",
+      "review_item": "R6",
+      "status": "engineering-default",
+      "alternatives": {
+        "bare-object": "https://w3id.org/sulo/Object",
+        "spatial-object": "https://w3id.org/sulo/SpatialObject"
+      }
+    },
+    "clinicianClass": {
+      "iri": "https://example.org/fhir-sulo/Person",
+      "source": "concept note section 6 writes ex:clinician-c7 without saying what it is",
+      "review_item": "R8a",
+      "status": "engineering-default",
+      "note": "Deliberately a SEPARATE manifest entry from personClass even though both currently resolve to ex:Person, so that answering R8a (is a practitioner a person, or an agent entity distinct from a patient?) is one edit here. Agent 5's service already mints practitioner and patient entities that never merge (R8b)."
+    },
+    "clinicianSuloClass": {
+      "iri": "https://w3id.org/sulo/Object",
+      "source": "REVIEW-REQUEST R6 / R8a",
+      "review_item": "R6",
+      "status": "engineering-default"
+    },
+    "recordClass": {
+      "iri": "https://example.org/fhir-sulo/EncounterRecord",
+      "source": "concept note section 6: 'The FHIR Encounter record and its status remain in the source/record layer'",
+      "review_item": "R1",
+      "status": "placeholder-awaiting-owner",
+      "note": "The concept note names ex:ObservationRecord for section 4 but no class for the Encounter record. ex:EncounterRecord is this map's placeholder and is flagged as a new reviewer question."
+    }
+  },
+  "identity_provided": {
+    "person": {
+      "source": "IdentityService.resolve(...) for Encounter.subject",
+      "note": "Concept note section 6's ex:person-p123 is an identity output, not a FHIR reference."
+    },
+    "clinician": {
+      "source": "IdentityService.resolve(...) for Encounter.participant.individual, entity_kind practitioner",
+      "review_item": "R8",
+      "note": "Concept note section 6's ex:clinician-c7 is an identity output. enc-contained-practitioner resolves a contained '#pr-inline' reference, so the entity IRI differs from enc-baseline's Practitioner/c7 and must not be assumed equal."
+    }
+  },
+  "node_keys": {
+    "process": "{domain}encounter-{encId}",
+    "record": "{domain}encounter-record-{encId}",
+    "patientRole": "{domain}patient-role-{encId}",
+    "clinicianRole": "{domain}clinician-role-{encId}",
+    "interval": "{domain}interval-{encId}",
+    "startTime": "{domain}start-{encId}",
+    "endTime": "{domain}end-{encId}",
+    "sourceVersionIri": "{canonicalUrl}/_history/{versionId}"
+  },
+  "node_key_note": [
+    "These match the concept note section 6 example graph's local names exactly (ex:encounter-9, ex:patient-role-enc-9, ex:clinician-role-enc-9, ex:interval-enc-9, ex:start-enc-9, ex:end-enc-9).",
+    "A ROLE IS KEYED BY THE ENCOUNTER, not by the person. Two encounters give two distinct patient-role nodes, which is correct: a role is a feature of its holder in the context of one process, and merging them would assert one role participating in two processes.",
+    "CD-1: host-chosen root nodes declared in MapContract.node_key_rules, not engine-minted."
+  ],
+  "passes": [
+    {
+      "name": "process",
+      "shape": "EncounterProcessNode",
+      "root": "process",
+      "vars": [
+        "encounterClass",
+        "patientRole",
+        "clinicianRole",
+        "interval",
+        "sourceVersionIri"
+      ]
+    },
+    {
+      "name": "patientRole",
+      "shape": "PatientRoleNode",
+      "root": "patientRole",
+      "vars": [
+        "patientRoleClass",
+        "person"
+      ]
+    },
+    {
+      "name": "clinicianRole",
+      "shape": "ClinicianRoleNode",
+      "root": "clinicianRole",
+      "vars": [
+        "clinicianRoleClass",
+        "clinician"
+      ]
+    },
+    {
+      "name": "person",
+      "shape": "PersonNode",
+      "root": "person",
+      "vars": [
+        "personSuloClass",
+        "personClass",
+        "patientRole"
+      ]
+    },
+    {
+      "name": "clinician",
+      "shape": "ClinicianNode",
+      "root": "clinician",
+      "vars": [
+        "clinicianSuloClass",
+        "clinicianClass",
+        "clinicianRole"
+      ]
+    },
+    {
+      "name": "interval",
+      "shape": "TimeIntervalNode",
+      "root": "interval",
+      "vars": [
+        "startTime",
+        "endTime"
+      ]
+    },
+    {
+      "name": "startTime",
+      "shape": "StartTimeNode",
+      "root": "startTime",
+      "vars": [
+        "start"
+      ]
+    },
+    {
+      "name": "endTime",
+      "shape": "EndTimeNode",
+      "root": "endTime",
+      "vars": [
+        "end"
+      ]
+    },
+    {
+      "name": "record",
+      "shape": "EncounterRecordNode",
+      "root": "record",
+      "vars": [
+        "recordClass",
+        "process",
+        "sourceVersionIri"
+      ]
+    }
+  ],
+  "source_bound_vars": [
+    "start",
+    "end"
+  ],
+  "pass_vars_note": "Every target constraint in this map is required, so lastReport.unboundVariables must be empty on every pass, and lastReport.unusedStatics must be empty too. tests/contracts/maps/test_encounter_gate3.py asserts both."
+}

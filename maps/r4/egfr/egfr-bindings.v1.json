@@ -1,0 +1,139 @@
+{
+  "format": "fhir-sulo/map-run-bindings/0.1.0",
+  "map_id": "fhir-r4-egfr-solid",
+  "semantic_version": "1.0.0",
+  "var_namespace": "https://w3id.org/fhir-sulo/map/egfr/var#",
+  "shape_namespace": "https://w3id.org/fhir-sulo/map/egfr/shape#",
+
+  "purpose": [
+    "THE SINGLE INDIRECTION POINT for review items R1, R2, R4 and R6.",
+    "Neither egfr-source.v1.shex nor egfr-target.v1.shex contains a domain class IRI, a person IRI or a quality IRI. Every one of them is a ThreadedMaterializer staticVar named here. A reviewer answer is an edit to this file; the schemas are untouched.",
+    "Each entry records where its value comes from and which review item governs it. An entry sourced from a policy table is a mirror of that table, not a second opinion: tests/contracts/maps/test_indirection_point.py asserts they agree."
+  ],
+
+  "domain_namespace": {
+    "value": "https://example.org/fhir-sulo/",
+    "source": "policies/code-interpretation.v1.json :: domain_namespace",
+    "review_item": "R1",
+    "status": "placeholder-awaiting-owner"
+  },
+
+  "vocabulary": {
+    "resultClass": {
+      "iri": "https://example.org/fhir-sulo/EGFRResult",
+      "source": "policies/code-interpretation.v1.json :: CODE-LOINC-33914-3.result_class",
+      "review_item": "R1b",
+      "status": "pilot-provisional"
+    },
+    "qualityClass": {
+      "iri": "https://example.org/fhir-sulo/RenalFiltrationQuality",
+      "source": "policies/code-interpretation.v1.json :: CODE-LOINC-33914-3.quality_class",
+      "review_item": "R1b",
+      "status": "pilot-provisional"
+    },
+    "qualityBranch": {
+      "iri": "https://w3id.org/sulo/Quality",
+      "source": "DR-002 axiom 6; REVIEW-REQUEST R4 option A",
+      "review_item": "R4",
+      "status": "engineering-default",
+      "alternatives": {
+        "A": "https://w3id.org/sulo/Quality",
+        "B": "https://w3id.org/sulo/Feature"
+      },
+      "note": "sulo:Feature is a disjoint union of Capability/InformationObject/Quality/Role, so the concept note's literal 'a sulo:Feature' leaves the individual unpartitioned. Defaulting to option A, which the reviewer has not confirmed."
+    },
+    "personSuloClass": {
+      "iri": "https://w3id.org/sulo/Object",
+      "source": "REVIEW-REQUEST R6",
+      "review_item": "R6",
+      "status": "engineering-default",
+      "alternatives": {
+        "bare-object": "https://w3id.org/sulo/Object",
+        "spatial-object": "https://w3id.org/sulo/SpatialObject"
+      },
+      "note": "sulo:Feature owl:disjointWith sulo:SpatialObject. Bare sulo:Object is the weaker, safe choice: it cannot create the disjointness clash that sulo:SpatialObject would if any Feature branch were ever also asserted of a person. The reviewer decides."
+    },
+    "personClass": {
+      "iri": "https://example.org/fhir-sulo/Person",
+      "source": "concept note section 4 example graph (ex:Person)",
+      "review_item": "R1",
+      "status": "placeholder-awaiting-owner"
+    },
+    "recordClass": {
+      "iri": "https://example.org/fhir-sulo/ObservationRecord",
+      "source": "concept note section 4 example graph (ex:ObservationRecord)",
+      "review_item": "R1",
+      "status": "placeholder-awaiting-owner"
+    }
+  },
+
+  "identity_provided": {
+    "person": {
+      "source": "fhir_sulo.identity.IdentityService.resolve(...).identity.entity_iri for Observation.subject",
+      "note": "Concept note section 4: supplied as a run binding, never extractable from the FHIR RDF. No map may hard-code it and none does: grep the two .shex files for the string 'person'."
+    },
+    "quality": {
+      "source": "fhir_sulo.identity.IdentityService.resolve_quality(...).identity.quality_iri",
+      "review_item": "R2",
+      "note": "The quality identity policy mode is deliberately unset and rejects every request until the reviewer answers R2. Answering it moves every quality IRI; it moves no other IRI in this map."
+    },
+    "unitIri": {
+      "source": "fhir_sulo.terminology.TerminologyService.resolve_unit(...).unit.unit_iri",
+      "note": "UCUM mL/min/{1.73_m2}. A unit IRI is shared across observations by design; a per-observation blank node would duplicate it and break Gate 4 idempotence."
+    }
+  },
+
+  "node_keys": {
+    "result": "{domain}egfr-result-{obsId}",
+    "record": "{domain}egfr-record-{obsId}",
+    "timeInstant": "{domain}time-{obsId}",
+    "sourceVersionIri": "{canonicalUrl}/_history/{versionId}"
+  },
+  "node_key_note": [
+    "CD-1: the pinned engine has no id(), so these are host-chosen ROOT NODES, not engine-minted IRIs, and they are declared in MapContract.node_key_rules rather than computed by a Map function.",
+    "Keyed by resource id, NOT by version: a correction (a new meta.versionId) recomputes the same node IRIs and replaces their triples, which is what concept note section 7 asks for. The version appears in prov:wasDerivedFrom.",
+    "GAP reported to the integration lead: Agent 5's identity service mints person and quality IRIs but not result / record / time node IRIs. These three rules are currently owned here. They should move behind the identity service so a single component owns node identity."
+  ],
+
+  "passes": [
+    {
+      "name": "quantity",
+      "shape": "EGFRResultNode",
+      "root": "result",
+      "vars": ["resultClass", "value", "unitIri", "quality", "timeInstant", "sourceVersionIri"]
+    },
+    {
+      "name": "quality",
+      "shape": "EGFRQualityNode",
+      "root": "quality",
+      "vars": ["qualityBranch", "qualityClass", "person"]
+    },
+    {
+      "name": "person",
+      "shape": "EGFRPersonNode",
+      "root": "person",
+      "vars": ["personSuloClass", "personClass", "quality"]
+    },
+    {
+      "name": "unit",
+      "shape": "EGFRUnitNode",
+      "root": "unitIri",
+      "vars": ["unitCode"]
+    },
+    {
+      "name": "time",
+      "shape": "EGFRTimeNode",
+      "root": "timeInstant",
+      "vars": ["effective"]
+    },
+    {
+      "name": "record",
+      "shape": "EGFRRecordNode",
+      "root": "record",
+      "vars": ["recordClass", "result", "sourceVersionIri"]
+    }
+  ],
+
+  "source_bound_vars": ["value", "unitCode", "effective"],
+  "pass_vars_note": "Every name in a pass's `vars` that is not source-bound is supplied as a staticVar for that pass and for no other. tests/contracts/maps/test_egfr_gate2.py asserts lastReport.unusedStatics == [] on every pass, so this list cannot drift from the schema without a test failure. That assertion is the CD-1 substitute for the static checker the engine does not ship."
+}

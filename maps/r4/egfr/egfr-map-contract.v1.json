@@ -1,0 +1,234 @@
+{
+  "format": "fhir-sulo/map-contract/0.1.0",
+  "map_id": "fhir-r4-egfr-solid",
+  "semantic_version": "1.0.0",
+  "pairing_files": [
+    "maps/r4/egfr/egfr-source.v1.shex",
+    "maps/r4/egfr/egfr-target.v1.shex",
+    "maps/r4/egfr/egfr-bindings.v1.json"
+  ],
+  "pairing_hash": "53dd1b511b9377e5cc5d8c7378a3d226a9f4b787d9cc61c82b21d65c0f8f0965",
+  "pairing_hash_note": "sha256 over the three pairing_files, each hashed as bytes in the listed order. Left empty in the committed file and recomputed by tests/contracts/maps/test_map_contracts.py, which fails if it drifts from the schemas. Filled in by `python3 maps/r4/rehash.py`.",
+  "source_release": "R4",
+  "source_profiles": [
+    "http://hl7.org/fhir/StructureDefinition/Observation"
+  ],
+  "source_shape_label": "https://w3id.org/fhir-sulo/map/egfr/shape#EGFRObservation",
+  "target_shape_label": "https://w3id.org/fhir-sulo/map/egfr/shape#EGFRResultNode",
+  "sulo_version": "0.2.12",
+  "pivot_variables": [
+    {
+      "name": "obsId",
+      "var_type": "string",
+      "required": true,
+      "source_element": "Observation.id",
+      "target_role": "node key input",
+      "inverse_covered": false,
+      "notes": [
+        "Not emitted as a triple. It keys the result, record and time node IRIs (node_key_rules), so it is recoverable from any of those IRIs but not from a triple."
+      ]
+    },
+    {
+      "name": "versionId",
+      "var_type": "string",
+      "required": true,
+      "source_element": "Observation.meta.versionId",
+      "target_role": "prov:wasDerivedFrom path segment",
+      "inverse_covered": true,
+      "notes": [
+        "Recoverable from the versioned source IRI."
+      ]
+    },
+    {
+      "name": "status",
+      "var_type": "code",
+      "required": true,
+      "source_element": "Observation.status",
+      "target_role": "eligibility guard only",
+      "inverse_covered": false,
+      "notes": [
+        "Guarded to 'final'. Deliberately NOT emitted: the record's status belongs to the source layer (concept note section 2), and asserting it in the semantic layer would be a record/fact confusion."
+      ]
+    },
+    {
+      "name": "codeSystem",
+      "var_type": "string",
+      "required": true,
+      "source_element": "Observation.code.coding.system",
+      "target_role": "terminology lookup key",
+      "inverse_covered": false
+    },
+    {
+      "name": "code",
+      "var_type": "code",
+      "required": true,
+      "source_element": "Observation.code.coding.code",
+      "target_role": "terminology lookup key -> resultClass, qualityClass",
+      "inverse_covered": false,
+      "notes": [
+        "Guarded to LOINC 33914-3. The code itself is never emitted: concept note section 2, a FHIR code literal alone is not an OWL class assertion. It selects a reviewed domain class through the code-interpretation table. The class is recoverable from the graph; the code is not, because two codes could map to one class."
+      ]
+    },
+    {
+      "name": "subjectRef",
+      "var_type": "string",
+      "required": true,
+      "source_element": "Observation.subject.reference",
+      "target_role": "identity service input",
+      "inverse_covered": false,
+      "notes": [
+        "Never emitted and never used as a person IRI. Concept note section 2: a resolved FHIR reference carries no person-equivalence claim."
+      ]
+    },
+    {
+      "name": "effective",
+      "var_type": "datetime",
+      "required": true,
+      "source_element": "Observation.effectiveDateTime",
+      "target_role": "sulo:hasValue on the sulo:TimeInstant",
+      "inverse_covered": true,
+      "notes": [
+        "effective[x], not `issued` and not `meta.lastUpdated` (concept note section 2). The xsd:dateTime datatype survives the round trip; a date-only downgrade changes the value."
+      ]
+    },
+    {
+      "name": "value",
+      "var_type": "decimal",
+      "required": true,
+      "source_element": "Observation.valueQuantity.value",
+      "target_role": "sulo:hasValue on the sulo:Quantity",
+      "inverse_covered": true,
+      "notes": [
+        "xsd:decimal. '55.0' does not round-trip to '55'."
+      ]
+    },
+    {
+      "name": "unitText",
+      "var_type": "string",
+      "required": false,
+      "source_element": "Observation.valueQuantity.unit",
+      "target_role": "source layer only",
+      "inverse_covered": false,
+      "notes": [
+        "Bound so it cannot be dropped silently, but not emitted: concept note section 4, 'The unit's display text remains in the FHIR source; the UCUM code is the normalized unit binding.'"
+      ]
+    },
+    {
+      "name": "unitSystem",
+      "var_type": "string",
+      "required": true,
+      "source_element": "Observation.valueQuantity.system",
+      "target_role": "unit lookup key",
+      "inverse_covered": false,
+      "notes": [
+        "Guarded to http://unitsofmeasure.org."
+      ]
+    },
+    {
+      "name": "unitCode",
+      "var_type": "string",
+      "required": true,
+      "source_element": "Observation.valueQuantity.code",
+      "target_role": "sulo:hasValue on the sulo:Unit",
+      "inverse_covered": true
+    }
+  ],
+  "repetition_scopes": [
+    {
+      "name": "observation",
+      "key_variables": [
+        "obsId"
+      ],
+      "member_variables": [
+        "status",
+        "code",
+        "subjectRef",
+        "effective",
+        "value",
+        "unitCode"
+      ],
+      "min_occurs": 1,
+      "max_occurs": 1,
+      "note": "Exactly one iteration per map run, because the map is rooted at one Observation resource (DR-302). Declared so that Agent 2's expected-bindings `observation` scope has a counterpart here, and so a second iteration would be a contract violation rather than an unnoticed merge. There is NO repeating triple constraint anywhere on a path from the root except the tolerated, unmapped DomainResource.contained."
+    }
+  ],
+  "node_key_rules": {
+    "result": "{domain_namespace}egfr-result-{obsId}",
+    "record": "{domain_namespace}egfr-record-{obsId}",
+    "timeInstant": "{domain_namespace}time-{obsId}",
+    "sourceVersionIri": "{Observation canonical url}/_history/{versionId}",
+    "person": "fhir_sulo.identity.IdentityService.resolve(Observation.subject).entity_iri",
+    "quality": "fhir_sulo.identity.IdentityService.resolve_quality(...).quality_iri  [R2 governs the key inputs]",
+    "unitIri": "fhir_sulo.terminology.TerminologyService.resolve_unit(UCUM).unit_iri",
+    "_why": "CD-1: shex@1.0.0-alpha.33 ships no id(), and an unknown Map function silently deletes the shape that used it. Node identity is therefore declared here and enforced by the host choosing roots, not computed by the engine."
+  },
+  "terminology_dependencies": [
+    "policies/code-interpretation.v1.json :: CODE-LOINC-33914-3 (result_class, quality_class) -- review_status pilot-provisional, clinical_signoff false",
+    "policies/unit-policy.v1.json :: UCUM-mL-min-1_73_m2 (unit_iri) -- review_status pilot-provisional, clinical_signoff false",
+    "policies/identity-policy.v1.json :: entity_iri, quality_identity [R2 unanswered; the shipped default rejects]"
+  ],
+  "status_eligibility": [
+    "final"
+  ],
+  "status_eligibility_note": "Every other Observation.status fails the source shape. R3 holds preliminary / amended / corrected / registered open, and holds every open row at rejected, so widening this set needs a reviewer answer plus one value-set edit in egfr-source.v1.shex.",
+  "expected_failures": [
+    "Observation.status != 'final' (covers entered-in-error, declared source-only)",
+    "Observation.valueQuantity absent (covers dataAbsentReason, declared source-only)",
+    "Observation.valueQuantity.comparator present -- the CLOSED Quantity shape rejects it (declared rejected)",
+    "Observation.valueQuantity.system or .code absent (declared rejected)",
+    "UCUM code other than mL/min/{1.73_m2} (declared rejected)",
+    "LOINC code other than 33914-3 (declared rejected)",
+    "more than one Observation.code.coding -- rejected rather than silently choosing one",
+    "any Observation element outside the CLOSED shape, including Observation.method and any modifierExtension (concept note section 2)",
+    "an ambiguous or unresolvable Observation.subject -- no entity is claimed, so no target graph (declared rejected)"
+  ],
+  "expected_nonmapped_fields": [
+    "Observation.status",
+    "Observation.code.coding.system",
+    "Observation.code.coding.code",
+    "Observation.code.coding.display",
+    "Observation.subject.reference",
+    "Observation.subject.link",
+    "Observation.valueQuantity.unit",
+    "Observation.valueQuantity.system",
+    "Observation.meta (beyond versionId in the prov IRI)",
+    "Observation.contained"
+  ],
+  "allowed_alternative_shapes": [],
+  "static_variables": {
+    "resultClass": "maps/r4/egfr/egfr-bindings.v1.json :: vocabulary.resultClass",
+    "qualityClass": "maps/r4/egfr/egfr-bindings.v1.json :: vocabulary.qualityClass",
+    "qualityBranch": "maps/r4/egfr/egfr-bindings.v1.json :: vocabulary.qualityBranch [R4]",
+    "personClass": "maps/r4/egfr/egfr-bindings.v1.json :: vocabulary.personClass [R1]",
+    "personSuloClass": "maps/r4/egfr/egfr-bindings.v1.json :: vocabulary.personSuloClass [R6]",
+    "recordClass": "maps/r4/egfr/egfr-bindings.v1.json :: vocabulary.recordClass [R1]",
+    "person": "identity service run binding",
+    "quality": "identity service run binding [R2]",
+    "unitIri": "terminology service run binding",
+    "result": "node_key_rules.result",
+    "record": "node_key_rules.record",
+    "timeInstant": "node_key_rules.timeInstant",
+    "sourceVersionIri": "node_key_rules.sourceVersionIri"
+  },
+  "static_analysis_passed": false,
+  "static_analysis_note": [
+    "CD-1: the pinned engine ships no static checker and `shex-validate --diagnose` crashes non-TTY with exit 99. Agent 4's schema-pair linter is the named substitute and has NOT landed, so this stays false.",
+    "Until it does, the three obligations of the acceptance row are asserted at RUN time on every fixture by tests/contracts/maps/test_egfr_gate2.py: (1) lastReport.unboundVariables == [] on every pass -- unbound target variables; (2) no nested repeating constraint, asserted structurally by test_no_nested_repetition.py; (3) lastReport.unusedStatics == [] on every pass plus test_only_known_map_functions.py -- the substitute for 'invalid id() uses', because the engine's response to an unknown Map function is to silently delete the whole shape."
+  ],
+  "inverse_coverage_note": [
+    "Measured, not assumed: tests/contracts/maps/test_inverse_pivot.py revalidates the materialized graph against this map's own target schema and compares the recovered bindings.",
+    "FINDING: a target node carrying TWO variable-bound rdf:type constraints recovers the correct SET of classes but an ARBITRARY assignment of classes to variables, because the inverse cannot tell two same-predicate IRI constraints apart. This affects sh:EGFRQualityNode (qualityBranch/qualityClass) and sh:EGFRPersonNode (personSuloClass/personClass). It does not affect sh:EGFRResultNode, whose other rdf:type is a constant value set. Those four run bindings are therefore recorded as set-recoverable, not variable-recoverable, and the test asserts the set."
+  ],
+  "fixture_references": [
+    "fixtures/r4/egfr/egfr-baseline",
+    "fixtures/r4/egfr/egfr-contained-subject",
+    "fixtures/r4/egfr/egfr-comparator",
+    "fixtures/r4/egfr/egfr-data-absent-reason",
+    "fixtures/r4/egfr/egfr-entered-in-error",
+    "fixtures/r4/egfr/egfr-unit-missing",
+    "fixtures/r4/egfr/egfr-unit-unrecognised",
+    "fixtures/r4/egfr/egfr-code-unmapped",
+    "fixtures/r4/egfr/egfr-reference-unresolvable",
+    "fixtures/r4/egfr/egfr-reference-ambiguous"
+  ]
+}

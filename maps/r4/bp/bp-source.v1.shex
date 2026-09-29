@@ -1,0 +1,109 @@
+# Blood-pressure source schema -- FHIR R4 Observation, concept note section 5.
+#
+# Rooted at exactly ONE Observation resource (DR-302).  Concept note section 5's
+# "two blood-pressure panels" are two separate Observation resources, so each
+# run sees one panel and the two panels never share a binding context.
+#
+# COMPONENTS ARE SELECTED BY LOINC CODE, NOT BY POSITION.
+# `fhir:Observation.component` carries two triple constraints, one per
+# component shape, each discriminated by its Coding.code value set.  Neither is
+# a repeating constraint (both are max 1), so the repetition depth on every
+# path from the root is 0 -- strictly inside DR-302.
+#
+# This is what makes the concept note's requirement structural rather than
+# hopeful.  `(bp-1,120,80)` cannot become `(bp-1,120,70)`: 70 lives in a
+# different resource and therefore a different engine run.  `(bp-1,120,80)`
+# cannot become `(bp-1,80,120)`: 80 is bound by v:diaValue because its
+# component's code is 8462-4, whatever order the triples arrive in and whatever
+# fhir:index says.  The `bp-reordered-serialisation` fixture, whose
+# components-reversed variant genuinely moves fhir:index, is the evidence.
+#
+# The diastolic component is OPTIONAL: `bp-component-omitted` requires the
+# diastolic slot to stay empty rather than borrow its neighbour's value.
+
+PREFIX fhir: <http://hl7.org/fhir/>
+PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX xsd:  <http://www.w3.org/2001/XMLSchema#>
+PREFIX Map:  <http://shex.io/extensions/Map/#>
+PREFIX v:    <https://w3id.org/fhir-sulo/map/bp/var#>
+PREFIX sh:   <https://w3id.org/fhir-sulo/map/bp/shape#>
+
+start = @sh:BPObservation
+
+sh:BPObservation CLOSED {
+  rdf:type       [fhir:Observation] ;
+  fhir:nodeRole  [fhir:treeRoot] ;
+  fhir:DomainResource.contained . * ;                      # tolerated, never mapped
+  fhir:Resource.id   { fhir:value xsd:string %Map:{ v:panel %} } ;
+  fhir:Resource.meta { fhir:Meta.versionId { fhir:value xsd:string %Map:{ v:versionId %} } } ;
+  fhir:Observation.status  { fhir:value ["final"] %Map:{ v:status %} } ;
+  fhir:Observation.code    @sh:PanelCode ;
+  fhir:Observation.subject @sh:SubjectReference ;
+  fhir:Observation.effectiveDateTime { fhir:value xsd:dateTime %Map:{ v:effective %} } ;
+  fhir:Observation.component @sh:SystolicComponent ;
+  fhir:Observation.component @sh:DiastolicComponent ?
+}
+
+# Q-A2-1 / Q-A2-4 are open: the pilot has not decided whether the BP family
+# claims `vitalsigns`/`bp` conformance, so the panel code is a value SET rather
+# than a single pinned code.  8480-6 is Agent 2's current placeholder parent
+# code; 85354-9 is the real panel code the reviewer may move it to.  Whichever
+# it is, it is bound and never silently ignored, and R9 governs whether it may
+# type the panel record node (currently it may not).
+sh:PanelCode CLOSED {
+  fhir:CodeableConcept.coding @sh:PanelCoding
+}
+sh:PanelCoding CLOSED {
+  fhir:index . ? ;
+  fhir:Coding.system  { fhir:value ["http://loinc.org"] %Map:{ v:panelCodeSystem %} } ;
+  fhir:Coding.code    { fhir:value ["8480-6" "85354-9"] %Map:{ v:panelCode %} } ;
+  fhir:Coding.display { fhir:value xsd:string } ?
+}
+
+sh:SubjectReference CLOSED {
+  fhir:Reference.reference { fhir:value xsd:string %Map:{ v:subjectRef %} } ;
+  fhir:link . ?
+}
+
+sh:SystolicComponent CLOSED {
+  fhir:index . ? ;
+  fhir:Observation.component.code @sh:SystolicCode ;
+  fhir:Observation.component.valueQuantity @sh:SystolicQuantity
+}
+sh:SystolicCode CLOSED {
+  fhir:CodeableConcept.coding @sh:SystolicCoding
+}
+sh:SystolicCoding CLOSED {
+  fhir:index . ? ;
+  fhir:Coding.system  { fhir:value ["http://loinc.org"] } ;
+  fhir:Coding.code    { fhir:value ["8480-6"] %Map:{ v:sysCode %} } ;
+  fhir:Coding.display { fhir:value xsd:string } ?
+}
+# CLOSED with no fhir:Quantity.comparator constraint: a comparator fails here.
+sh:SystolicQuantity CLOSED {
+  fhir:Quantity.value  { fhir:value xsd:decimal %Map:{ v:sysValue %} } ;
+  fhir:Quantity.unit   { fhir:value xsd:string %Map:{ v:sysUnitText %} } ? ;
+  fhir:Quantity.system { fhir:value ["http://unitsofmeasure.org"] } ;
+  fhir:Quantity.code   { fhir:value ["mm[Hg]"] %Map:{ v:sysUnit %} }
+}
+
+sh:DiastolicComponent CLOSED {
+  fhir:index . ? ;
+  fhir:Observation.component.code @sh:DiastolicCode ;
+  fhir:Observation.component.valueQuantity @sh:DiastolicQuantity
+}
+sh:DiastolicCode CLOSED {
+  fhir:CodeableConcept.coding @sh:DiastolicCoding
+}
+sh:DiastolicCoding CLOSED {
+  fhir:index . ? ;
+  fhir:Coding.system  { fhir:value ["http://loinc.org"] } ;
+  fhir:Coding.code    { fhir:value ["8462-4"] %Map:{ v:diaCode %} } ;
+  fhir:Coding.display { fhir:value xsd:string } ?
+}
+sh:DiastolicQuantity CLOSED {
+  fhir:Quantity.value  { fhir:value xsd:decimal %Map:{ v:diaValue %} } ;
+  fhir:Quantity.unit   { fhir:value xsd:string %Map:{ v:diaUnitText %} } ? ;
+  fhir:Quantity.system { fhir:value ["http://unitsofmeasure.org"] } ;
+  fhir:Quantity.code   { fhir:value ["mm[Hg]"] %Map:{ v:diaUnit %} }
+}
