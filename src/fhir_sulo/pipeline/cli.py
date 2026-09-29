@@ -29,7 +29,7 @@ from typing import Any, Dict, Iterable, List, Optional, Sequence
 
 from ..contracts import CONTRACT_VERSION, TransformStatus
 from ..engine.docker import EngineImage, EngineUnavailable, default_image
-from .compose import Pipeline, PipelineOutcome
+from .compose import Pipeline, PipelineOutcome, RunMetadata
 from .families import FAMILIES
 from .manifest import discover
 
@@ -40,32 +40,19 @@ def _now() -> str:
     return datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
-def batch_entry(
-    outcome: PipelineOutcome,
-    engine_build: str,
-    sulo_version: str,
-    domain_ontology_version: str,
-    policy_version: str,
-) -> Dict[str, Any]:
-    """One JSON Lines entry, in the shape ``fhir_sulo.store.cli load`` reads."""
+def batch_entry(outcome: PipelineOutcome) -> Dict[str, Any]:
+    """One JSON Lines entry, in the shape ``fhir_sulo.store.cli load`` reads.
+
+    ``inputs`` comes from the outcome's own ``RunInputs`` -- the same object
+    its graph key was computed from. Rebuilding the 13 fields here by hand was
+    how the batch and the run record could disagree about a key (DR-305).
+    """
     transform = outcome.transform
     source = outcome.source
+    if outcome.inputs is None:
+        raise ValueError("outcome carries no RunInputs; its key is not recomputable")
     entry: Dict[str, Any] = {
-        "inputs": {
-            "source_canonical_url": source.canonical_url,
-            "source_version_id": source.version_id,
-            "source_json_digest": source.source_json_digest,
-            "map_id": transform.map_id,
-            "map_semantic_version": transform.pairing_hash,
-            "pairing_hash": transform.pairing_hash,
-            "sulo_version": sulo_version,
-            "domain_ontology_version": domain_ontology_version,
-            "terminology_snapshot": source.terminology_snapshot,
-            "policy_version": policy_version,
-            "engine_build": engine_build,
-            "renderer_id": source.renderer_id,
-            "contract_version": CONTRACT_VERSION,
-        },
+        "inputs": dict(outcome.inputs.key_inputs().as_dict()),
         "source_status": source.source_status,
         "status": transform.status.value,
     }
@@ -131,9 +118,10 @@ def _resolve_engine(tag: Optional[str]) -> EngineImage:
 
 def _run_files(
     family: str, files: Sequence[Path], repo: Path, image: EngineImage,
-    quality_mode: Optional[str],
+    quality_mode: Optional[str], metadata: Optional["RunMetadata"] = None,
 ) -> List[PipelineOutcome]:
-    pipeline = Pipeline.for_family(family, repo, engine=image, quality_mode=quality_mode)
+    pipeline = Pipeline.for_family(family, repo, engine=image,
+                                   quality_mode=quality_mode, metadata=metadata)
     return [pipeline.run_file(path) for path in files]
 
 
@@ -156,16 +144,15 @@ def cmd_map(args) -> int:
 
 def cmd_batch(args) -> int:
     image = _resolve_engine(args.image)
-    build = image.build_id()
     outcomes = _run_files(args.family, [Path(p) for p in args.files],
-                          Path(args.repo), image, args.quality_mode)
+                          Path(args.repo), image, args.quality_mode,
+                          metadata=RunMetadata(
+                              sulo_version=args.sulo_version,
+                              domain_ontology_version=args.domain_ontology_version))
     out = Path(args.out)
     with out.open("w", encoding="utf-8") as handle:
         for outcome in outcomes:
-            entry = batch_entry(
-                outcome, engine_build=build, sulo_version=args.sulo_version,
-                domain_ontology_version=args.domain_ontology_version,
-                policy_version=args.policy_version)
+            entry = batch_entry(outcome)
             handle.write(json.dumps(entry, sort_keys=True) + "\n")
     mapped = sum(1 for o in outcomes if o.transform.status is TransformStatus.MAPPED)
     print(f"wrote {len(outcomes)} entry(ies) to {out} ({mapped} mapped)")
@@ -220,7 +207,6 @@ def build_parser() -> argparse.ArgumentParser:
                             "writing state.json, provenance.nq and graph.nt")
     batch.add_argument("--sulo-version", default="0.2.12")
     batch.add_argument("--domain-ontology-version", default="pilot-placeholder")
-    batch.add_argument("--policy-version", default="policies/v1")
     batch.set_defaults(func=cmd_batch)
     return parser
 

@@ -39,6 +39,11 @@ from fhir_sulo.engine.driver import (  # noqa: E402
     to_transform_result,
     union_passes,
 )
+
+#: A stand-in for the store's 13-input key (DR-601). The driver is handed the
+#: key rather than deriving one, which is the point of DR-305: there is one
+#: graph key and the driver does not know most of its inputs.
+KEY = "urn:fhir-sulo:g:test:0123456789abcdef"
 from fhir_sulo.engine.rdfterms import BNODE, Quad, Term, shape_signature  # noqa: E402
 
 VAR = "https://w3id.org/fhir-sulo/var#"
@@ -292,7 +297,7 @@ class TestDriverEmitsNoTripleOfItsOwn(unittest.TestCase):
         self.assertEqual(tampered.untraced_quads(), (len(genuine.records),))
         with self.assertRaises(UntracedQuad):
             to_transform_result(tampered, map_id="m", pairing_hash="h",
-                                source_canonical_url="u", source_version_id="1")
+                                source_canonical_url="u", source_version_id="1", output_graph_key=KEY)
 
     def test_a_quad_with_no_constraint_id_is_rejected_at_the_pass(self):
         response = dict(load_response("ok-bp"))
@@ -410,7 +415,7 @@ class TestTransformResultHandoff(unittest.TestCase):
         result = union_passes([bp_pass()])
         transform = to_transform_result(
             result, map_id="bp/0.1.0", pairing_hash="sha256:x",
-            source_canonical_url=OBS1, source_version_id="1")
+            source_canonical_url=OBS1, source_version_id="1", output_graph_key=KEY)
         self.assertIs(transform.status, TransformStatus.MAPPED)
         self.assertTrue(transform.is_loadable)
         self.assertEqual(len(transform.lineage), len(transform.target_quads))
@@ -420,7 +425,7 @@ class TestTransformResultHandoff(unittest.TestCase):
     def test_lineage_names_a_variable_for_binding_derived_quads(self):
         transform = to_transform_result(
             union_passes([bp_pass()]), map_id="m", pairing_hash="h",
-            source_canonical_url=OBS1, source_version_id="1")
+            source_canonical_url=OBS1, source_version_id="1", output_graph_key=KEY)
         bindings = [l for l in transform.lineage if l.produced_by.endswith("/binding")]
         self.assertTrue(bindings)
         self.assertTrue(all(l.source_variable for l in bindings))
@@ -431,16 +436,35 @@ class TestTransformResultHandoff(unittest.TestCase):
         calling it a binding would be a lineage claim we cannot support."""
         transform = to_transform_result(
             union_passes([bp_pass()]), map_id="m", pairing_hash="h",
-            source_canonical_url=OBS1, source_version_id="1")
+            source_canonical_url=OBS1, source_version_id="1", output_graph_key=KEY)
         structural = [l for l in transform.lineage
                       if l.produced_by.endswith("/structural")]
         self.assertTrue(structural)
         self.assertTrue(all(l.source_variable is None for l in structural))
 
-    def test_graph_key_is_deterministic_and_identity_derived(self):
-        first = graph_key("m", "h", OBS1, "1")
-        self.assertEqual(first, graph_key("m", "h", OBS1, "1"))
-        self.assertNotEqual(first, graph_key("m", "h", OBS1, "2"))
+    def test_the_drivers_own_graph_key_is_gone(self):
+        """DR-305: there was a second, weaker key here -- four identity fields
+        against the store's thirteen -- and the store rejects a record whose
+        key does not recompute from its own fields. Two functions with one
+        name and different semantics is how someone ships a graph whose key
+        does not mean what the store thinks it means."""
+        with self.assertRaises(NotImplementedError):
+            graph_key("m", "h", OBS1, "1")
+
+    def test_the_stores_key_is_the_one_that_recomputes(self):
+        from fhir_sulo.provenance.run_records import RunInputs
+        from fhir_sulo.store.graph_key import GraphKeyInputs, graph_key as store_key
+
+        inputs = RunInputs(
+            source_canonical_url=OBS1, source_version_id="1",
+            source_json_digest="sha256:d", map_id="m", map_semantic_version="1.0.0",
+            pairing_hash="1.0.0", sulo_version="0.2.12",
+            domain_ontology_version="unresolved:R1", terminology_snapshot="snap",
+            policy_version="p", engine_build="e", renderer_id="r")
+        self.assertEqual(inputs.graph_key, store_key(inputs.key_inputs()))
+        self.assertNotEqual(
+            inputs.graph_key,
+            RunInputs(**dict(inputs.__dict__, source_version_id="2")).graph_key)
 
     def test_content_digest_is_stable(self):
         a = union_passes([bp_pass()]).content_digest()
@@ -453,7 +477,7 @@ class TestTransformResultHandoff(unittest.TestCase):
                 result = ineligible_result(
                     status, map_id="m", pairing_hash="h",
                     source_canonical_url=OBS1, source_version_id="1",
-                    reason="status entered-in-error")
+                    reason="status entered-in-error", output_graph_key=KEY)
                 self.assertEqual(result.target_quads, ())
                 self.assertFalse(result.is_loadable)
 
@@ -461,7 +485,7 @@ class TestTransformResultHandoff(unittest.TestCase):
         with self.assertRaises(ValueError):
             ineligible_result(TransformStatus.MAPPED, map_id="m", pairing_hash="h",
                               source_canonical_url=OBS1, source_version_id="1",
-                              reason="no")
+                              reason="no", output_graph_key=KEY)
 
     def test_binding_alternatives_are_not_fabricated(self):
         """The engine reports alternative materializations, not alternative
@@ -469,7 +493,7 @@ class TestTransformResultHandoff(unittest.TestCase):
         structure, so the count goes to diagnostics instead."""
         transform = to_transform_result(
             union_passes([bp_pass()]), map_id="m", pairing_hash="h",
-            source_canonical_url=OBS1, source_version_id="1")
+            source_canonical_url=OBS1, source_version_id="1", output_graph_key=KEY)
         self.assertEqual(transform.binding_alternatives, ())
         self.assertTrue(any("accepting materializations" in d
                             for d in transform.diagnostics))

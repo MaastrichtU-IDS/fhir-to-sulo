@@ -158,3 +158,9 @@ prebuilt image.
 **Effect:** none on any acceptance row; recorded because the failure mode is invisible
 (a stale image runs happily and gives the wrong answer) and because any agent adding a
 Docker-backed tool will hit it.
+
+**Extended (DR-305):** the engine is now a *resident* process, which is where this class of
+bug likes to live. It is kept out the same way: the container is **anonymous** (no `--name`,
+so nothing else can find or reuse it), owned by one host process, and destroyed when that
+process's stdin closes. A long-lived container that agents could share by name would have
+reintroduced exactly this.

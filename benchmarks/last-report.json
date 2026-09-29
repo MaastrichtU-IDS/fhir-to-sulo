@@ -15,8 +15,8 @@
     "Observation.dataAbsentReason present: Concept note section 4: dataAbsentReason produces no numeric hasValue.": 262,
     "Observation.status 'entered-in-error' is source-only under the pinned status policy": 228
   },
-  "passed": false,
-  "peak_memory_bytes": 5680783360,
+  "passed": true,
+  "peak_memory_bytes": 4965855232,
   "resources": 10000,
   "stages": [
     {
@@ -30,10 +30,10 @@
       "failure": "",
       "items": 10000,
       "name": "generate",
-      "peak_memory_bytes": 36814848,
+      "peak_memory_bytes": 37634048,
       "peak_memory_source": "cgroup",
-      "seconds": 0.039,
-      "throughput_per_second": 258518.42
+      "seconds": 0.032,
+      "throughput_per_second": 312465.07
     },
     {
       "detail": {
@@ -46,14 +46,14 @@
       "failure": "",
       "items": 10000,
       "name": "render",
-      "peak_memory_bytes": 156700672,
+      "peak_memory_bytes": 157040640,
       "peak_memory_source": "cgroup",
-      "seconds": 2.324,
-      "throughput_per_second": 4302.85
+      "seconds": 1.953,
+      "throughput_per_second": 5119.39
     },
     {
       "detail": {
-        "engine build": "fhir-sulo/shexmap:1.0.0-alpha.33-c5fc8dc8b610@sha256:0b5175fcdab5ca15410fb8dd53c36b2675e4aced07bea0cc672b037ed08be70f",
+        "engine build": "fhir-sulo/shexmap:1.0.0-alpha.33-3e3161e9a05e@sha256:51392306c9ead53feaf79021cddc8cb9a9f2bc2345f136b9a1029562695e115d",
         "families": "bp, egfr, encounter",
         "mapped": 9510,
         "not mapped": 490,
@@ -64,25 +64,25 @@
       "failure": "",
       "items": 10000,
       "name": "materialize",
-      "peak_memory_bytes": 3265900544,
+      "peak_memory_bytes": 3269861376,
       "peak_memory_source": "cgroup",
-      "seconds": 4491.469,
-      "throughput_per_second": 2.23
+      "seconds": 45.957,
+      "throughput_per_second": 217.59
     },
     {
       "detail": {
         "current graphs": 9510,
         "current triples": 261236,
-        "state digest": "9a23ebcea5e19ba6"
+        "state digest": "9dda757f4e0354b9"
       },
       "failed": false,
       "failure": "",
       "items": 10000,
       "name": "keying+lineage+store",
-      "peak_memory_bytes": 3297394688,
+      "peak_memory_bytes": 3313750016,
       "peak_memory_source": "cgroup",
-      "seconds": 1.003,
-      "throughput_per_second": 9968.45
+      "seconds": 0.981,
+      "throughput_per_second": 10195.17
     },
     {
       "detail": {
@@ -92,10 +92,10 @@
       "failure": "",
       "items": 10000,
       "name": "provenance",
-      "peak_memory_bytes": 3372720128,
+      "peak_memory_bytes": 3389067264,
       "peak_memory_source": "cgroup",
-      "seconds": 0.654,
-      "throughput_per_second": 15283.9
+      "seconds": 0.626,
+      "throughput_per_second": 15986.71
     },
     {
       "detail": {
@@ -109,19 +109,19 @@
       "failure": "",
       "items": 261236,
       "name": "shacl validation",
-      "peak_memory_bytes": 4049256448,
+      "peak_memory_bytes": 4061847552,
       "peak_memory_source": "cgroup",
-      "seconds": 85.432,
-      "throughput_per_second": 3057.84
+      "seconds": 85.556,
+      "throughput_per_second": 3053.39
     },
     {
       "detail": {
-        "batch size": 100,
-        "batches": 20,
+        "batch size": 50,
+        "batches": 40,
         "encounters in run": 1987,
         "encounters measured": 1987,
         "exclude tautologies": "structural",
-        "inferred triples": 163233,
+        "inferred triples": 168323,
         "reasoner": "HermiT",
         "reasoner backend": "local robot on PATH"
       },
@@ -129,13 +129,13 @@
       "failure": "",
       "items": 1987,
       "name": "owl reasoning (HermiT)",
-      "peak_memory_bytes": 5680783360,
+      "peak_memory_bytes": 4965855232,
       "peak_memory_source": "cgroup",
-      "seconds": 104.194,
-      "throughput_per_second": 19.07
+      "seconds": 93.276,
+      "throughput_per_second": 21.3
     }
   ],
-  "total_seconds": 4685.115,
+  "total_seconds": 228.381,
   "within_memory_budget": true,
-  "within_time_budget": false
+  "within_time_budget": true
 }

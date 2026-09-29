@@ -81,6 +81,18 @@ class EngineImage:
     tag: str = ""
     context: str = DEFAULT_CONTEXT
     timeout_seconds: int = 300
+    #: Hold the engine to the same envelope as its caller. The Gate 4 runner
+    #: is capped at --cpus=4 --memory=8g, but engine containers are its
+    #: SIBLINGS and were outside that cgroup, so the measured figures were a
+    #: lower bound. Setting these puts the engine inside the same envelope.
+    cpus: Optional[str] = None
+    memory: Optional[str] = None
+    #: A resident engine, created on first use and reused. `call` goes through
+    #: it, so the 0.339 s container start-up is paid once per process instead
+    #: of once per request.
+    reuse_process: bool = True
+
+    _session: Any = None
 
     def __post_init__(self) -> None:
         if not self.tag:
@@ -141,13 +153,43 @@ class EngineImage:
 
     # -- calls --------------------------------------------------------------
 
-    def call(self, script: str, request: Mapping[str, Any]) -> Any:
-        """Run one bridge script. Returns its parsed JSON response.
+    # -- the resident engine ------------------------------------------------
 
-        A bridge reports its *own* failures inside the JSON (``ok: false``) and
-        exits 1; that is a result, not an error, and is returned to the caller.
-        Only a failure to run the bridge at all raises here.
+    def session(self):
+        """The resident engine for this image, started on first use."""
+        from .session import EngineSession
+
+        existing = object.__getattribute__(self, "_session")
+        if existing is not None and existing.is_running:
+            return existing
+        created = EngineSession(image=self, cpus=self.cpus, memory=self.memory,
+                                timeout_seconds=self.timeout_seconds).start()
+        object.__setattr__(self, "_session", created)
+        return created
+
+    def close(self) -> None:
+        existing = object.__getattribute__(self, "_session")
+        if existing is not None:
+            existing.close()
+            object.__setattr__(self, "_session", None)
+
+    def call(self, script: str, request: Mapping[str, Any]) -> Any:
+        """Run one bridge operation. Returns its parsed JSON response.
+
+        By default this goes to the resident engine: same JSON-on-stdin
+        transport, same image, but the container is not torn down after one
+        request. `reuse_process=False` restores the one-shot `docker run` per
+        call, which is what the recorded-fixture tests use so that the
+        one-shot bridges stay exercised.
+
+        A bridge reports its *own* failures inside the JSON (``ok: false``);
+        that is a result, not an error, and is returned to the caller. Only a
+        failure to run the bridge at all raises here.
         """
+        if self.reuse_process:
+            op = _SCRIPT_OPS.get(script)
+            if op is not None:
+                return self.session().call(dict(request, op=op))
         payload = json.dumps(request)
         try:
             proc = subprocess.run(
@@ -184,11 +226,39 @@ class EngineImage:
         return self.call("run-pass.js", request)
 
 
+#: Bridge script -> the resident server's op name. A script with no op here
+#: still runs one-shot, so adding a bridge does not silently route nowhere.
+_SCRIPT_OPS = {
+    "run-map.js": "run-map",
+    "parse.js": "parse",
+}
+
+
+_SHARED: "dict[tuple, EngineImage]" = {}
+
+
 def default_image(tag: Optional[str] = None) -> EngineImage:
     """The image for *this* working tree's bridge and lockfile.
 
-    ``FHIR_SULO_ENGINE_IMAGE`` overrides it, which is how a CI job can pin a
-    prebuilt image; otherwise the tag is derived from the build context so two
-    worktrees with different bridges cannot share, and silently swap, one tag.
+    Shared per (tag, cpus, memory) within a process, so that N pipelines mean
+    one resident engine rather than N. The benchmark builds a pipeline per map
+    family; three containers would be three start-ups and three memory figures
+    for no benefit.
+
+    ``FHIR_SULO_ENGINE_IMAGE`` pins a prebuilt image (how CI does it);
+    otherwise the tag is derived from the build context, so two worktrees with
+    different bridges cannot share, and silently swap, one tag (CD-5).
+    ``FHIR_SULO_ENGINE_CPUS`` and ``FHIR_SULO_ENGINE_MEMORY`` hold the engine
+    to a resource envelope -- it is a sibling container, so a runner capped at
+    4 CPUs does not otherwise constrain it, and the benchmark's figures were a
+    lower bound because of exactly that.
     """
-    return EngineImage(tag=tag or os.environ.get("FHIR_SULO_ENGINE_IMAGE", ""))
+    key = (tag or os.environ.get("FHIR_SULO_ENGINE_IMAGE", ""),
+           os.environ.get("FHIR_SULO_ENGINE_CPUS") or None,
+           os.environ.get("FHIR_SULO_ENGINE_MEMORY") or None)
+    existing = _SHARED.get(key)
+    if existing is not None:
+        return existing
+    created = EngineImage(tag=key[0], cpus=key[1], memory=key[2])
+    _SHARED[key] = created
+    return created

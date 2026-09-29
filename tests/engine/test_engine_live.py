@@ -183,7 +183,8 @@ class TestDriverAgainstTheLiveEngine(unittest.TestCase):
         self.assertEqual(sorted(tuples), [("120", "mm[Hg]"), ("80", "mm[Hg]")])
         transform = to_transform_result(
             result, map_id="bp/0.1.0", pairing_hash="sha256:x",
-            source_canonical_url=OBS1, source_version_id="1")
+            source_canonical_url=OBS1, source_version_id="1",
+            output_graph_key="urn:fhir-sulo:g:test:live")
         self.assertTrue(transform.is_loadable)
         self.assertEqual(len(transform.lineage), len(transform.target_quads))
 
