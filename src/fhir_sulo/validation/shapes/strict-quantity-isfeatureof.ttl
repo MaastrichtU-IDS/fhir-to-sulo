@@ -1,0 +1,23 @@
+# R5 option A / C, row 2 - OPTIONAL MODULE, merged only when
+# Strictness.require_quantity_is_feature_of is set.
+#
+# DR-002 axiom 4: Quantity is a subclass of InformationObject, which is a
+# subclass of Feature, which is a subclass of (isFeatureOf some (Object or
+# Process)). An OWL reasoner satisfies that with an anonymous bearer and the
+# ontology stays consistent. A closed-world shape check sees a missing triple.
+#
+# The concept note's own example graph for ex:egfr-result-456 has no
+# sulo:isFeatureOf, so this module is OFF by default. R5 is open.
+
+@prefix sh:   <http://www.w3.org/ns/shacl#> .
+@prefix sulo: <https://w3id.org/sulo/> .
+@prefix fs:   <urn:fhir-sulo:shapes#> .
+
+fs:QuantityIsFeatureOfShape a sh:NodeShape ;
+    sh:targetClass sulo:Quantity ;
+    sh:property [
+        sh:path sulo:isFeatureOf ;
+        sh:minCount 1 ;
+        sh:nodeKind sh:BlankNodeOrIRI ;
+        sh:message "R5 option A: a sulo:Quantity must carry an explicit sulo:isFeatureOf bearer (DR-002 axiom 4)" ;
+    ] .

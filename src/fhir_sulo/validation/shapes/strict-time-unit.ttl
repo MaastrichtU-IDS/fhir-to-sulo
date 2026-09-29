@@ -1,0 +1,23 @@
+# R5 option A / C, row 3 - OPTIONAL MODULE, merged only when
+# Strictness.require_time_unit is set.
+#
+# DR-002 axiom 5: TimeInstant is a subclass of Time, which is a subclass of
+# Quantity, which is a subclass of (hasPart some Unit); and Time is disjoint
+# with Unit, so a time instant cannot satisfy the restriction with itself the
+# way a plain Unit can (axiom 3).
+#
+# The concept note's ex:time-egfr-456 carries no unit part, so this module is
+# OFF by default. R5 is open.
+
+@prefix sh:   <http://www.w3.org/ns/shacl#> .
+@prefix sulo: <https://w3id.org/sulo/> .
+@prefix fs:   <urn:fhir-sulo:shapes#> .
+
+fs:TimeInstantUnitShape a sh:NodeShape ;
+    sh:targetClass sulo:TimeInstant ;
+    sh:property [
+        sh:path sulo:hasPart ;
+        sh:qualifiedValueShape [ sh:class sulo:Unit ] ;
+        sh:qualifiedMinCount 1 ;
+        sh:message "R5 option A: a sulo:TimeInstant must carry an explicit time sulo:Unit part (DR-002 axiom 5)" ;
+    ] .
