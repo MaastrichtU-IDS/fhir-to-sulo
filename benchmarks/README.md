@@ -2,6 +2,13 @@
 
 **Owner:** Agent 6. **Gate:** 4. **Last measured:** 2026-09-29.
 
+> **Scope warning, stated first because it is the most important thing here.** This benchmark
+> does **not** include the transformation. `generator.py` emits SULO target triples directly;
+> there is no rendering, no map and no engine in the measured path. The number is a **lower
+> bound on end-to-end time**, not the Gate 4 figure. Closing that gap is blocked on Agent 4's
+> composed pipeline; the plan is in [DR-605 §5](../docs/fhir-sulo/decisions/DR-605-r5-unset-rejects-and-validation-on-map-output.md).
+> Treat the target as **at risk** until it is re-measured with the real maps.
+
 > The benchmark processes 10,000 synthetic resources on a documented
 > 4-vCPU/8-GB runner within 15 minutes, with peak memory below 6 GB and no
 > unexpected mapping failures. These are pilot engineering targets, to be
@@ -10,12 +17,13 @@
 
 ## Verdict
 
-**Both targets met, with one scope caveat stated below.**
+**Both targets met on the stages measured — which do not include the transformation.**
+The Gate 4 scale row is therefore **not** satisfied yet; see the scope warning above.
 
 | Target | Result |
 | --- | --- |
-| 10,000 resources ≤ 15 min | **3.0 min** (179.25 s) |
-| peak memory < 6 GB | **2.01 GB** |
+| 10,000 resources ≤ 15 min | **3.2 min** (194.30 s) |
+| peak memory < 6 GB | **2.14 GB** |
 | failure categories reported | yes, 487 of 10,000 by design |
 | engine contribution | **0.30 s** for 10,000 materializations |
 
@@ -71,29 +79,33 @@ ROBOT is **copied** into the image from the digest
 pins and the same one the PRO entailment was verified against. It is not
 re-downloaded, so the benchmark cannot drift onto a different reasoner build.
 
+`--strictness` is **required**: review item R5 is open, and a benchmark report must name the
+strictness it ran under rather than inherit one (DR-605).
+
 ```
-benchmarks/run.sh                      # 10,000 resources
-benchmarks/run.sh -n 1000              # smaller trial
-benchmarks/run.sh --strictness R5_OPTION_A     # cost of the strict shapes
-BENCH_CPUS=2 BENCH_MEMORY=4g benchmarks/run.sh # a different envelope
-benchmarks/engine_bench/run.sh         # the ShExMap engine
+benchmarks/run.sh --strictness concept-note-literal            # 10,000 resources
+benchmarks/run.sh --strictness concept-note-literal -n 1000    # smaller trial
+benchmarks/run.sh --strictness closed-world-complete           # cost of the strict shapes
+BENCH_CPUS=2 BENCH_MEMORY=4g benchmarks/run.sh --strictness concept-note-literal
+benchmarks/engine_bench/run.sh                                 # the ShExMap engine
 ```
 
 ## 3. Results, 2026-09-29
 
 Runner: `--cpus=4 --memory=8g`, `python:3.11-slim-bookworm` + ROBOT 1.9.7,
-CPython 3.11.14, seed 20260929, strictness `concept-note-literal` (R5 open).
+CPython 3.11.14, seed 20260929, `--strictness concept-note-literal` (named explicitly;
+R5 is open and there is no default — DR-605).
 Corpus: 4,019 eGFR, 3,535 BP panels, 1,959 encounters, 487 ineligible;
 220,015 target triples.
 
 | Stage | Time | Throughput | Peak (cgroup) |
 | --- | ---: | ---: | ---: |
 | generate | 0.10 s | 103,590 res/s | 0.06 GB |
-| keying + lineage + store | 1.53 s | 6,542 res/s | 0.20 GB |
-| provenance | 0.61 s | 16,287 res/s | 0.30 GB |
-| SHACL validation | 84.94 s | 2,590 triples/s | 0.71 GB |
-| OWL reasoning (HermiT) | 92.07 s | 21.3 enc/s | **2.01 GB** |
-| **TOTAL** | **179.25 s** | 55.8 res/s | **2.01 GB** |
+| keying + lineage + store | 1.74 s | 5,751 res/s | 0.20 GB |
+| provenance | 0.64 s | 15,642 res/s | 0.30 GB |
+| SHACL validation | 93.23 s | 2,360 triples/s | 0.71 GB |
+| OWL reasoning (HermiT) | 98.59 s | 19.9 enc/s | **2.14 GB** |
+| **TOTAL** | **194.30 s** | 51.5 res/s | **2.14 GB** |
 
 Failure categories, all by construction: 246 `dataAbsentReason`, 241
 `entered-in-error`. Both take the `source-only` path and contribute no
@@ -161,8 +173,9 @@ in-process one.
 
 ## 4. Honest caveats
 
-1. **The end-to-end pipeline does not exist yet.** 179 s is the host layers
-   plus reasoning. Ingestion, the real maps and the driver are not in it.
+1. **The end-to-end pipeline does not exist yet.** 194 s is the host layers plus reasoning.
+   Ingestion, the real maps and the driver are not in it. This is the single largest caveat and
+   it is why the Gate 4 scale row should not be read as passed. See DR-605 §5 for the plan.
 2. **The maps are stand-ins.** Real schemas are larger and materialization
    cost depends on schema size. Re-measure against `maps/r4/`.
 3. **Reasoning is batched at 100 encounters.** Sound, because the PRO chain is

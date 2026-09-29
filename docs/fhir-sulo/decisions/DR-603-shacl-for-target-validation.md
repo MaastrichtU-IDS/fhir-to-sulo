@@ -1,6 +1,8 @@
 # DR-603 — SHACL for target shape validation, and the R5 strictness switch
 
 **Status:** Decided (Agent 6) for the mechanism; **R5 remains OPEN** and nothing here resolves it
+**Superseded in part by [DR-605](DR-605-r5-unset-rejects-and-validation-on-map-output.md)**, which
+replaced the permissive R5 default with an unset-rejects policy and corrected the R6 claim below
 **Date:** 2026-09-29
 **Gate:** 2 and 3 (target validation), 4 (the benchmark's validation stage)
 **Depends on:** DR-002 (the SULO axioms the shapes encode), REVIEW-REQUEST.md R1, R4, R5, R6
@@ -65,7 +67,13 @@ prohibition is on the modelling shortcut, not on one IRI.
 
 ## The R5 switch
 
-**R5 is open. `strictness.R5_RESOLVED` is `False` and a test asserts it stays that way.**
+> **Corrected by DR-605.** This section described a permissive **default**
+> (`CONCEPT_NOTE_LITERAL`), which an independent review found had quietly put R5 option B in
+> force everywhere while `R5_RESOLVED = False` claimed the question was open. Strictness is now
+> a required argument and unset *rejects*. The description of what each option means is still
+> accurate; the "default" is not.
+
+**R5 is open. The recorded answer in `r5-strictness-policy.json` is `null`, and unset rejects.**
 
 SULO states existentials an OWL reasoner satisfies with an anonymous witness but a closed-world
 shape check reads as a missing triple (DR-002 axioms 4 and 5). The reviewer must choose:
@@ -106,10 +114,13 @@ report can never be misread as having been produced under a strictness it was no
 - **`Quality` vs bare `Feature` (R4).** The concept note writes `a sulo:Feature`; the shapes
   accept it and also accept `sulo:Quality`, and the disjointness shapes catch the combinations
   that would make the graph inconsistent either way.
-- **Person typing (R6).** No shape constrains it. The reasoner does catch the failure mode R6
-  exists to prevent — typing a person into a `Feature` branch makes the graph inconsistent,
-  since `Feature owl:disjointWith SpatialObject` — and a test asserts that, so R6 has a safety
-  net while it is open.
+- **Person typing (R6).** No shape constrains it. ~~The reasoner does catch the failure mode R6
+  exists to prevent.~~ **This was wrong, and DR-605 records the measurement.** The reasoner
+  catches it only when the person is typed `sulo:SpatialObject`; the maps emit bare
+  `sulo:Object`, and `Quality ⊑ Feature ⊑ Object`, so a person also typed as a Quality or a Role
+  is perfectly consistent. The SHACL disjointness shapes *do* catch it, so nothing reaches the
+  store — but the OWL guard this note claimed does not exist under the current typing. That is a
+  concrete consequence for the reviewer to weigh in R6.
 - **Status policy (R3).** Eligibility is decided during ingestion and enforced by the store: an
   ineligible result carries no quads and retracts any current graph. The graph-level negative
   query `NQ2` is the independent second check, over the delivered graph plus its provenance.

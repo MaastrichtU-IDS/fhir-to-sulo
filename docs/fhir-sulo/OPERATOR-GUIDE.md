@@ -225,19 +225,32 @@ same fixtures must print the same value (Gate 4).
 ### Shapes
 
 ```sh
-PYTHONPATH=src .venv/bin/python -m fhir_sulo.validation.cli shapes --graph current.nt
+PYTHONPATH=src .venv/bin/python -m fhir_sulo.validation.cli shapes \
+    --graph current.nt --strictness concept-note-literal
 ```
 ```
-strictness   concept-note-literal (R5 unanswered)
+strictness   concept-note-literal
 modules      base.ttl
-result       conforms (concept-note-literal (R5 unanswered), 1 shape modules)
-digest       5d2a2384d2c6a9c3…
+result       conforms (concept-note-literal, 1 shape modules)
+graph        220015 triples, 47566 focus nodes, digest 12953f289bd1199d
+digest       c8c9568102d168eb…
 ```
 
-`--strictness` selects the **R5** setting: `literal` (default, the concept note's example
-graphs), `r5-a` (closed-world complete) or `r5-b`. **R5 is an open review item** — do not change
-the default without a reviewer answer and a decision record. Violations print with a message
-naming the axiom or concept-note section they come from.
+**`--strictness` is required and there is no default.** Review item **R5** is open, and an
+unanswered question must not quietly select the permissive answer — which is exactly what a
+default did until DR-605. The choices are:
+
+| value | meaning |
+| --- | --- |
+| `concept-note-literal` | R5 option B: shapes check only what the maps promise |
+| `closed-world-complete` | R5 option A: quantities carry `isFeatureOf`, time instants carry a unit |
+| `from-policy` | use the reviewer's recorded answer — **fails while it is unset** |
+
+Omitting it is an argparse error; passing `from-policy` today exits 2 with the reviewer
+question. Answering R5 means editing `src/fhir_sulo/validation/r5-strictness-policy.json` and
+writing a decision record, not changing a default.
+
+Violations print with a message naming the axiom or concept-note section they come from.
 
 ### Consistency and entailments
 
@@ -289,12 +302,16 @@ rewritten.
 ## 9. The benchmark
 
 ```sh
-benchmarks/run.sh                 # 10,000 resources on a 4-vCPU/8-GB runner
-benchmarks/engine_bench/run.sh    # the pinned ShExMap engine
+benchmarks/run.sh --strictness concept-note-literal   # 10,000 resources, 4 vCPU / 8 GB
+benchmarks/engine_bench/run.sh                       # the pinned ShExMap engine
 ```
 
-Constraints are applied by the script, not by you. Last measured: **179 s, peak 2.01 GB** for
-10,000 resources, against targets of 15 min and 6 GB. Full protocol and caveats —
+Constraints are applied by the script, not by you, and `--strictness` is required here too so a
+report always names what it ran under. Last measured: **194 s, peak 2.14 GB** for 10,000
+resources, against targets of 15 min and 6 GB.
+
+**What that number does not include:** rendering, the real maps and the engine. It is a lower
+bound, and it becomes the real end-to-end figure only when Agent 4's composed pipeline lands. Full protocol and caveats —
 including what is *not* in that number — in [`benchmarks/README.md`](../../benchmarks/README.md).
 
 ## 10. Tests
@@ -319,7 +336,9 @@ rather than failing, so the contract tests still run on a bare interpreter.
 | `… reuses a versionId … with a different JSON digest` | A FHIR server edited a resource in place. Version-based correction cannot work; report it upstream. |
 | `graph … already holds different triples for the same key` | An input that changes triples is missing from the key. See `graph_key.CONTENT_FIELDS` and DR-601 — do not work around it. |
 | `graph key input X is empty` | Record an explicit token such as `unresolved:R1`. An empty string and a real value must not hash alike. |
-| Shapes fail only under `r5-a` | Expected. R5 is open and `r5-a` is one candidate answer. Do not change the default to make it pass. |
+| `the following arguments are required: --strictness` | Correct behaviour. R5 is open, so a run must name the strictness it uses. Pick a value from the table in §8. |
+| `R5 UNANSWERED: review item R5 is unanswered…` | You passed `--strictness from-policy` and the reviewer has not answered. Name an option explicitly, or record the answer in `r5-strictness-policy.json`. |
+| Shapes fail only under `closed-world-complete` | Expected. R5 is open and that is one candidate answer; the maps do not emit those triples today. Do not "fix" it by changing the maps or the shapes. |
 
 ## 12. Where the decisions are
 
@@ -328,6 +347,7 @@ rather than failing, so the contract tests still run on a bare interpreter.
 | Graph key, correction semantics | [DR-601](decisions/DR-601-graph-key-and-correction-semantics.md) |
 | Reasoner pin, PRO verification | [DR-602](decisions/DR-602-reasoner-pin-and-pro-verification.md) |
 | SHACL choice, R5 switch | [DR-603](decisions/DR-603-shacl-for-target-validation.md) |
+| R5 unset rejects; validation on map output | [DR-605](decisions/DR-605-r5-unset-rejects-and-validation-on-map-output.md) |
 | Engine pin and its blockers | [DR-301](decisions/DR-301-engine-pin-and-capability-verdict.md) |
 | One repetition per path | [DR-302](decisions/DR-302-one-repetition-per-path.md) |
 | SULO pin and axioms | [DR-002](decisions/DR-002-sulo-pin-and-axioms.md) |
