@@ -232,6 +232,15 @@ def walk_paths(
         return paths, cycles, dangling
 
     def descend(shape_expr: Any, steps: Tuple[PathStep, ...], stack: Tuple[str, ...]) -> None:
+        """Enter a shape expression, pushing every *named* shape onto the stack.
+
+        ``ShapeAnd``/``ShapeOr`` are walked component by component rather than
+        flattened by ``sub_shapes``. Flattening loses the labels inside them,
+        and with the labels goes the cycle check: ``<S> { :p @<S> AND IRI }``
+        would recurse through an anonymous conjunction that never reaches the
+        stack, so the cycle is invisible and the branch is cut by the depth
+        guard instead -- silently, and only after 64 spurious paths.
+        """
         label = schema.shape_label_of(shape_expr)
         if label is not None and label in stack:
             # the cycle is the suffix of the stack from where the label first
@@ -239,17 +248,26 @@ def walk_paths(
             cycles.append(Cycle(shapes=stack[stack.index(label):] + (label,)))
             return
         if len(steps) >= max_depth:
-            return
+            raise SchemaTooLarge(
+                f"shape references nest more than {max_depth} deep in "
+                f"{schema.label}; refusing to report a partial analysis"
+            )
         resolved = schema.resolve_shape(shape_expr)
         if resolved is None:
             if isinstance(shape_expr, str):
                 dangling.append(shape_expr)
             return
         next_stack = stack + (label,) if label is not None else stack
-        for shape in schema.sub_shapes(shape_expr):
-            expression = shape.get("expression")
-            if expression is not None:
-                visit_expr(expression, label, steps, next_stack, group_repeats=0)
+        kind = resolved.get("type")
+        if kind in ("ShapeAnd", "ShapeOr"):
+            for part in resolved.get("shapeExprs", []):
+                descend(part, steps, next_stack)
+            return
+        if kind != "Shape":
+            return  # NodeConstraint, ShapeNot: no arcs of their own
+        expression = resolved.get("expression")
+        if expression is not None:
+            visit_expr(expression, label, steps, next_stack, group_repeats=0)
 
     def visit_expr(
         expr: Any,

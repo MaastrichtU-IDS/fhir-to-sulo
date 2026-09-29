@@ -13,8 +13,25 @@ than a hope about parser behaviour.
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, replace
 from typing import Optional
+
+
+class InvalidTerm(ValueError):
+    """A term that cannot be written as N-Triples.
+
+    Raised rather than escaped: an IRI with a space in it is a bug upstream,
+    and silently rewriting it would change what the graph says about the
+    world. The driver's contract is that it does not alter the engine's terms.
+    """
+
+
+#: N-Triples IRIREF forbids these between the angle brackets, plus controls.
+_ILLEGAL_IN_IRI = re.compile('[\\x00-\\x20<>"{}|^`\\\\]')
+
+#: A conservative BLANK_NODE_LABEL: enough for engine counters and pass ids.
+_VALID_BNODE_LABEL = re.compile(r"\A[A-Za-z0-9_][A-Za-z0-9_.-]*\Z")
 
 IRI = "iri"
 BNODE = "bnode"
@@ -67,8 +84,21 @@ class Term:
 
     def to_ntriples(self) -> str:
         if self.kind == IRI:
+            bad = _ILLEGAL_IN_IRI.search(self.value)
+            if bad:
+                raise InvalidTerm(
+                    f"IRI {self.value!r} contains {bad.group()!r}, which N-Triples "
+                    f"forbids between < and >. Emitting it would produce a file no "
+                    f"parser accepts"
+                )
             return "<" + self.value + ">"
         if self.kind == BNODE:
+            if not _VALID_BNODE_LABEL.match(self.value):
+                raise InvalidTerm(
+                    f"blank node label {self.value!r} is not a valid N-Triples "
+                    f"label; if it was built from a pass id, that id needs to be "
+                    f"restricted to letters, digits, '_' and '-'"
+                )
             return "_:" + self.value
         body = '"' + _escape(self.value) + '"'
         if self.language:

@@ -364,3 +364,58 @@ class TestWalkTermination(unittest.TestCase):
         report = lint_pair(schema, schema)
         self.assertIn("SP008", error_codes(report))
         self.assertFalse(report.ok)
+
+
+class TestCyclesThroughAnonymousShapeExpressions(unittest.TestCase):
+    """`<S> { :p @<S> AND IRI }` closes a cycle through an anonymous ShapeAnd.
+
+    Flattening And/Or before the cycle check loses the label inside, so the
+    walk recursed to the depth guard and reported nothing at all -- a clean
+    lint for a schema that cannot be materialized.
+    """
+
+    @staticmethod
+    def schema(shapes, start="S", label="anon"):
+        from fhir_sulo.engine.shexj import Schema
+
+        return Schema(raw={"type": "Schema", "start": start, "shapes": shapes},
+                      prefixes={}, label=label)
+
+    def test_self_cycle_through_a_shape_and_is_found(self):
+        from fhir_sulo.engine.shexj import walk_paths
+
+        schema = self.schema([{"type": "Shape", "id": "S", "expression": {
+            "type": "TripleConstraint", "predicate": "p", "valueExpr": {
+                "type": "ShapeAnd", "shapeExprs": [
+                    "S", {"type": "NodeConstraint", "nodeKind": "iri"}]}}}])
+        paths, cycles, _ = walk_paths(schema)
+        self.assertEqual([c.render() for c in cycles], ["S -> S"])
+        self.assertEqual(len(paths), 1)
+        self.assertIn("SP005", error_codes(lint_pair(schema, schema)))
+
+    def test_the_cycle_names_every_shape_on_it(self):
+        from fhir_sulo.engine.shexj import walk_paths
+
+        schema = self.schema([
+            {"type": "Shape", "id": "S", "expression":
+                {"type": "TripleConstraint", "predicate": "p", "valueExpr": "T"}},
+            {"type": "Shape", "id": "T", "expression":
+                {"type": "TripleConstraint", "predicate": "q", "valueExpr": {
+                    "type": "ShapeAnd", "shapeExprs": [
+                        "S", {"type": "NodeConstraint", "nodeKind": "iri"}]}}}])
+        _, cycles, _ = walk_paths(schema)
+        self.assertEqual([c.render() for c in cycles], ["S -> T -> S"])
+
+    def test_excessive_depth_raises_rather_than_cutting_the_branch(self):
+        """A silently cut branch is an unanalysed schema reported as clean."""
+        from fhir_sulo.engine.shexj import SchemaTooLarge, walk_paths
+
+        shapes = [{"type": "Shape", "id": f"S{i}", "expression": {
+            "type": "TripleConstraint", "predicate": "p", "valueExpr": f"S{i + 1}"}}
+            for i in range(80)]
+        shapes.append({"type": "Shape", "id": "S80", "expression":
+                       {"type": "TripleConstraint", "predicate": "leaf"}})
+        schema = self.schema(shapes, start="S0", label="deep")
+        with self.assertRaises(SchemaTooLarge):
+            walk_paths(schema)
+        self.assertIn("SP008", error_codes(lint_pair(schema, schema)))

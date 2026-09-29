@@ -52,7 +52,10 @@ def main() -> int:
 
     engine = EngineImage()
     try:
-        engine.ensure_built()
+        # rebuild: ensure_built() is a no-op when the tag exists, so editing a
+        # bridge script and re-recording would capture the PREVIOUS image and
+        # --check would then confirm the stale recording matches it.
+        engine.ensure_built(rebuild=True)
     except EngineUnavailable as exc:
         print(f"engine unavailable: {exc}", file=sys.stderr)
         return 2

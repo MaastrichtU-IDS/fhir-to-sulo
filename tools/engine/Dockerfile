@@ -8,7 +8,10 @@
 # only the VM owner's home, so a bind mount into a scratch or repo directory
 # silently produces an EMPTY directory rather than an error. Passing every
 # input on stdin removes the failure mode instead of documenting it.
-FROM node:20-bookworm-slim
+# Pinned by digest, not by tag: `node:20-bookworm-slim` moves, so a tag alone
+# pins the npm lockfile and not the runtime under it. This is the digest
+# DR-301's probes ran against.
+FROM node:20-bookworm-slim@sha256:2cf067cfed83d5ea958367df9f966191a942351a2df77d6f0193e162b5febfc0
 
 WORKDIR /srv/engine
 COPY package.json package-lock.json ./

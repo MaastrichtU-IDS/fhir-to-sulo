@@ -95,6 +95,11 @@ def main() -> int:
                     help="a staticVar the driver will supply; counts as bound")
     ap.add_argument("--json", action="store_true", help="machine-readable output")
     ap.add_argument("--image", help="override the pinned engine image tag")
+    ap.add_argument("--require-pairs", action="store_true",
+                    help="exit 2 if --dir contains no schema pair at all; for a "
+                         "build gate, linting nothing must not read as passing")
+    ap.add_argument("--source-shape", help="lint from this source shape, not start")
+    ap.add_argument("--target-shape", help="lint from this target shape, not start")
     args = ap.parse_args()
 
     if bool(args.dir) == bool(args.source and args.target):
@@ -116,7 +121,12 @@ def main() -> int:
             return 2
         work = list(pairs_in(args.dir))
         if not work:
-            print(f"no schema pairs under {args.dir}")
+            print(f"no schema pairs under {args.dir}", file=sys.stderr)
+            if args.require_pairs:
+                print("  --require-pairs was given: a gate that lints nothing is "
+                      "not a gate. Check the directory and the source.shex / "
+                      "target.shex filenames.", file=sys.stderr)
+                return 2
             return 0
     else:
         work = [(os.path.basename(os.path.dirname(os.path.abspath(args.source))) or "pair",
@@ -126,7 +136,9 @@ def main() -> int:
     for name, source_path, target_path in work:
         source = parse_schema(engine, source_path, SOURCE_BASE, f"{name}/source")
         target = parse_schema(engine, target_path, TARGET_BASE, f"{name}/target")
-        report = lint_pair(source, target, static_variables=statics(args.static))
+        report = lint_pair(source, target, static_variables=statics(args.static),
+                           source_start=args.source_shape,
+                           target_start=args.target_shape)
         reports.append((name, source_path, target_path, report))
         if not report.ok:
             failed += 1

@@ -41,7 +41,13 @@ from typing import Mapping, Optional, Tuple
 VARIABLE_PATTERN = re.compile(r"^ *(?:<([^>]*)>|([^:]*):([^ ]*)) *\Z")
 
 #: ``ThreadedMaterializer.ts:56`` -- any ``name(...)``. Tried second.
-FUNCTION_PATTERN = re.compile(r"^\s*[a-zA-Z0-9]+\(.*\)\s*\Z", re.S)
+#:
+#: **No** ``re.S``, because the JavaScript has no ``/s`` flag: its ``.`` stops
+#: at a newline. With ``re.S`` a multi-line ``hashmap(v:x, {\n "a": "b"\n})``
+#: -- the natural way to write a map of any size -- would lint as a valid
+#: function while the engine matches neither pattern and deletes the shape.
+#: Verified against the installed source, not assumed.
+FUNCTION_PATTERN = re.compile(r"^\s*[a-zA-Z0-9]+\(.*\)\s*\Z")
 
 #: Not the engine's: used only to explain *why* a function-shaped code was
 #: read as a variable. See ``parse_map_code``.
@@ -53,7 +59,9 @@ KNOWN_FUNCTIONS = frozenset({"hashmap", "regex", "test"})
 #: ``regex_extension.ts:11`` -- ``?<prefix:local>`` or ``?<<iri>>``.
 CAPTURE_GROUP = re.compile(r"\?<(?:([a-zA-Z:]+)|<([^>]+)>)>")
 
-#: ``hashmap_extension.ts`` -- first argument is the variable.
+#: ``hashmap_extension.ts:24`` -- first argument is the variable. This one
+#: *does* carry ``/s`` in the JavaScript, so ``re.S`` here is the faithful
+#: translation, not an oversight matching the line above.
 HASHMAP_ARGS = re.compile(r"^[ ]*([\w:<>]+)[ ]*,[ ]*(\{.*)$", re.S)
 
 MAP_EXTENSION_IRI = "http://shex.io/extensions/Map/#"

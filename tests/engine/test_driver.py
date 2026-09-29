@@ -630,3 +630,82 @@ class TestCombinedBindingTree(unittest.TestCase):
     def test_the_first_pass_root_is_still_the_root(self):
         tree = union_passes(self.three_passes()).binding_tree
         self.assertEqual(tree.focus, "urn:g:p-1#subject")
+
+
+class TestResponseFieldsAreRequired(unittest.TestCase):
+    """Absence of evidence must not read as evidence of absence.
+
+    Every fail-fast check reads a field of the engine response. If a field can
+    be missing, the check it guards silently does not run -- and the tool whose
+    only job is to notice silent failure fails silently.
+    """
+
+    def test_an_empty_ok_response_is_refused(self):
+        with self.assertRaises(MaterializationFailure):
+            interpret_pass(_spec("x", "urn:g:x"), {"ok": True})
+
+    def test_each_required_field_is_individually_required(self):
+        for field in ("lastReport", "coverage", "constraints", "quads",
+                      "provenance", "accepts"):
+            with self.subTest(field=field):
+                response = dict(load_response("ok-bp"))
+                del response[field]
+                with self.assertRaises(MaterializationFailure):
+                    interpret_pass(_spec("x", "urn:g:x"), response)
+
+    def test_a_null_last_report_does_not_skip_the_unbound_check(self):
+        response = dict(load_response("neg-unbound-variable"), lastReport=None)
+        with self.assertRaises(MaterializationFailure):
+            interpret_pass(_spec("x", "urn:g:x"), response)
+
+    def test_coverage_without_a_chosen_materialization_is_refused(self):
+        response = dict(load_response("ok-bp"))
+        response["coverage"] = dict(response["coverage"], chosenAvailable=False)
+        with self.assertRaises(MaterializationFailure):
+            interpret_pass(_spec("x", "urn:g:x"), response)
+
+
+class TestTermsAreValidNTriples(unittest.TestCase):
+    def test_an_iri_with_a_space_is_refused_not_emitted(self):
+        from fhir_sulo.engine.rdfterms import InvalidTerm
+
+        with self.assertRaises(InvalidTerm):
+            Term("iri", "http://x/a b").to_ntriples()
+
+    def test_iri_delimiters_are_refused(self):
+        from fhir_sulo.engine.rdfterms import InvalidTerm
+
+        for value in ("http://x/a<b", "http://x/a>b", 'http://x/a"b',
+                      "http://x/a\\b", "http://x/a\x01b"):
+            with self.subTest(value=value), self.assertRaises(InvalidTerm):
+                Term("iri", value).to_ntriples()
+
+    def test_a_pass_id_that_would_break_blank_node_labels_is_refused(self):
+        """`_:pass 1_tm0` is unparseable; caught where the message can name
+        the pass id rather than later, per term."""
+        passes = [interpret_pass(_spec("pass 1", OBS1), load_response("decomp-pass-b1"))]
+        with self.assertRaises(ValueError):
+            union_passes(passes)
+
+    def test_ordinary_pass_ids_are_fine(self):
+        union_passes([interpret_pass(_spec("b-1_x", OBS1),
+                                     load_response("decomp-pass-b1"))])
+
+
+class TestSiblingRepetitionGroupsAreRefused(unittest.TestCase):
+    def test_two_sibling_lists_are_not_merged_into_one_scope(self):
+        """Merging them would present two scopes' iterations as one and make
+        tuples_for_scope report tuples that were never in the source."""
+        from fhir_sulo.engine.driver import _split
+
+        with self.assertRaises(MaterializationFailure):
+            _split([{"t": {"value": "1"}},
+                    [{"a": {"value": "1"}}],
+                    [{"b": {"value": "2"}}]])
+
+    def test_one_repetition_list_is_fine(self):
+        from fhir_sulo.engine.driver import _split
+
+        bindings, children = _split([{"t": {"value": "1"}}, [{"a": {"value": "1"}}]])
+        self.assertEqual(bindings, {"t": "1"})
+        self.assertEqual(len(children), 1)

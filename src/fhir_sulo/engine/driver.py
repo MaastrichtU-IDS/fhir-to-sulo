@@ -32,12 +32,16 @@ against the union, not against a single pass.
 from __future__ import annotations
 
 import hashlib
+import re
 from dataclasses import dataclass, field, replace
 from typing import Any, Dict, List, Mapping, Optional, Sequence, Tuple
 
 from ..contracts import BindingNode, QuadLineage, TransformResult, TransformStatus
 from .docker import EngineImage, default_image
 from .rdfterms import Quad, shape_signature
+
+#: A pass id prefixes blank node labels, so it has to be a legal label itself.
+_VALID_PASS_ID = re.compile(r"\A[A-Za-z0-9_][A-Za-z0-9_-]*\Z")
 
 # --------------------------------------------------------------------------
 # configuration
@@ -316,7 +320,23 @@ def interpret_pass(
             response.get("report"),
         )
 
-    report = response.get("lastReport") or {}
+    # Absence of evidence is not evidence of absence. Every check below reads a
+    # field of the response; if a field is missing, the check it guards would
+    # silently not run and an empty response would read as a clean pass. For a
+    # driver whose whole purpose is that the engine fails quietly, that is the
+    # one defect worth being pedantic about.
+    missing = [k for k in ("lastReport", "coverage", "constraints", "quads",
+                           "provenance", "accepts")
+               if response.get(k) is None]
+    if missing:
+        raise MaterializationFailure(
+            spec.pass_id,
+            f"the engine response is missing {missing}; the checks those fields "
+            f"feed would not run, and a pass that skipped its checks is not a pass",
+            {"keys": sorted(response)},
+        )
+
+    report = response["lastReport"]
 
     unbound = report.get("unboundVariables") or []
     if unbound:
@@ -337,7 +357,7 @@ def interpret_pass(
             report,
         )
 
-    accepts = tuple(response.get("accepts") or ())
+    accepts = tuple(response["accepts"])
     if len(accepts) >= guards.max_accepts:
         raise AcceptCeilingReached(
             spec.pass_id,
@@ -348,7 +368,14 @@ def interpret_pass(
             {"accepts": len(accepts)},
         )
 
-    coverage = response.get("coverage") or {}
+    coverage = response["coverage"]
+    if not coverage.get("chosenAvailable"):
+        raise MaterializationFailure(
+            spec.pass_id,
+            "the engine reported no chosen materialization, so which bindings "
+            "were consumed is unknown and coverage cannot be checked",
+            coverage,
+        )
     unconsumed = coverage.get("unconsumed") or []
     if unconsumed:
         raise BindingsNotConsumed(
@@ -359,8 +386,8 @@ def interpret_pass(
             coverage,
         )
 
-    quads = response.get("quads") or []
-    provenance = response.get("provenance") or []
+    quads = response["quads"]
+    provenance = response["provenance"]
     if len(quads) != len(provenance):
         raise UntracedQuad(
             spec.pass_id,
@@ -368,7 +395,7 @@ def interpret_pass(
             f"lineage is not parallel to output and cannot be trusted",
         )
 
-    constraints = tuple(response.get("constraints") or ())
+    constraints = tuple(response["constraints"])
     declared = {c["id"] for c in constraints}
     records: List[QuadRecord] = []
     for raw_quad, prov in zip(quads, provenance):
@@ -423,6 +450,15 @@ def union_passes(passes: Sequence[PassResult]) -> DriverResult:
     if len(set(pass_ids)) != len(pass_ids):
         raise ValueError(
             "pass ids must be unique; they namespace blank nodes in the union"
+        )
+    # The pass id becomes part of every blank node label, so an id with a space
+    # in it produces `_:pass 1_tm0` -- unparseable N-Triples. Caught here, where
+    # the message can name the pass id, rather than later per term.
+    bad = [p for p in pass_ids if not _VALID_PASS_ID.match(p)]
+    if bad:
+        raise ValueError(
+            f"pass id(s) {bad} cannot be used: they prefix blank node labels, so "
+            f"they must be letters, digits, '_' or '-' only"
         )
 
     records: List[QuadRecord] = []
@@ -575,9 +611,21 @@ def _split(node) -> Tuple[Dict[str, str], List[Any]]:
                 )
             bindings[name] = value
     if isinstance(node, list):
-        for item in node:
-            if isinstance(item, list):
-                children.extend(item)
+        lists = [item for item in node if isinstance(item, list)]
+        if len(lists) > 1:
+            # Two sibling repetition lists are two different scopes. Merging
+            # them would present their iterations as iterations of one scope,
+            # and tuples_for_scope would then report tuples that were never in
+            # the source -- a manufactured cross-join, from the very code that
+            # exists to make cross-joins detectable.
+            raise MaterializationFailure(
+                "binding-tree",
+                f"{len(lists)} sibling repetition groups at one level; they are "
+                f"separate scopes and merging them would invent tuples. Give "
+                f"each its own pass (DR-302)",
+            )
+        for item in lists:
+            children.extend(item)
     return bindings, children
 
 

@@ -57,10 +57,18 @@ def engine():
     return _ENGINE
 
 
+#: Set by `make engine-live` / `make gate1`. Without it these tests skip when
+#: Docker is absent, which is right for a laptop and wrong for a gate: a gate
+#: that passes because its evidence did not run is not a gate.
+REQUIRE_ENGINE = os.environ.get("FHIR_SULO_REQUIRE_ENGINE") == "1"
+
+
 def requires_docker(test):
-    return unittest.skipUnless(
-        EngineImage.docker_present(), "docker is not available on this host"
-    )(test)
+    if EngineImage.docker_present():
+        return test
+    if REQUIRE_ENGINE:
+        return test  # let it fail loudly: the gate asked for real evidence
+    return unittest.skipUnless(False, "docker is not available on this host")(test)
 
 
 def data(case: str, name: str = "data.ttl") -> str:

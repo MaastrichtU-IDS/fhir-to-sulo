@@ -227,3 +227,50 @@ not bind (which would key every iteration as `('',)` and undo the reason
 is agreement with the engine, not strictness — but "prefix `regex(/(?<v` is not
 declared" is not a message anyone can act on, so the finding now says what
 actually happened.
+
+
+## Second review round
+
+An independent review of the tools found four more defects, three of them
+again false negatives, plus gate-wiring holes. All fixed.
+
+| Where | Defect | Why it mattered |
+| --- | --- | --- |
+| `shexj.walk_paths` | `sub_shapes` flattened `ShapeAnd`/`ShapeOr` before the cycle check, losing the labels inside | `<S> { :p @<S> AND IRI }` produced **no findings at all**: the cycle was invisible and the branch was cut by the depth guard after 64 spurious paths. And/Or components are now walked individually, so named references inside them reach the stack |
+| `shexj.walk_paths` | the depth guard returned silently while the breadth guard raised | an unanalysed schema reported as clean; both now raise |
+| `driver.interpret_pass` | every guard read its field with `or {}` / `or ()` | `interpret_pass(spec, {"ok": True})` returned a clean `PassResult`, and `to_transform_result` then produced a loadable `MAPPED` result with zero quads. A null `lastReport` skipped the unbound and truncation checks entirely. The six fields are now required, and a coverage report with no chosen materialization is refused |
+| `mapcode.FUNCTION_PATTERN` | `re.S`, where the JavaScript has no `/s` | a multi-line `hashmap(v:x, {\n …\n})` — the natural way to write a map of any size — linted as valid while the engine matched neither pattern and deleted the shape. Flags verified against the installed source: `functionPattern` has none, `hashmap_extension`'s does, so `HASHMAP_ARGS` keeps `re.S` |
+
+Two more refusals rather than guesses: sibling repetition lists in one binding-tree
+node (two scopes merged into one would manufacture exactly the cross-join
+`RepetitionScope` exists to detect), and terms that are not valid N-Triples —
+an IRI containing a space or a delimiter, or a blank node label built from a
+pass id like `"pass 1"`, are refused rather than emitted. `PassSpec.pass_id` is
+validated where the message can name it.
+
+### Gate wiring
+
+The gate could pass without its evidence, in four ways, all closed:
+
+- `make gate1` depended on `engine`, which is Docker-free, so Gate 1 could pass
+  without the live engine or the linter ever running. It is now
+  `contracts engine-live lint-schemas`.
+- The live tests skipped when Docker was absent, which is right for a laptop
+  and wrong for a gate. `FHIR_SULO_REQUIRE_ENGINE=1`, set by `make engine-live`,
+  makes them fail instead.
+- CI's `gate-status` did not depend on the `engine-live` job, so a stale
+  recording or a dirty schema pair did not block the required check. It does now.
+- `make engine-tests` named two test files literally, so a new `test_*.py` would
+  never have run. It discovers `test_*.py`.
+
+`shexmap-lint --dir` returning 0 when it found nothing was the same class of
+hole. `--require-pairs` makes it exit 2, and `make lint-schemas` uses it as soon
+as any `.shex` exists under `maps/` — so an absent `maps/` is a no-op, while a
+half-renamed pair fails.
+
+Finally, the image: `ensure_built()` is a no-op when the tag exists, so editing
+a bridge and re-running a refresh script recorded fixtures against the
+*previous* image and `--check` then confirmed them. Both scripts now rebuild.
+And the base is pinned by digest —
+`node:20-bookworm-slim@sha256:2cf067cf…` — because a tag pins the lockfile but
+not the runtime under it.
