@@ -1,5 +1,13 @@
 .DS_Store
-.venv/
+
+# Agent worktrees (Claude Code isolation) - never part of the project tree
+.claude/worktrees/
+
+# Python
 __pycache__/
-*.pyc
-.pytest_cache/
+*.py[cod]
+.venv/
+venv/
+
+# Node (mapping stack runs in Docker, but keep local noise out)
+node_modules/
