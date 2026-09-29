@@ -1,6 +1,7 @@
 # Consolidated review request — clinical and ontology interpretations
 
 **Status:** OPEN — awaiting the human clinical/ontology reviewer
+**Answered so far:** R10 (2026-09-29). **11 of 12 items remain open.**
 **Raised by:** Agent 1 (integration lead)
 **Opened:** 2026-09-29
 **Gate:** 0 (plan §4 Gate 0 requires reviewer sign-off on the record/fact distinction
@@ -294,7 +295,7 @@ by profile.
 
 ---
 
-## R10 — Is `pilot-provisional` an acceptable engineering status?
+## R10 — Is `pilot-provisional` an acceptable engineering status?  ✅ ANSWERED: A
 
 **Blocks:** nothing yet, but decides how much of Gates 1–3 can run before you answer R1–R9.
 
@@ -313,6 +314,32 @@ but every outcome reports `clinical_signoff: False` and a test fails the moment 
 
 **Recommendation from engineering (not a decision):** A, because the distinction that matters —
 that no output is clinically signed off — is enforced mechanically rather than by convention.
+
+### Answer: A — accepted, 2026-09-29
+
+The `pilot-provisional` tier is ratified. An entry at that status may be interpreted, so a map
+may emit a domain class for it and Gates 2 and 3 can demonstrate a materialized graph on
+synthetic data.
+
+Recorded in `policies/code-interpretation.v1.json` under `reviewer_decisions.R10`, not only
+here, so the machinery can see it. Guarded by
+`tests/contracts/terminology/test_r10_provisional_tier.py`.
+
+**What this answer explicitly did not settle**, each held by a test:
+
+- It does **not** approve any individual typing. Whether `33914-3` means
+  `RenalFiltrationQuality` is **R1b**, still open.
+- It does **not** confer clinical sign-off. `clinically_signed_off_statuses` remains
+  `["approved"]` alone, and every outcome from a provisional entry still reports
+  `clinical_signoff: false`.
+- It promotes nothing to `approved`. **Nothing is approved.**
+- The `domain_namespace` is still the **R1** placeholder, so the machinery now runs end to end
+  on placeholder vocabulary. "The pipeline runs" is not "the vocabulary is real".
+
+Side effect worth recording: the policy file changed, so `policy_version` moved to
+`…+sha256.50a1e206450a01e2`. **Every person IRI is byte-identical**, because keying uses a
+sticky `key_revision` rather than the table's semantic version — the property Agent 5 built
+and tested for exactly this. No graph migration was needed.
 
 ---
 

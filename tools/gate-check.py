@@ -106,10 +106,18 @@ def check_review_request_open():
     if not os.path.exists(p):
         return FAIL, "no consolidated review request"
     text = open(p, encoding="utf-8").read()
-    items = re.findall(r"^## (R\d+) ", text, re.M)
+    all_items = re.findall(r"^## (R\d+) ", text, re.M)
+    answered = re.findall(r"^## (R\d+) .*ANSWERED", text, re.M)
+    open_items = [i for i in all_items if i not in answered]
     if "**Status:** OPEN" in text:
-        return MANUAL, f"{len(items)} items open ({', '.join(items)}); reviewer has not signed off"
-    return PASS, f"{len(items)} items, review closed"
+        detail = f"{len(open_items)} of {len(all_items)} items open ({', '.join(open_items)})"
+        if answered:
+            detail += f"; answered: {', '.join(answered)}"
+        return MANUAL, detail + "; reviewer has not signed off"
+    if open_items:
+        return FAIL, (f"status is not OPEN but {len(open_items)} items are unanswered: "
+                      + ", ".join(open_items))
+    return PASS, f"all {len(all_items)} items answered, review closed"
 
 
 def check_fixtures_present():
