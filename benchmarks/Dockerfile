@@ -20,8 +20,16 @@ FROM obolibrary/robot@sha256:58da5acb0bb861ca84409213f2b6e15ab41eda145e602ef5cfd
 FROM python:3.11-slim-bookworm
 
 RUN apt-get update \
- && apt-get install -y --no-install-recommends openjdk-17-jre-headless procps \
+ && apt-get install -y --no-install-recommends \
+      openjdk-17-jre-headless procps docker.io \
  && rm -rf /var/lib/apt/lists/*
+
+# docker.io is the CLI only. The composed pipeline spawns the pinned ShExMap
+# engine with `docker run`, and nested Docker is not available here, so
+# run.sh mounts the host daemon's socket and those engine containers are
+# SIBLINGS of this one. They are therefore NOT inside this container's
+# --cpus=4 --memory=8g cgroup. run.sh says so and the report records it: the
+# measured time is a lower bound, because the engine gets the whole host.
 
 COPY --from=robot /tools/robot.jar /tools/robot.jar
 RUN printf '#!/bin/sh\nexec java $ROBOT_JAVA_ARGS -jar /tools/robot.jar "$@"\n' > /usr/local/bin/robot \

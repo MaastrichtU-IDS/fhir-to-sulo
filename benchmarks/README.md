@@ -17,104 +17,65 @@
 
 ## Verdict
 
-**Both targets met on the stages measured — which do not include the transformation.**
-The Gate 4 scale row is therefore **not** satisfied yet; see the scope warning above.
+| Gate 4 target | Measured | |
+| --- | --- | --- |
+| 10,000 resources ≤ 15 min | **78.1 min** (4685 s) | **MISSED** |
+| peak memory < 6 GB | **5.68 GB** | met, with **5% headroom** |
+| no unexpected mapping failures | 9,510 mapped, 490 not, **all 490 explained** | met |
 
-| Target | Result |
-| --- | --- |
-| 10,000 resources ≤ 15 min | **3.2 min** (194.30 s) |
-| peak memory < 6 GB | **2.14 GB** |
-| failure categories reported | yes, 487 of 10,000 by design |
-| engine contribution | **0.30 s** for 10,000 materializations |
+**The time target is missed by 5.2x.** The corpus was not shrunk and the target is
+not revised. The diagnosis — two `docker run` invocations per resource, ~65% of the cost being
+container start-up rather than mapping work — is in
+[DR-606](../docs/fhir-sulo/decisions/DR-606-gate4-scale-measured-on-the-real-pipeline.md),
+together with what would fix it.
 
-Agent 4 measured the engine scaling quadratically and the brief called the
-target at risk on that basis. It is not at risk, and §3 explains exactly why
-the quadratic term does not reach us — it is an architectural consequence of
-DR-302, not luck, so it will stay true only as long as DR-302 does.
+This is the **first** measurement of the real path. Every earlier Gate 4 number in this
+repository measured a pipeline with no mapping in it (DR-604, amended).
 
-## 1. What is and is not measured
+## Results, 2026-09-29
 
-Measured, over 10,000 synthetic resources:
-
-| Stage | What it exercises |
-| --- | --- |
-| generate | the synthetic corpus itself |
-| keying+lineage+store | graph keys, per-quad lineage construction, named graph load, correction bookkeeping |
-| provenance | PROV-O emission for every run |
-| shacl validation | the full target shape contract over the accumulated graph |
-| owl reasoning | HermiT over every encounter, batched |
-
-Measured separately, in `engine_bench/`: the pinned ShExMap engine.
-
-**Not measured, and therefore not in the total:** FHIR JSON validation and RDF
-rendering (Agent 2), the real reviewed maps (Agent 3), and the materialization
-driver (Agent 4). The number is a **lower bound on end-to-end time**. When
-those land, re-run; the stage table is built so the new stages slot in and the
-old ones stay comparable.
-
-The target graphs the benchmark loads are produced by `generator.py`
-directly. That is a **performance stand-in, not a map.** It exists so the host
-layers can be measured at scale before the maps exist, and the shapes it emits
-are the concept note's patterns so that the SHACL and reasoning stages do real
-work. It must not be mistaken for a FHIR-to-SULO mapping.
-
-## 2. The runner
-
-`benchmarks/run.sh` builds `Dockerfile` and runs it with `--cpus=4
---memory=8g --memory-swap=8g`. The constraints are not optional and are not a
-flag: a "4-vCPU/8-GB runner" that is actually a 14-core laptop measures the
-laptop. The report reads the limits back out of `/sys/fs/cgroup` and prints
-them, so a number can always be checked against the envelope that produced it.
-
-Peak memory is the **cgroup** peak, not `ru_maxrss`. The reasoner forks a JVM;
-a per-process figure would miss the single largest consumer. Where no cgroup
-is readable the report says `unknown`, never a smaller number.
-
-One image holds both Python and ROBOT, so the host stages and the reasoning
-stage share a cgroup. Two separately-constrained containers would under-report
-the peak, because the peak of a sum is not the sum of peaks.
-
-ROBOT is **copied** into the image from the digest
-`obolibrary/robot@sha256:58da5acb…`, the same one `validation/reasoning.py`
-pins and the same one the PRO entailment was verified against. It is not
-re-downloaded, so the benchmark cannot drift onto a different reasoner build.
-
-`--strictness` is **required**: review item R5 is open, and a benchmark report must name the
-strictness it ran under rather than inherit one (DR-605).
-
-```
-benchmarks/run.sh --strictness concept-note-literal            # 10,000 resources
-benchmarks/run.sh --strictness concept-note-literal -n 1000    # smaller trial
-benchmarks/run.sh --strictness closed-world-complete           # cost of the strict shapes
-BENCH_CPUS=2 BENCH_MEMORY=4g benchmarks/run.sh --strictness concept-note-literal
-benchmarks/engine_bench/run.sh                                 # the ShExMap engine
-```
-
-## 3. Results, 2026-09-29
-
-Runner: `--cpus=4 --memory=8g`, `python:3.11-slim-bookworm` + ROBOT 1.9.7,
-CPython 3.11.14, seed 20260929, `--strictness concept-note-literal` (named explicitly;
-R5 is open and there is no default — DR-605).
-Corpus: 4,019 eGFR, 3,535 BP panels, 1,959 encounters, 487 ineligible;
-220,015 target triples.
+Mode: **real pipeline (render + materialize)**. Runner: `--cpus=4 --memory=8g`,
+`python:3.11-slim-bookworm` + ROBOT 1.9.7, CPython 3.11.16,
+seed 20260929, `--strictness concept-note-literal`,
+`--quality-mode per-observation` (R2 and R5 are both open; both named explicitly).
 
 | Stage | Time | Throughput | Peak (cgroup) |
 | --- | ---: | ---: | ---: |
-| generate | 0.10 s | 103,590 res/s | 0.06 GB |
-| keying + lineage + store | 1.74 s | 5,751 res/s | 0.20 GB |
-| provenance | 0.64 s | 15,642 res/s | 0.30 GB |
-| SHACL validation | 93.23 s | 2,360 triples/s | 0.71 GB |
-| OWL reasoning (HermiT) | 98.59 s | 19.9 enc/s | **2.14 GB** |
-| **TOTAL** | **194.30 s** | 51.5 res/s | **2.14 GB** |
+| `generate` | 0.04 s | 258518.4/s | 0.04 GB |
+| `render` | 2.32 s | 4302.9/s | 0.16 GB |
+| `materialize` | 4491.47 s | 2.2/s | 3.27 GB |
+| `keying+lineage+store` | 1.00 s | 9968.5/s | 3.30 GB |
+| `provenance` | 0.65 s | 15283.9/s | 3.37 GB |
+| `shacl validation` | 85.43 s | 3057.8/s | 4.05 GB |
+| `owl reasoning (HermiT)` | 104.19 s | 19.1/s | 5.68 GB |
+| **TOTAL** | **4685.11 s** | 2.1 res/s | **5.68 GB** |
 
-Failure categories, all by construction: 246 `dataAbsentReason`, 241
-`entered-in-error`. Both take the `source-only` path and contribute no
-clinical assertions, which is what concept note §2 requires.
+The peak column is the cgroup's high-water mark, which is monotonic, so each row is the peak
+*so far* rather than that stage's own usage. Read down the column: the pipeline sits at 3.3 GB
+until SHACL, and **OWL reasoning adds the last 1.6 GB**, ending 0.32 GB under the limit.
 
-SHACL scales linearly — 2.42 s / 4.95 s / 9.10 s / 18.16 s at n = 250 / 500 /
-1000 / 2000 — which was worth checking, because the orphan-node constraint is
-a `FILTER NOT EXISTS` evaluated per focus node and would have been quadratic
-without an object index.
+**`materialize` is 95.9% of the run** — 4,491 s of 4,685 s, at 0.472 s per mapped resource.
+Everything else together is 194 s. Time spent on the transformation is therefore the only thing
+worth optimising, and DR-606 shows most of that is not transformation work either.
+
+**Memory is a near miss, not a comfortable pass.** 5.68 GB against a 6 GB limit is 5% of
+headroom, and the consumer is the reasoning stage, whose cost scales with the *number of
+encounters*. This corpus is 19.9% encounters (1,987 of 10,000). A corpus with more of them, or
+a larger `--reason-batch`, would exceed 6 GB. `--reason-batch` is the control: it trades peak
+memory against JVM start-ups, and 100 was chosen for time, not for memory.
+
+### Failure categories
+
+Plan Gate 4 requires "no unexpected mapping failures". 490 of 10,000 resources produced no
+graph, and **every one is an expected, policy-declared outcome** with a reason from the pinned
+status policy — not an engine error, a crash or a timeout. `render failures: 0`, and no
+`materialize: <Exception>` category appears. That clause could not be shown at all until this
+run, because there was no mapping in the measured path.
+
+| category | count |
+| --- | ---: |
+| Observation.dataAbsentReason present: Concept note section 4: dataAbsentReason produces no numeric hasValue. | 262 |
+| Observation.status 'entered-in-error' is source-only under the pinned status policy | 228 |
 
 ### The ShExMap engine
 

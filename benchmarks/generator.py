@@ -238,3 +238,171 @@ def generate(count: int, *, seed: int = 20260929, people: int = 500) -> Iterator
             pivot_variables=tuple(variables),
             person_id=person,
         )
+
+
+# ===========================================================================
+# FHIR JSON corpus - the input the REAL pipeline consumes
+# ===========================================================================
+#
+# Everything above produces SULO target triples directly, which is a
+# performance stand-in for the host layers and was the whole of the benchmark
+# until the composed pipeline existed. It stays, behind --synthetic-targets,
+# because it is the only way to time the host stages in isolation and so to
+# bisect a regression to one stage.
+#
+# What follows produces **FHIR R4 JSON**, so the benchmark can run the real
+# path: ingest and RDF rendering (Agent 2), the ShExMap maps (Agent 3) through
+# the pinned engine (Agent 4), then keying, lineage, the store, provenance,
+# SHACL and OWL reasoning. Plan Gate 4 asks for "no unexpected mapping
+# failures", which a run with no mapping cannot show.
+#
+# Shapes are copied from Agent 2's committed fixtures - egfr-456.json,
+# bp-1.json, enc-9.json - so the corpus exercises the same elements the maps
+# were authored and reviewed against, with the values and identifiers varied.
+
+
+@dataclass(frozen=True)
+class SyntheticFhir:
+    """One synthetic FHIR R4 resource, as the pipeline's input."""
+
+    family: str
+    resource_id: str
+    resource: dict
+    eligible: bool
+    reason: str = ""
+
+    @property
+    def resource_type(self) -> str:
+        return self.resource["resourceType"]
+
+
+def _egfr_json(index, patient, rng, status="final"):
+    return {
+        "resourceType": "Observation",
+        "id": "egfr-%d" % index,
+        "meta": {"versionId": "1"},
+        "status": status,
+        "code": {"coding": [{"system": "http://loinc.org", "code": "33914-3"}]},
+        "subject": {"reference": "Patient/%s" % patient},
+        "effectiveDateTime": "2026-09-02T%02d:00:00Z" % (8 + index % 10),
+        "valueQuantity": {
+            "value": round(30.0 + rng.random() * 90.0, 1),
+            "unit": "mL/min/1.73m2",
+            "system": "http://unitsofmeasure.org",
+            "code": "mL/min/{1.73_m2}",
+        },
+    }
+
+
+def _bp_json(index, patient, rng):
+    def component(code, value):
+        return {
+            "code": {"coding": [{"system": "http://loinc.org", "code": code}]},
+            "valueQuantity": {
+                "value": value,
+                "unit": "mmHg",
+                "system": "http://unitsofmeasure.org",
+                "code": "mm[Hg]",
+            },
+        }
+
+    return {
+        "resourceType": "Observation",
+        "id": "bp-%d" % index,
+        "meta": {"versionId": "1"},
+        "status": "final",
+        "code": {"coding": [{"system": "http://loinc.org", "code": "8480-6"}]},
+        "subject": {"reference": "Patient/%s" % patient},
+        "effectiveDateTime": "2026-09-02T%02d:30:00Z" % (8 + index % 10),
+        "component": [
+            component("8480-6", 100 + rng.randrange(0, 60)),
+            component("8462-4", 60 + rng.randrange(0, 35)),
+        ],
+    }
+
+
+def _encounter_json(index, patient, rng):
+    hour = 8 + index % 10
+    return {
+        "resourceType": "Encounter",
+        "id": "enc-%d" % index,
+        "meta": {"versionId": "1"},
+        "status": "finished",
+        "class": {
+            "system": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
+            "code": "AMB",
+            "display": "ambulatory",
+        },
+        "subject": {"reference": "Patient/%s" % patient},
+        "participant": [
+            {
+                "type": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://terminology.hl7.org/CodeSystem/v3-ParticipationType",
+                                "code": "PPRF",
+                                "display": "primary performer",
+                            }
+                        ]
+                    }
+                ],
+                "individual": {"reference": "Practitioner/c%d" % rng.randrange(1, 50)},
+            }
+        ],
+        "period": {
+            "start": "2026-09-02T%02d:00:00Z" % hour,
+            "end": "2026-09-02T%02d:30:00Z" % hour,
+        },
+    }
+
+
+def generate_fhir(count, seed=20260929, people=500):
+    """Yield ``count`` synthetic FHIR R4 resources, deterministically.
+
+    The same family mix and the same seed as ``generate()``, so a run in
+    ``--synthetic-targets`` mode and a real run cover the same shape of
+    corpus and their stage timings are comparable.
+    """
+    rng = random.Random(seed)
+    for index in range(count):
+        family = rng.choices(FAMILIES, weights=WEIGHTS, k=1)[0]
+        patient = "p%d" % rng.randrange(0, people)
+
+        if family == "ineligible":
+            # Two real ineligibility paths, both of which the pipeline must
+            # take WITHOUT reaching the engine: an error status, and an
+            # absent value. Concept note section 2.
+            if rng.random() < 0.5:
+                resource = _egfr_json(index, patient, rng, status="entered-in-error")
+                reason = "status entered-in-error"
+            else:
+                resource = _egfr_json(index, patient, rng)
+                resource["id"] = "egfr-absent-%d" % index
+                resource.pop("valueQuantity")
+                resource["dataAbsentReason"] = {
+                    "coding": [
+                        {
+                            "system": "http://terminology.hl7.org/CodeSystem/data-absent-reason",
+                            "code": "unknown",
+                        }
+                    ]
+                }
+                reason = "dataAbsentReason present"
+            yield SyntheticFhir(
+                family="egfr",
+                resource_id=resource["id"],
+                resource=resource,
+                eligible=False,
+                reason=reason,
+            )
+            continue
+
+        builder = {"egfr": _egfr_json, "bp": _bp_json, "encounter": _encounter_json}[family]
+        resource = builder(index, patient, rng)
+        yield SyntheticFhir(
+            family=family,
+            resource_id=resource["id"],
+            resource=resource,
+            eligible=True,
+        )

@@ -30,13 +30,24 @@ rm -f "$HERE/requirements-runtime.txt"
 
 echo "== starting the runner: --cpus=$CPUS --memory=$MEMORY =="
 docker rm -f "$CONTAINER" >/dev/null 2>&1 || true
+# The docker socket is mounted so the composed pipeline can spawn the pinned
+# ShExMap engine. Those engine containers are SIBLINGS of this one and are
+# therefore NOT inside this --cpus=4 --memory=8g cgroup: they get the whole
+# host. The measured time is consequently a LOWER BOUND, and the report says
+# so. Constraining them too needs an option on Agent 4's EngineImage, which
+# hardcodes `docker run --rm -i`; requested, not worked around.
 docker run -d --name "$CONTAINER" \
   --cpus="$CPUS" --memory="$MEMORY" --memory-swap="$MEMORY" \
+  -v /var/run/docker.sock:/var/run/docker.sock \
   -w /w "$IMAGE" sleep infinity > /dev/null
 
 docker exec "$CONTAINER" mkdir -p /w/src /w/benchmarks
 docker cp "$ROOT/src" "$CONTAINER":/w/ > /dev/null
 docker cp "$ROOT/benchmarks" "$CONTAINER":/w/ > /dev/null
+docker cp "$ROOT/maps" "$CONTAINER":/w/ > /dev/null
+docker cp "$ROOT/policies" "$CONTAINER":/w/ > /dev/null
+docker cp "$ROOT/profiles" "$CONTAINER":/w/ > /dev/null 2>/dev/null || true
+docker cp "$ROOT/tools" "$CONTAINER":/w/ > /dev/null
 
 echo "== running =="
 set +e

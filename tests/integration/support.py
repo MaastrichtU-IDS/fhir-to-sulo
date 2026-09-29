@@ -110,10 +110,17 @@ def fake_engine_payload(quads, *, variables=None, scope="result", key=("egfr-456
 # what a real correction looks like. Everything else - all 21 triples, the
 # hashed person and quality IRIs, the datatypes - is map output.
 #
-# Requested from Agent 2: a genuine ``egfr-corrected`` fixture, the same
-# resource at ``meta.versionId = 2`` with a different value. Gate 4's
-# correction row is the only place in the matrix that needs one, and nothing
-# else can supply it.
+# Gate 4's correction row no longer rests on that edit. Since the composed
+# pipeline landed, ``test_correction_on_pipeline_output.py`` runs all three
+# correction scenarios through real FHIR JSON, real ingest, the reviewed maps
+# and the pinned engine, comparing only emitted triples. These constants stay
+# because the store-level tests in ``test_correction.py`` are the fast,
+# engine-free ones and still want a realistic graph to move around.
+#
+# Still requested from Agent 2, now as a simplification rather than a gap: a
+# genuine ``egfr-corrected`` fixture at ``meta.versionId = 2``, which would
+# let the pipeline test load version 2 instead of editing version 1 in
+# memory.
 # --------------------------------------------------------------------------
 
 _EXPECTED = os.path.join(ROOT, "fixtures", "expected")

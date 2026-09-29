@@ -10,10 +10,10 @@ applying corrections, and checking the result** (shapes, OWL reasoning, competen
 Every command here is exercised by `tests/integration/test_operator_cli.py`, so the guide cannot
 drift from the software without a test failing.
 
-**What is not here yet.** FHIR acquisition and RDF rendering (Agent 2), the reviewed maps
-(Agent 3) and the materialization driver (Agent 4) are separate work. The seam between them and
-this guide is the **batch manifest** in §3 — when the driver emits one, everything below works
-unchanged.
+The composed pipeline now exists, so §3 starts from **real FHIR JSON** rather than from
+synthetic output. `python -m fhir_sulo.pipeline.cli` (Agent 4) runs ingest, RDF rendering, the
+reviewed maps and the pinned engine, and writes the batch manifest this guide's store commands
+read.
 
 ---
 
@@ -80,19 +80,51 @@ A batch is a **JSON Lines** file, one transform per line:
 ```
 
 - `status` is `mapped`, `source-only` or `rejected`.
-- A non-`mapped` line carries `reason` instead of `quads`. Loading one **retracts** any current
-  graph for that resource — this is how an `entered-in-error` correction is applied.
+- A non-`mapped` line carries `reason` instead of `quads`, **and it is still written to the
+  manifest.** That is not an omission and the line must not be filtered out: loading it
+  **retracts** whatever graph the store currently holds for that resource. This is how an
+  `entered-in-error` correction actually takes effect — the pipeline never reaches the engine
+  for an ineligible resource (concept note §2), so the retraction is the only signal the store
+  gets. Dropping non-mapped lines from a batch would silently leave stale clinical assertions
+  in the current graph.
 - `engine_provenance` must be **parallel to `quads`**: one entry per quad, same order. This is
   the shape the pinned engine's `materializer.provenance[]` has (DR-301 probe 5). A mismatch is
   rejected with the offending line number rather than producing a graph with untraceable
   triples.
-- Every one of the twelve `inputs` fields is required and must be non-empty. An undecided policy
+- Every one of the thirteen `inputs` fields is required and must be non-empty. An undecided policy
   is recorded as an explicit token such as `"unresolved:R1"`, never as `""` — see DR-601.
 
-To get a synthetic one to practise on:
+### Producing one from real FHIR JSON
+
+This is the normal path. One command runs ingest, RDF rendering, the maps and the engine, and
+writes the manifest:
 
 ```sh
-PYTHONPATH=src:benchmarks python3 benchmarks/run_benchmark.py -n 200 --emit-batch batch.jsonl
+PYTHONPATH=src python3 -m fhir_sulo.pipeline.cli batch \
+    --family bp --quality-mode per-observation \
+    --out batch.jsonl \
+    fixtures/r4/bp/bp-two-panels/bp-1.json fixtures/r4/bp/bp-two-panels/bp-2.json
+```
+
+`--quality-mode` is **required** for `bp` and `egfr`: review item **R2** is open and the shipped
+policy default rejects every quality-identity request, so a run must name the answer it used.
+`--family` is one of `egfr`, `bp`, `encounter`.
+
+`--load DIR` goes straight on to load it, writing `state.json`, `provenance.nq` and `graph.nt`
+into that directory — equivalent to the `batch` command followed by §4's `store.cli load`:
+
+```sh
+PYTHONPATH=src python3 -m fhir_sulo.pipeline.cli batch \
+    --family bp --quality-mode per-observation \
+    --out batch.jsonl --load store/ \
+    fixtures/r4/bp/bp-two-panels/bp-*.json
+```
+
+A purely synthetic manifest, for exercising the store commands without the engine:
+
+```sh
+PYTHONPATH=src:benchmarks python3 benchmarks/run_benchmark.py \
+    -n 200 --strictness concept-note-literal --synthetic-targets --emit-batch batch.jsonl
 ```
 
 ## 4. Load a batch
@@ -265,8 +297,27 @@ asserted     780 triples
 with entailments 2457 triples
 ```
 
-An `INCONSISTENT` result is a hard stop. The most likely cause is a person typed into a SULO
-`Feature` branch: `Feature owl:disjointWith SpatialObject`, so a patient cannot be both.
+An `INCONSISTENT` result is a hard stop.
+
+**What this check does and does not catch.** The concept note §7 says "an OWL reasoner checks
+consistency and expected PRO entailments". Precisely, on the graphs the maps emit today:
+
+| | caught by |
+| --- | --- |
+| the PRO entailment `encounter hasParticipant person` is produced | **the reasoner** (verified two ways, DR-602) |
+| a person typed as a `sulo:Quality` or `sulo:Role` | **SHACL only** — see below |
+| a quantity with two values, a role with no holder, an orphan node | **SHACL** |
+| a `hasPatient` shortcut | **SHACL and the negative queries** |
+
+The second row is the one to know about. SULO has `Feature ⊑ Object` and
+`Feature owl:disjointWith SpatialObject`. The maps type people as bare **`sulo:Object`**, and
+`Quality ⊑ Feature ⊑ Object`, so a person *also* typed as a Quality or a Role is perfectly
+consistent and the reasoner reports nothing. Had they been typed `sulo:SpatialObject` the
+disjointness would make it inconsistent. So **there is no OWL guard against a misclassified
+person under the current typing** — the SHACL disjointness shapes are what stops it, and they
+run before the store, so nothing reaches the graph. Measured in
+`test_reasoning_pro.py::R6EvidenceThePersonClassChoiceHasConsequences`; it is an input to open
+review item **R6**, not an answer to it. DR-605 §3.
 
 ### Competency queries
 

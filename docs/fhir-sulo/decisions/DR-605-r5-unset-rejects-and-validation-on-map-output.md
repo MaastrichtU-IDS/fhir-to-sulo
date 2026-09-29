@@ -182,7 +182,12 @@ emitted the same triples.
 
 ---
 
-## 5. Blocked: the benchmark still excludes the transformation (MAJOR)
+## 5. ~~Blocked:~~ **Done.** The benchmark now includes the transformation (MAJOR)
+
+> **Superseded by [DR-606](DR-606-gate4-scale-measured-on-the-real-pipeline.md).** Agent 4's
+> composed pipeline landed, the plan below was executed, and the real measurement is in DR-606.
+> Headline: the Gate 4 scale row is **MISSED**, by roughly 5x, and the diagnosis is that two
+> `docker run` invocations per resource dominate. The plan as written is kept for the record.
 
 `benchmarks/generator.py` emits SULO target triples directly. The benchmark measures keying,
 lineage, the store, provenance, SHACL and OWL reasoning — **not** rendering, the maps, or the

@@ -17,5 +17,5 @@
 # Agent 1: this file and Agent 5's requirements-dev.txt (pytest==7.4.4) are
 # disjoint and should be merged or kept as runtime/dev at integration.
 
-rdflib==7.1.1
+rdflib==7.1.4
 pyshacl==0.26.0
