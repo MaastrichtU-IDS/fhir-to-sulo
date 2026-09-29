@@ -44,21 +44,46 @@ integration: ## Source-to-target and update tests
 	  PYTHONPATH=$(SRC) $(PY) -m unittest discover -s tests/integration -p 'test_*.py' -v; \
 	else echo "no integration tests yet (Gate 2+)"; fi
 
+.PHONY: engine-image
+engine-image: ## Build the pinned ShExMap engine image from the committed lockfile
+	docker build -t fhir-sulo/shexmap:1.0.0-alpha.33 tools/engine
+
+.PHONY: engine-tests
+engine-tests: ## Gate 1 - linter and driver tests (live ones skip without Docker)
+	PYTHONPATH=$(SRC) $(PY) -m unittest discover -s tests/engine -p 'test_*.py' -v
+
+.PHONY: engine-live
+engine-live: engine-image ## Gate 1 - the same tests with the live engine REQUIRED, not skipped
+	FHIR_SULO_REQUIRE_ENGINE=1 PYTHONPATH=$(SRC) $(PY) -m unittest discover -s tests/engine -p 'test_*.py' -v
+
+.PHONY: engine-probes
+engine-probes: ## Gate 1 - the original capability probes behind DR-301 (Docker, slow)
+	tools/engine/run.sh
+
 .PHONY: engine
-engine: ## Gate 1 - pinned ShEx.js engine probes (Docker)
-	@if [ -x tools/engine/run-probes.sh ]; then tools/engine/run-probes.sh; \
-	else echo "engine probes not yet pinned (Gate 1, Agent 4)"; fi
+engine: engine-tests ## Gate 1 - engine checks that need no Docker
+
+.PHONY: lint-schemas
+lint-schemas: ## CD-1 - static analysis of every committed ShExMap pair; FAILS the build
+	@if [ -n "$$(find maps -name '*.shex' 2>/dev/null | head -1)" ]; then \
+	  tools/shexmap-lint --dir maps --require-pairs; \
+	else echo "no schemas under maps/ yet (Gate 2, Agent 3). The linter itself is"; \
+	     echo "covered by 'make engine-tests'. Once any .shex lands, this target"; \
+	     echo "requires a well-formed source.shex/target.shex pair and fails without one."; fi
 
 .PHONY: gate0
 gate0: contracts ## Gate 0 pass check
 	@$(PY) tools/gate-check.py 0
 
 .PHONY: gate1
-gate1: contracts engine ## Gate 1 pass check
+gate1: contracts engine-live lint-schemas ## Gate 1 pass check (requires Docker: the evidence is the engine)
 	@$(PY) tools/gate-check.py 1
 
 .PHONY: test
-test: contracts integration ## Everything runnable today
+test: contracts engine-tests integration ## Everything runnable without Docker
+
+.PHONY: test-all
+test-all: test engine-live ## Everything, including the live engine (needs Docker)
 
 .PHONY: clean
 clean: ## Remove build artifacts

@@ -1,0 +1,18 @@
+# Pass A of the DR-302 decomposition: the skeleton.
+#
+# The point is what this schema does NOT do. It stops at `fhir:observation IRI*`
+# instead of `@<BPObservation>*`, so there is exactly one repeating constraint on
+# the path and the pair lints clean. The Observation IRIs it binds are the join
+# key; pass B is run once per IRI, rooted at that same IRI, and the union joins
+# on it without the host inventing a link.
+PREFIX fhir: <http://hl7.org/fhir/>
+PREFIX xsd:  <http://www.w3.org/2001/XMLSchema#>
+PREFIX Map:  <http://shex.io/extensions/Map/#>
+PREFIX v:    <https://w3id.org/fhir-sulo/var#>
+
+start = @<Patient>
+
+<Patient> {
+  fhir:identifier  xsd:string %Map:{ v:mrn %};
+  fhir:observation IRI*       %Map:{ v:panelIri %}
+}

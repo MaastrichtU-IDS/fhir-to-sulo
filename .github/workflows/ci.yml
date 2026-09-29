@@ -23,10 +23,39 @@ jobs:
       - name: Contract tests (stdlib fallback must also stay green)
         run: make contracts-stdlib
 
+  engine-tools:
+    name: Gate 1 - schema linter and materialization driver
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.9'
+      # No Docker here on purpose: these run against ShExJ and engine responses
+      # recorded from the pinned image, so the rules that must not regress are
+      # tested on every push, not only where a container can start.
+      - name: Linter and driver tests
+        run: make engine-tests
+
+  engine-live:
+    name: Gate 1 - live pinned engine
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.9'
+      # Builds the pinned image and re-runs every recorded fixture against it.
+      # This is where an engine bump, or a stale recording, announces itself.
+      - name: Live engine tests (fixture drift included)
+        run: make engine-live
+      - name: Schema pairs lint clean
+        run: make lint-schemas
+
   gate-status:
     name: Gate pass status
     runs-on: ubuntu-latest
-    needs: contracts
+    needs: [contracts, engine-tools, engine-live]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5

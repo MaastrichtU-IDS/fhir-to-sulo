@@ -1,0 +1,22 @@
+# A blood-pressure Observation with two components. ONE level of repetition
+# (Observation.component*), which is the regime DR-302 permits and DR-301
+# probe 3 shows the engine handles correctly under any triple order.
+PREFIX fhir: <http://hl7.org/fhir/>
+PREFIX xsd:  <http://www.w3.org/2001/XMLSchema#>
+PREFIX Map:  <http://shex.io/extensions/Map/#>
+PREFIX v:    <https://w3id.org/fhir-sulo/var#>
+
+start = @<BPObservation>
+
+<BPObservation> {
+  fhir:status    xsd:string %Map:{ v:status %};
+  fhir:subject   IRI        %Map:{ v:subject %};
+  fhir:effective xsd:dateTime %Map:{ v:effective %};
+  fhir:component @<BPComponent>*
+}
+
+<BPComponent> {
+  fhir:code  IRI        %Map:{ v:componentCode %};
+  fhir:value xsd:decimal %Map:{ v:componentValue %};
+  fhir:unit  xsd:string %Map:{ v:componentUnit %}
+}

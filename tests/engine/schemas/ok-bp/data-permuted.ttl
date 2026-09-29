@@ -1,0 +1,15 @@
+PREFIX fhir: <http://hl7.org/fhir/>
+PREFIX sct:  <http://snomed.info/id/>
+PREFIX xsd:  <http://www.w3.org/2001/XMLSchema#>
+
+<https://fhir.example/Observation/bp-1#c1> fhir:unit  "mm[Hg]" .
+<https://fhir.example/Observation/bp-1>    fhir:component <https://fhir.example/Observation/bp-1#c1> .
+<https://fhir.example/Observation/bp-1#c0> fhir:value "120"^^xsd:decimal .
+<https://fhir.example/Observation/bp-1>    fhir:effective "2026-03-04T09:15:00Z"^^xsd:dateTime .
+<https://fhir.example/Observation/bp-1#c1> fhir:value "80"^^xsd:decimal .
+<https://fhir.example/Observation/bp-1#c0> fhir:unit  "mm[Hg]" .
+<https://fhir.example/Observation/bp-1>    fhir:subject <https://fhir.example/Patient/p-1> .
+<https://fhir.example/Observation/bp-1#c1> fhir:code  sct:271650006 .
+<https://fhir.example/Observation/bp-1>    fhir:status "final" .
+<https://fhir.example/Observation/bp-1>    fhir:component <https://fhir.example/Observation/bp-1#c0> .
+<https://fhir.example/Observation/bp-1#c0> fhir:code  sct:271649006 .

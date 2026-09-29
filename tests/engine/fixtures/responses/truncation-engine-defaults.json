@@ -1,0 +1,5649 @@
+{
+ "accepts": [
+  {
+   "consumed": 6,
+   "quads": 7,
+   "skipped": 0
+  },
+  {
+   "consumed": 3,
+   "quads": 3,
+   "skipped": 0
+  },
+  {
+   "consumed": 9,
+   "quads": 11,
+   "skipped": 0
+  },
+  {
+   "consumed": 12,
+   "quads": 15,
+   "skipped": 3
+  },
+  {
+   "consumed": 15,
+   "quads": 19,
+   "skipped": 6
+  },
+  {
+   "consumed": 18,
+   "quads": 23,
+   "skipped": 9
+  },
+  {
+   "consumed": 21,
+   "quads": 27,
+   "skipped": 12
+  },
+  {
+   "consumed": 24,
+   "quads": 31,
+   "skipped": 15
+  },
+  {
+   "consumed": 27,
+   "quads": 35,
+   "skipped": 18
+  },
+  {
+   "consumed": 30,
+   "quads": 39,
+   "skipped": 21
+  },
+  {
+   "consumed": 33,
+   "quads": 43,
+   "skipped": 24
+  },
+  {
+   "consumed": 36,
+   "quads": 47,
+   "skipped": 27
+  },
+  {
+   "consumed": 39,
+   "quads": 51,
+   "skipped": 30
+  },
+  {
+   "consumed": 42,
+   "quads": 55,
+   "skipped": 33
+  },
+  {
+   "consumed": 45,
+   "quads": 59,
+   "skipped": 36
+  },
+  {
+   "consumed": 48,
+   "quads": 63,
+   "skipped": 39
+  },
+  {
+   "consumed": 51,
+   "quads": 67,
+   "skipped": 42
+  },
+  {
+   "consumed": 54,
+   "quads": 71,
+   "skipped": 45
+  },
+  {
+   "consumed": 57,
+   "quads": 75,
+   "skipped": 48
+  },
+  {
+   "consumed": 60,
+   "quads": 79,
+   "skipped": 51
+  }
+ ],
+ "bindings": [
+  {
+   "https://w3id.org/fhir-sulo/var#status": {
+    "value": "final"
+   }
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#subject": "https://fhir.example/Patient/p-1"
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#effective": {
+    "type": "http://www.w3.org/2001/XMLSchema#dateTime",
+    "value": "2026-03-04T09:15:00Z"
+   }
+  },
+  [
+   {
+    "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100000",
+    "https://w3id.org/fhir-sulo/var#componentUnit": {
+     "value": "mm[Hg]"
+    },
+    "https://w3id.org/fhir-sulo/var#componentValue": {
+     "type": "http://www.w3.org/2001/XMLSchema#decimal",
+     "value": "100"
+    }
+   },
+   {
+    "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100001",
+    "https://w3id.org/fhir-sulo/var#componentUnit": {
+     "value": "mm[Hg]"
+    },
+    "https://w3id.org/fhir-sulo/var#componentValue": {
+     "type": "http://www.w3.org/2001/XMLSchema#decimal",
+     "value": "101"
+    }
+   },
+   {
+    "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100010",
+    "https://w3id.org/fhir-sulo/var#componentUnit": {
+     "value": "mm[Hg]"
+    },
+    "https://w3id.org/fhir-sulo/var#componentValue": {
+     "type": "http://www.w3.org/2001/XMLSchema#decimal",
+     "value": "110"
+    }
+   },
+   {
+    "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100011",
+    "https://w3id.org/fhir-sulo/var#componentUnit": {
+     "value": "mm[Hg]"
+    },
+    "https://w3id.org/fhir-sulo/var#componentValue": {
+     "type": "http://www.w3.org/2001/XMLSchema#decimal",
+     "value": "111"
+    }
+   },
+   {
+    "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100012",
+    "https://w3id.org/fhir-sulo/var#componentUnit": {
+     "value": "mm[Hg]"
+    },
+    "https://w3id.org/fhir-sulo/var#componentValue": {
+     "type": "http://www.w3.org/2001/XMLSchema#decimal",
+     "value": "112"
+    }
+   },
+   {
+    "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100013",
+    "https://w3id.org/fhir-sulo/var#componentUnit": {
+     "value": "mm[Hg]"
+    },
+    "https://w3id.org/fhir-sulo/var#componentValue": {
+     "type": "http://www.w3.org/2001/XMLSchema#decimal",
+     "value": "113"
+    }
+   },
+   {
+    "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100014",
+    "https://w3id.org/fhir-sulo/var#componentUnit": {
+     "value": "mm[Hg]"
+    },
+    "https://w3id.org/fhir-sulo/var#componentValue": {
+     "type": "http://www.w3.org/2001/XMLSchema#decimal",
+     "value": "114"
+    }
+   },
+   {
+    "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100015",
+    "https://w3id.org/fhir-sulo/var#componentUnit": {
+     "value": "mm[Hg]"
+    },
+    "https://w3id.org/fhir-sulo/var#componentValue": {
+     "type": "http://www.w3.org/2001/XMLSchema#decimal",
+     "value": "115"
+    }
+   },
+   {
+    "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100016",
+    "https://w3id.org/fhir-sulo/var#componentUnit": {
+     "value": "mm[Hg]"
+    },
+    "https://w3id.org/fhir-sulo/var#componentValue": {
+     "type": "http://www.w3.org/2001/XMLSchema#decimal",
+     "value": "116"
+    }
+   },
+   {
+    "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100017",
+    "https://w3id.org/fhir-sulo/var#componentUnit": {
+     "value": "mm[Hg]"
+    },
+    "https://w3id.org/fhir-sulo/var#componentValue": {
+     "type": "http://www.w3.org/2001/XMLSchema#decimal",
+     "value": "117"
+    }
+   },
+   {
+    "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100018",
+    "https://w3id.org/fhir-sulo/var#componentUnit": {
+     "value": "mm[Hg]"
+    },
+    "https://w3id.org/fhir-sulo/var#componentValue": {
+     "type": "http://www.w3.org/2001/XMLSchema#decimal",
+     "value": "118"
+    }
+   },
+   {
+    "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100019",
+    "https://w3id.org/fhir-sulo/var#componentUnit": {
+     "value": "mm[Hg]"
+    },
+    "https://w3id.org/fhir-sulo/var#componentValue": {
+     "type": "http://www.w3.org/2001/XMLSchema#decimal",
+     "value": "119"
+    }
+   },
+   {
+    "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100002",
+    "https://w3id.org/fhir-sulo/var#componentUnit": {
+     "value": "mm[Hg]"
+    },
+    "https://w3id.org/fhir-sulo/var#componentValue": {
+     "type": "http://www.w3.org/2001/XMLSchema#decimal",
+     "value": "102"
+    }
+   },
+   {
+    "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100020",
+    "https://w3id.org/fhir-sulo/var#componentUnit": {
+     "value": "mm[Hg]"
+    },
+    "https://w3id.org/fhir-sulo/var#componentValue": {
+     "type": "http://www.w3.org/2001/XMLSchema#decimal",
+     "value": "120"
+    }
+   },
+   {
+    "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100021",
+    "https://w3id.org/fhir-sulo/var#componentUnit": {
+     "value": "mm[Hg]"
+    },
+    "https://w3id.org/fhir-sulo/var#componentValue": {
+     "type": "http://www.w3.org/2001/XMLSchema#decimal",
+     "value": "121"
+    }
+   },
+   {
+    "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100022",
+    "https://w3id.org/fhir-sulo/var#componentUnit": {
+     "value": "mm[Hg]"
+    },
+    "https://w3id.org/fhir-sulo/var#componentValue": {
+     "type": "http://www.w3.org/2001/XMLSchema#decimal",
+     "value": "122"
+    }
+   },
+   {
+    "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100023",
+    "https://w3id.org/fhir-sulo/var#componentUnit": {
+     "value": "mm[Hg]"
+    },
+    "https://w3id.org/fhir-sulo/var#componentValue": {
+     "type": "http://www.w3.org/2001/XMLSchema#decimal",
+     "value": "123"
+    }
+   },
+   {
+    "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100024",
+    "https://w3id.org/fhir-sulo/var#componentUnit": {
+     "value": "mm[Hg]"
+    },
+    "https://w3id.org/fhir-sulo/var#componentValue": {
+     "type": "http://www.w3.org/2001/XMLSchema#decimal",
+     "value": "124"
+    }
+   },
+   {
+    "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100025",
+    "https://w3id.org/fhir-sulo/var#componentUnit": {
+     "value": "mm[Hg]"
+    },
+    "https://w3id.org/fhir-sulo/var#componentValue": {
+     "type": "http://www.w3.org/2001/XMLSchema#decimal",
+     "value": "125"
+    }
+   },
+   {
+    "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100026",
+    "https://w3id.org/fhir-sulo/var#componentUnit": {
+     "value": "mm[Hg]"
+    },
+    "https://w3id.org/fhir-sulo/var#componentValue": {
+     "type": "http://www.w3.org/2001/XMLSchema#decimal",
+     "value": "126"
+    }
+   },
+   {
+    "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100027",
+    "https://w3id.org/fhir-sulo/var#componentUnit": {
+     "value": "mm[Hg]"
+    },
+    "https://w3id.org/fhir-sulo/var#componentValue": {
+     "type": "http://www.w3.org/2001/XMLSchema#decimal",
+     "value": "127"
+    }
+   },
+   {
+    "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100028",
+    "https://w3id.org/fhir-sulo/var#componentUnit": {
+     "value": "mm[Hg]"
+    },
+    "https://w3id.org/fhir-sulo/var#componentValue": {
+     "type": "http://www.w3.org/2001/XMLSchema#decimal",
+     "value": "128"
+    }
+   },
+   {
+    "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100029",
+    "https://w3id.org/fhir-sulo/var#componentUnit": {
+     "value": "mm[Hg]"
+    },
+    "https://w3id.org/fhir-sulo/var#componentValue": {
+     "type": "http://www.w3.org/2001/XMLSchema#decimal",
+     "value": "129"
+    }
+   },
+   {
+    "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100003",
+    "https://w3id.org/fhir-sulo/var#componentUnit": {
+     "value": "mm[Hg]"
+    },
+    "https://w3id.org/fhir-sulo/var#componentValue": {
+     "type": "http://www.w3.org/2001/XMLSchema#decimal",
+     "value": "103"
+    }
+   },
+   {
+    "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100030",
+    "https://w3id.org/fhir-sulo/var#componentUnit": {
+     "value": "mm[Hg]"
+    },
+    "https://w3id.org/fhir-sulo/var#componentValue": {
+     "type": "http://www.w3.org/2001/XMLSchema#decimal",
+     "value": "130"
+    }
+   },
+   {
+    "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100031",
+    "https://w3id.org/fhir-sulo/var#componentUnit": {
+     "value": "mm[Hg]"
+    },
+    "https://w3id.org/fhir-sulo/var#componentValue": {
+     "type": "http://www.w3.org/2001/XMLSchema#decimal",
+     "value": "131"
+    }
+   },
+   {
+    "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100032",
+    "https://w3id.org/fhir-sulo/var#componentUnit": {
+     "value": "mm[Hg]"
+    },
+    "https://w3id.org/fhir-sulo/var#componentValue": {
+     "type": "http://www.w3.org/2001/XMLSchema#decimal",
+     "value": "132"
+    }
+   },
+   {
+    "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100033",
+    "https://w3id.org/fhir-sulo/var#componentUnit": {
+     "value": "mm[Hg]"
+    },
+    "https://w3id.org/fhir-sulo/var#componentValue": {
+     "type": "http://www.w3.org/2001/XMLSchema#decimal",
+     "value": "133"
+    }
+   },
+   {
+    "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100034",
+    "https://w3id.org/fhir-sulo/var#componentUnit": {
+     "value": "mm[Hg]"
+    },
+    "https://w3id.org/fhir-sulo/var#componentValue": {
+     "type": "http://www.w3.org/2001/XMLSchema#decimal",
+     "value": "134"
+    }
+   },
+   {
+    "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100035",
+    "https://w3id.org/fhir-sulo/var#componentUnit": {
+     "value": "mm[Hg]"
+    },
+    "https://w3id.org/fhir-sulo/var#componentValue": {
+     "type": "http://www.w3.org/2001/XMLSchema#decimal",
+     "value": "135"
+    }
+   },
+   {
+    "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100036",
+    "https://w3id.org/fhir-sulo/var#componentUnit": {
+     "value": "mm[Hg]"
+    },
+    "https://w3id.org/fhir-sulo/var#componentValue": {
+     "type": "http://www.w3.org/2001/XMLSchema#decimal",
+     "value": "136"
+    }
+   },
+   {
+    "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100037",
+    "https://w3id.org/fhir-sulo/var#componentUnit": {
+     "value": "mm[Hg]"
+    },
+    "https://w3id.org/fhir-sulo/var#componentValue": {
+     "type": "http://www.w3.org/2001/XMLSchema#decimal",
+     "value": "137"
+    }
+   },
+   {
+    "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100038",
+    "https://w3id.org/fhir-sulo/var#componentUnit": {
+     "value": "mm[Hg]"
+    },
+    "https://w3id.org/fhir-sulo/var#componentValue": {
+     "type": "http://www.w3.org/2001/XMLSchema#decimal",
+     "value": "138"
+    }
+   },
+   {
+    "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100039",
+    "https://w3id.org/fhir-sulo/var#componentUnit": {
+     "value": "mm[Hg]"
+    },
+    "https://w3id.org/fhir-sulo/var#componentValue": {
+     "type": "http://www.w3.org/2001/XMLSchema#decimal",
+     "value": "139"
+    }
+   },
+   {
+    "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100004",
+    "https://w3id.org/fhir-sulo/var#componentUnit": {
+     "value": "mm[Hg]"
+    },
+    "https://w3id.org/fhir-sulo/var#componentValue": {
+     "type": "http://www.w3.org/2001/XMLSchema#decimal",
+     "value": "104"
+    }
+   },
+   {
+    "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100040",
+    "https://w3id.org/fhir-sulo/var#componentUnit": {
+     "value": "mm[Hg]"
+    },
+    "https://w3id.org/fhir-sulo/var#componentValue": {
+     "type": "http://www.w3.org/2001/XMLSchema#decimal",
+     "value": "140"
+    }
+   },
+   {
+    "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100041",
+    "https://w3id.org/fhir-sulo/var#componentUnit": {
+     "value": "mm[Hg]"
+    },
+    "https://w3id.org/fhir-sulo/var#componentValue": {
+     "type": "http://www.w3.org/2001/XMLSchema#decimal",
+     "value": "141"
+    }
+   },
+   {
+    "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100042",
+    "https://w3id.org/fhir-sulo/var#componentUnit": {
+     "value": "mm[Hg]"
+    },
+    "https://w3id.org/fhir-sulo/var#componentValue": {
+     "type": "http://www.w3.org/2001/XMLSchema#decimal",
+     "value": "142"
+    }
+   },
+   {
+    "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100043",
+    "https://w3id.org/fhir-sulo/var#componentUnit": {
+     "value": "mm[Hg]"
+    },
+    "https://w3id.org/fhir-sulo/var#componentValue": {
+     "type": "http://www.w3.org/2001/XMLSchema#decimal",
+     "value": "143"
+    }
+   },
+   {
+    "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100044",
+    "https://w3id.org/fhir-sulo/var#componentUnit": {
+     "value": "mm[Hg]"
+    },
+    "https://w3id.org/fhir-sulo/var#componentValue": {
+     "type": "http://www.w3.org/2001/XMLSchema#decimal",
+     "value": "144"
+    }
+   },
+   {
+    "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100045",
+    "https://w3id.org/fhir-sulo/var#componentUnit": {
+     "value": "mm[Hg]"
+    },
+    "https://w3id.org/fhir-sulo/var#componentValue": {
+     "type": "http://www.w3.org/2001/XMLSchema#decimal",
+     "value": "145"
+    }
+   },
+   {
+    "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100046",
+    "https://w3id.org/fhir-sulo/var#componentUnit": {
+     "value": "mm[Hg]"
+    },
+    "https://w3id.org/fhir-sulo/var#componentValue": {
+     "type": "http://www.w3.org/2001/XMLSchema#decimal",
+     "value": "146"
+    }
+   },
+   {
+    "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100047",
+    "https://w3id.org/fhir-sulo/var#componentUnit": {
+     "value": "mm[Hg]"
+    },
+    "https://w3id.org/fhir-sulo/var#componentValue": {
+     "type": "http://www.w3.org/2001/XMLSchema#decimal",
+     "value": "147"
+    }
+   },
+   {
+    "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100048",
+    "https://w3id.org/fhir-sulo/var#componentUnit": {
+     "value": "mm[Hg]"
+    },
+    "https://w3id.org/fhir-sulo/var#componentValue": {
+     "type": "http://www.w3.org/2001/XMLSchema#decimal",
+     "value": "148"
+    }
+   },
+   {
+    "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100049",
+    "https://w3id.org/fhir-sulo/var#componentUnit": {
+     "value": "mm[Hg]"
+    },
+    "https://w3id.org/fhir-sulo/var#componentValue": {
+     "type": "http://www.w3.org/2001/XMLSchema#decimal",
+     "value": "149"
+    }
+   },
+   {
+    "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100005",
+    "https://w3id.org/fhir-sulo/var#componentUnit": {
+     "value": "mm[Hg]"
+    },
+    "https://w3id.org/fhir-sulo/var#componentValue": {
+     "type": "http://www.w3.org/2001/XMLSchema#decimal",
+     "value": "105"
+    }
+   },
+   {
+    "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100050",
+    "https://w3id.org/fhir-sulo/var#componentUnit": {
+     "value": "mm[Hg]"
+    },
+    "https://w3id.org/fhir-sulo/var#componentValue": {
+     "type": "http://www.w3.org/2001/XMLSchema#decimal",
+     "value": "150"
+    }
+   },
+   {
+    "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100051",
+    "https://w3id.org/fhir-sulo/var#componentUnit": {
+     "value": "mm[Hg]"
+    },
+    "https://w3id.org/fhir-sulo/var#componentValue": {
+     "type": "http://www.w3.org/2001/XMLSchema#decimal",
+     "value": "151"
+    }
+   },
+   {
+    "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100052",
+    "https://w3id.org/fhir-sulo/var#componentUnit": {
+     "value": "mm[Hg]"
+    },
+    "https://w3id.org/fhir-sulo/var#componentValue": {
+     "type": "http://www.w3.org/2001/XMLSchema#decimal",
+     "value": "152"
+    }
+   },
+   {
+    "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100053",
+    "https://w3id.org/fhir-sulo/var#componentUnit": {
+     "value": "mm[Hg]"
+    },
+    "https://w3id.org/fhir-sulo/var#componentValue": {
+     "type": "http://www.w3.org/2001/XMLSchema#decimal",
+     "value": "153"
+    }
+   },
+   {
+    "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100054",
+    "https://w3id.org/fhir-sulo/var#componentUnit": {
+     "value": "mm[Hg]"
+    },
+    "https://w3id.org/fhir-sulo/var#componentValue": {
+     "type": "http://www.w3.org/2001/XMLSchema#decimal",
+     "value": "154"
+    }
+   },
+   {
+    "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100055",
+    "https://w3id.org/fhir-sulo/var#componentUnit": {
+     "value": "mm[Hg]"
+    },
+    "https://w3id.org/fhir-sulo/var#componentValue": {
+     "type": "http://www.w3.org/2001/XMLSchema#decimal",
+     "value": "155"
+    }
+   },
+   {
+    "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100056",
+    "https://w3id.org/fhir-sulo/var#componentUnit": {
+     "value": "mm[Hg]"
+    },
+    "https://w3id.org/fhir-sulo/var#componentValue": {
+     "type": "http://www.w3.org/2001/XMLSchema#decimal",
+     "value": "156"
+    }
+   },
+   {
+    "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100057",
+    "https://w3id.org/fhir-sulo/var#componentUnit": {
+     "value": "mm[Hg]"
+    },
+    "https://w3id.org/fhir-sulo/var#componentValue": {
+     "type": "http://www.w3.org/2001/XMLSchema#decimal",
+     "value": "157"
+    }
+   },
+   {
+    "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100058",
+    "https://w3id.org/fhir-sulo/var#componentUnit": {
+     "value": "mm[Hg]"
+    },
+    "https://w3id.org/fhir-sulo/var#componentValue": {
+     "type": "http://www.w3.org/2001/XMLSchema#decimal",
+     "value": "158"
+    }
+   },
+   {
+    "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100059",
+    "https://w3id.org/fhir-sulo/var#componentUnit": {
+     "value": "mm[Hg]"
+    },
+    "https://w3id.org/fhir-sulo/var#componentValue": {
+     "type": "http://www.w3.org/2001/XMLSchema#decimal",
+     "value": "159"
+    }
+   },
+   {
+    "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100006",
+    "https://w3id.org/fhir-sulo/var#componentUnit": {
+     "value": "mm[Hg]"
+    },
+    "https://w3id.org/fhir-sulo/var#componentValue": {
+     "type": "http://www.w3.org/2001/XMLSchema#decimal",
+     "value": "106"
+    }
+   },
+   {
+    "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100007",
+    "https://w3id.org/fhir-sulo/var#componentUnit": {
+     "value": "mm[Hg]"
+    },
+    "https://w3id.org/fhir-sulo/var#componentValue": {
+     "type": "http://www.w3.org/2001/XMLSchema#decimal",
+     "value": "107"
+    }
+   },
+   {
+    "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100008",
+    "https://w3id.org/fhir-sulo/var#componentUnit": {
+     "value": "mm[Hg]"
+    },
+    "https://w3id.org/fhir-sulo/var#componentValue": {
+     "type": "http://www.w3.org/2001/XMLSchema#decimal",
+     "value": "108"
+    }
+   },
+   {
+    "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100009",
+    "https://w3id.org/fhir-sulo/var#componentUnit": {
+     "value": "mm[Hg]"
+    },
+    "https://w3id.org/fhir-sulo/var#componentValue": {
+     "type": "http://www.w3.org/2001/XMLSchema#decimal",
+     "value": "109"
+    }
+   }
+  ]
+ ],
+ "constraints": [
+  {
+   "id": "tc:0",
+   "inverse": false,
+   "mapCodes": [
+    " v:status "
+   ],
+   "predicate": "https://w3id.org/fhir-sulo/recordStatus",
+   "shape": "Panel"
+  },
+  {
+   "id": "tc:1",
+   "inverse": false,
+   "mapCodes": [
+    " v:subject "
+   ],
+   "predicate": "https://w3id.org/fhir-sulo/aboutParticipant",
+   "shape": "Panel"
+  },
+  {
+   "id": "tc:2",
+   "inverse": false,
+   "mapCodes": [
+    " v:effective "
+   ],
+   "predicate": "https://w3id.org/fhir-sulo/atTime",
+   "shape": "Panel"
+  },
+  {
+   "id": "tc:3",
+   "inverse": false,
+   "mapCodes": [],
+   "predicate": "https://w3id.org/fhir-sulo/hasMeasurement",
+   "shape": "Panel"
+  },
+  {
+   "id": "tc:4",
+   "inverse": false,
+   "mapCodes": [
+    " v:componentCode "
+   ],
+   "predicate": "https://w3id.org/fhir-sulo/measures",
+   "shape": "Measurement"
+  },
+  {
+   "id": "tc:5",
+   "inverse": false,
+   "mapCodes": [
+    " v:componentValue "
+   ],
+   "predicate": "https://w3id.org/fhir-sulo/magnitude",
+   "shape": "Measurement"
+  },
+  {
+   "id": "tc:6",
+   "inverse": false,
+   "mapCodes": [
+    " v:componentUnit "
+   ],
+   "predicate": "https://w3id.org/fhir-sulo/unit",
+   "shape": "Measurement"
+  }
+ ],
+ "coverage": {
+  "chosenAvailable": true,
+  "consumed": 60,
+  "total": 183,
+  "unconsumed": [
+   "[3,19,\"https://w3id.org/fhir-sulo/var#componentCode\"]",
+   "[3,19,\"https://w3id.org/fhir-sulo/var#componentUnit\"]",
+   "[3,19,\"https://w3id.org/fhir-sulo/var#componentValue\"]",
+   "[3,20,\"https://w3id.org/fhir-sulo/var#componentCode\"]",
+   "[3,20,\"https://w3id.org/fhir-sulo/var#componentUnit\"]",
+   "[3,20,\"https://w3id.org/fhir-sulo/var#componentValue\"]",
+   "[3,21,\"https://w3id.org/fhir-sulo/var#componentCode\"]",
+   "[3,21,\"https://w3id.org/fhir-sulo/var#componentUnit\"]",
+   "[3,21,\"https://w3id.org/fhir-sulo/var#componentValue\"]",
+   "[3,22,\"https://w3id.org/fhir-sulo/var#componentCode\"]",
+   "[3,22,\"https://w3id.org/fhir-sulo/var#componentUnit\"]",
+   "[3,22,\"https://w3id.org/fhir-sulo/var#componentValue\"]",
+   "[3,23,\"https://w3id.org/fhir-sulo/var#componentCode\"]",
+   "[3,23,\"https://w3id.org/fhir-sulo/var#componentUnit\"]",
+   "[3,23,\"https://w3id.org/fhir-sulo/var#componentValue\"]",
+   "[3,24,\"https://w3id.org/fhir-sulo/var#componentCode\"]",
+   "[3,24,\"https://w3id.org/fhir-sulo/var#componentUnit\"]",
+   "[3,24,\"https://w3id.org/fhir-sulo/var#componentValue\"]",
+   "[3,25,\"https://w3id.org/fhir-sulo/var#componentCode\"]",
+   "[3,25,\"https://w3id.org/fhir-sulo/var#componentUnit\"]",
+   "[3,25,\"https://w3id.org/fhir-sulo/var#componentValue\"]",
+   "[3,26,\"https://w3id.org/fhir-sulo/var#componentCode\"]",
+   "[3,26,\"https://w3id.org/fhir-sulo/var#componentUnit\"]",
+   "[3,26,\"https://w3id.org/fhir-sulo/var#componentValue\"]",
+   "[3,27,\"https://w3id.org/fhir-sulo/var#componentCode\"]",
+   "[3,27,\"https://w3id.org/fhir-sulo/var#componentUnit\"]",
+   "[3,27,\"https://w3id.org/fhir-sulo/var#componentValue\"]",
+   "[3,28,\"https://w3id.org/fhir-sulo/var#componentCode\"]",
+   "[3,28,\"https://w3id.org/fhir-sulo/var#componentUnit\"]",
+   "[3,28,\"https://w3id.org/fhir-sulo/var#componentValue\"]",
+   "[3,29,\"https://w3id.org/fhir-sulo/var#componentCode\"]",
+   "[3,29,\"https://w3id.org/fhir-sulo/var#componentUnit\"]",
+   "[3,29,\"https://w3id.org/fhir-sulo/var#componentValue\"]",
+   "[3,30,\"https://w3id.org/fhir-sulo/var#componentCode\"]",
+   "[3,30,\"https://w3id.org/fhir-sulo/var#componentUnit\"]",
+   "[3,30,\"https://w3id.org/fhir-sulo/var#componentValue\"]",
+   "[3,31,\"https://w3id.org/fhir-sulo/var#componentCode\"]",
+   "[3,31,\"https://w3id.org/fhir-sulo/var#componentUnit\"]",
+   "[3,31,\"https://w3id.org/fhir-sulo/var#componentValue\"]",
+   "[3,32,\"https://w3id.org/fhir-sulo/var#componentCode\"]",
+   "[3,32,\"https://w3id.org/fhir-sulo/var#componentUnit\"]",
+   "[3,32,\"https://w3id.org/fhir-sulo/var#componentValue\"]",
+   "[3,33,\"https://w3id.org/fhir-sulo/var#componentCode\"]",
+   "[3,33,\"https://w3id.org/fhir-sulo/var#componentUnit\"]",
+   "[3,33,\"https://w3id.org/fhir-sulo/var#componentValue\"]",
+   "[3,34,\"https://w3id.org/fhir-sulo/var#componentCode\"]",
+   "[3,34,\"https://w3id.org/fhir-sulo/var#componentUnit\"]",
+   "[3,34,\"https://w3id.org/fhir-sulo/var#componentValue\"]",
+   "[3,35,\"https://w3id.org/fhir-sulo/var#componentCode\"]",
+   "[3,35,\"https://w3id.org/fhir-sulo/var#componentUnit\"]",
+   "[3,35,\"https://w3id.org/fhir-sulo/var#componentValue\"]",
+   "[3,36,\"https://w3id.org/fhir-sulo/var#componentCode\"]",
+   "[3,36,\"https://w3id.org/fhir-sulo/var#componentUnit\"]",
+   "[3,36,\"https://w3id.org/fhir-sulo/var#componentValue\"]",
+   "[3,37,\"https://w3id.org/fhir-sulo/var#componentCode\"]",
+   "[3,37,\"https://w3id.org/fhir-sulo/var#componentUnit\"]",
+   "[3,37,\"https://w3id.org/fhir-sulo/var#componentValue\"]",
+   "[3,38,\"https://w3id.org/fhir-sulo/var#componentCode\"]",
+   "[3,38,\"https://w3id.org/fhir-sulo/var#componentUnit\"]",
+   "[3,38,\"https://w3id.org/fhir-sulo/var#componentValue\"]",
+   "[3,39,\"https://w3id.org/fhir-sulo/var#componentCode\"]",
+   "[3,39,\"https://w3id.org/fhir-sulo/var#componentUnit\"]",
+   "[3,39,\"https://w3id.org/fhir-sulo/var#componentValue\"]",
+   "[3,40,\"https://w3id.org/fhir-sulo/var#componentCode\"]",
+   "[3,40,\"https://w3id.org/fhir-sulo/var#componentUnit\"]",
+   "[3,40,\"https://w3id.org/fhir-sulo/var#componentValue\"]",
+   "[3,41,\"https://w3id.org/fhir-sulo/var#componentCode\"]",
+   "[3,41,\"https://w3id.org/fhir-sulo/var#componentUnit\"]",
+   "[3,41,\"https://w3id.org/fhir-sulo/var#componentValue\"]",
+   "[3,42,\"https://w3id.org/fhir-sulo/var#componentCode\"]",
+   "[3,42,\"https://w3id.org/fhir-sulo/var#componentUnit\"]",
+   "[3,42,\"https://w3id.org/fhir-sulo/var#componentValue\"]",
+   "[3,43,\"https://w3id.org/fhir-sulo/var#componentCode\"]",
+   "[3,43,\"https://w3id.org/fhir-sulo/var#componentUnit\"]",
+   "[3,43,\"https://w3id.org/fhir-sulo/var#componentValue\"]",
+   "[3,44,\"https://w3id.org/fhir-sulo/var#componentCode\"]",
+   "[3,44,\"https://w3id.org/fhir-sulo/var#componentUnit\"]",
+   "[3,44,\"https://w3id.org/fhir-sulo/var#componentValue\"]",
+   "[3,45,\"https://w3id.org/fhir-sulo/var#componentCode\"]",
+   "[3,45,\"https://w3id.org/fhir-sulo/var#componentUnit\"]",
+   "[3,45,\"https://w3id.org/fhir-sulo/var#componentValue\"]",
+   "[3,46,\"https://w3id.org/fhir-sulo/var#componentCode\"]",
+   "[3,46,\"https://w3id.org/fhir-sulo/var#componentUnit\"]",
+   "[3,46,\"https://w3id.org/fhir-sulo/var#componentValue\"]",
+   "[3,47,\"https://w3id.org/fhir-sulo/var#componentCode\"]",
+   "[3,47,\"https://w3id.org/fhir-sulo/var#componentUnit\"]",
+   "[3,47,\"https://w3id.org/fhir-sulo/var#componentValue\"]",
+   "[3,48,\"https://w3id.org/fhir-sulo/var#componentCode\"]",
+   "[3,48,\"https://w3id.org/fhir-sulo/var#componentUnit\"]",
+   "[3,48,\"https://w3id.org/fhir-sulo/var#componentValue\"]",
+   "[3,49,\"https://w3id.org/fhir-sulo/var#componentCode\"]",
+   "[3,49,\"https://w3id.org/fhir-sulo/var#componentUnit\"]",
+   "[3,49,\"https://w3id.org/fhir-sulo/var#componentValue\"]",
+   "[3,50,\"https://w3id.org/fhir-sulo/var#componentCode\"]",
+   "[3,50,\"https://w3id.org/fhir-sulo/var#componentUnit\"]",
+   "[3,50,\"https://w3id.org/fhir-sulo/var#componentValue\"]",
+   "[3,51,\"https://w3id.org/fhir-sulo/var#componentCode\"]",
+   "[3,51,\"https://w3id.org/fhir-sulo/var#componentUnit\"]",
+   "[3,51,\"https://w3id.org/fhir-sulo/var#componentValue\"]",
+   "[3,52,\"https://w3id.org/fhir-sulo/var#componentCode\"]",
+   "[3,52,\"https://w3id.org/fhir-sulo/var#componentUnit\"]",
+   "[3,52,\"https://w3id.org/fhir-sulo/var#componentValue\"]",
+   "[3,53,\"https://w3id.org/fhir-sulo/var#componentCode\"]",
+   "[3,53,\"https://w3id.org/fhir-sulo/var#componentUnit\"]",
+   "[3,53,\"https://w3id.org/fhir-sulo/var#componentValue\"]",
+   "[3,54,\"https://w3id.org/fhir-sulo/var#componentCode\"]",
+   "[3,54,\"https://w3id.org/fhir-sulo/var#componentUnit\"]",
+   "[3,54,\"https://w3id.org/fhir-sulo/var#componentValue\"]",
+   "[3,55,\"https://w3id.org/fhir-sulo/var#componentCode\"]",
+   "[3,55,\"https://w3id.org/fhir-sulo/var#componentUnit\"]",
+   "[3,55,\"https://w3id.org/fhir-sulo/var#componentValue\"]",
+   "[3,56,\"https://w3id.org/fhir-sulo/var#componentCode\"]",
+   "[3,56,\"https://w3id.org/fhir-sulo/var#componentUnit\"]",
+   "[3,56,\"https://w3id.org/fhir-sulo/var#componentValue\"]",
+   "[3,57,\"https://w3id.org/fhir-sulo/var#componentCode\"]",
+   "[3,57,\"https://w3id.org/fhir-sulo/var#componentUnit\"]",
+   "[3,57,\"https://w3id.org/fhir-sulo/var#componentValue\"]",
+   "[3,58,\"https://w3id.org/fhir-sulo/var#componentCode\"]",
+   "[3,58,\"https://w3id.org/fhir-sulo/var#componentUnit\"]",
+   "[3,58,\"https://w3id.org/fhir-sulo/var#componentValue\"]",
+   "[3,59,\"https://w3id.org/fhir-sulo/var#componentCode\"]",
+   "[3,59,\"https://w3id.org/fhir-sulo/var#componentUnit\"]",
+   "[3,59,\"https://w3id.org/fhir-sulo/var#componentValue\"]"
+  ]
+ },
+ "frameOrigins": [
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": [
+    3,
+    0,
+    "https://w3id.org/fhir-sulo/var#componentCode"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentUnit": [
+    3,
+    0,
+    "https://w3id.org/fhir-sulo/var#componentUnit"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentValue": [
+    3,
+    0,
+    "https://w3id.org/fhir-sulo/var#componentValue"
+   ],
+   "https://w3id.org/fhir-sulo/var#effective": [
+    2,
+    "https://w3id.org/fhir-sulo/var#effective"
+   ],
+   "https://w3id.org/fhir-sulo/var#status": [
+    0,
+    "https://w3id.org/fhir-sulo/var#status"
+   ],
+   "https://w3id.org/fhir-sulo/var#subject": [
+    1,
+    "https://w3id.org/fhir-sulo/var#subject"
+   ]
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": [
+    3,
+    1,
+    "https://w3id.org/fhir-sulo/var#componentCode"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentUnit": [
+    3,
+    1,
+    "https://w3id.org/fhir-sulo/var#componentUnit"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentValue": [
+    3,
+    1,
+    "https://w3id.org/fhir-sulo/var#componentValue"
+   ],
+   "https://w3id.org/fhir-sulo/var#effective": [
+    2,
+    "https://w3id.org/fhir-sulo/var#effective"
+   ],
+   "https://w3id.org/fhir-sulo/var#status": [
+    0,
+    "https://w3id.org/fhir-sulo/var#status"
+   ],
+   "https://w3id.org/fhir-sulo/var#subject": [
+    1,
+    "https://w3id.org/fhir-sulo/var#subject"
+   ]
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": [
+    3,
+    2,
+    "https://w3id.org/fhir-sulo/var#componentCode"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentUnit": [
+    3,
+    2,
+    "https://w3id.org/fhir-sulo/var#componentUnit"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentValue": [
+    3,
+    2,
+    "https://w3id.org/fhir-sulo/var#componentValue"
+   ],
+   "https://w3id.org/fhir-sulo/var#effective": [
+    2,
+    "https://w3id.org/fhir-sulo/var#effective"
+   ],
+   "https://w3id.org/fhir-sulo/var#status": [
+    0,
+    "https://w3id.org/fhir-sulo/var#status"
+   ],
+   "https://w3id.org/fhir-sulo/var#subject": [
+    1,
+    "https://w3id.org/fhir-sulo/var#subject"
+   ]
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": [
+    3,
+    3,
+    "https://w3id.org/fhir-sulo/var#componentCode"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentUnit": [
+    3,
+    3,
+    "https://w3id.org/fhir-sulo/var#componentUnit"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentValue": [
+    3,
+    3,
+    "https://w3id.org/fhir-sulo/var#componentValue"
+   ],
+   "https://w3id.org/fhir-sulo/var#effective": [
+    2,
+    "https://w3id.org/fhir-sulo/var#effective"
+   ],
+   "https://w3id.org/fhir-sulo/var#status": [
+    0,
+    "https://w3id.org/fhir-sulo/var#status"
+   ],
+   "https://w3id.org/fhir-sulo/var#subject": [
+    1,
+    "https://w3id.org/fhir-sulo/var#subject"
+   ]
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": [
+    3,
+    4,
+    "https://w3id.org/fhir-sulo/var#componentCode"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentUnit": [
+    3,
+    4,
+    "https://w3id.org/fhir-sulo/var#componentUnit"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentValue": [
+    3,
+    4,
+    "https://w3id.org/fhir-sulo/var#componentValue"
+   ],
+   "https://w3id.org/fhir-sulo/var#effective": [
+    2,
+    "https://w3id.org/fhir-sulo/var#effective"
+   ],
+   "https://w3id.org/fhir-sulo/var#status": [
+    0,
+    "https://w3id.org/fhir-sulo/var#status"
+   ],
+   "https://w3id.org/fhir-sulo/var#subject": [
+    1,
+    "https://w3id.org/fhir-sulo/var#subject"
+   ]
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": [
+    3,
+    5,
+    "https://w3id.org/fhir-sulo/var#componentCode"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentUnit": [
+    3,
+    5,
+    "https://w3id.org/fhir-sulo/var#componentUnit"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentValue": [
+    3,
+    5,
+    "https://w3id.org/fhir-sulo/var#componentValue"
+   ],
+   "https://w3id.org/fhir-sulo/var#effective": [
+    2,
+    "https://w3id.org/fhir-sulo/var#effective"
+   ],
+   "https://w3id.org/fhir-sulo/var#status": [
+    0,
+    "https://w3id.org/fhir-sulo/var#status"
+   ],
+   "https://w3id.org/fhir-sulo/var#subject": [
+    1,
+    "https://w3id.org/fhir-sulo/var#subject"
+   ]
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": [
+    3,
+    6,
+    "https://w3id.org/fhir-sulo/var#componentCode"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentUnit": [
+    3,
+    6,
+    "https://w3id.org/fhir-sulo/var#componentUnit"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentValue": [
+    3,
+    6,
+    "https://w3id.org/fhir-sulo/var#componentValue"
+   ],
+   "https://w3id.org/fhir-sulo/var#effective": [
+    2,
+    "https://w3id.org/fhir-sulo/var#effective"
+   ],
+   "https://w3id.org/fhir-sulo/var#status": [
+    0,
+    "https://w3id.org/fhir-sulo/var#status"
+   ],
+   "https://w3id.org/fhir-sulo/var#subject": [
+    1,
+    "https://w3id.org/fhir-sulo/var#subject"
+   ]
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": [
+    3,
+    7,
+    "https://w3id.org/fhir-sulo/var#componentCode"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentUnit": [
+    3,
+    7,
+    "https://w3id.org/fhir-sulo/var#componentUnit"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentValue": [
+    3,
+    7,
+    "https://w3id.org/fhir-sulo/var#componentValue"
+   ],
+   "https://w3id.org/fhir-sulo/var#effective": [
+    2,
+    "https://w3id.org/fhir-sulo/var#effective"
+   ],
+   "https://w3id.org/fhir-sulo/var#status": [
+    0,
+    "https://w3id.org/fhir-sulo/var#status"
+   ],
+   "https://w3id.org/fhir-sulo/var#subject": [
+    1,
+    "https://w3id.org/fhir-sulo/var#subject"
+   ]
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": [
+    3,
+    8,
+    "https://w3id.org/fhir-sulo/var#componentCode"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentUnit": [
+    3,
+    8,
+    "https://w3id.org/fhir-sulo/var#componentUnit"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentValue": [
+    3,
+    8,
+    "https://w3id.org/fhir-sulo/var#componentValue"
+   ],
+   "https://w3id.org/fhir-sulo/var#effective": [
+    2,
+    "https://w3id.org/fhir-sulo/var#effective"
+   ],
+   "https://w3id.org/fhir-sulo/var#status": [
+    0,
+    "https://w3id.org/fhir-sulo/var#status"
+   ],
+   "https://w3id.org/fhir-sulo/var#subject": [
+    1,
+    "https://w3id.org/fhir-sulo/var#subject"
+   ]
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": [
+    3,
+    9,
+    "https://w3id.org/fhir-sulo/var#componentCode"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentUnit": [
+    3,
+    9,
+    "https://w3id.org/fhir-sulo/var#componentUnit"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentValue": [
+    3,
+    9,
+    "https://w3id.org/fhir-sulo/var#componentValue"
+   ],
+   "https://w3id.org/fhir-sulo/var#effective": [
+    2,
+    "https://w3id.org/fhir-sulo/var#effective"
+   ],
+   "https://w3id.org/fhir-sulo/var#status": [
+    0,
+    "https://w3id.org/fhir-sulo/var#status"
+   ],
+   "https://w3id.org/fhir-sulo/var#subject": [
+    1,
+    "https://w3id.org/fhir-sulo/var#subject"
+   ]
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": [
+    3,
+    10,
+    "https://w3id.org/fhir-sulo/var#componentCode"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentUnit": [
+    3,
+    10,
+    "https://w3id.org/fhir-sulo/var#componentUnit"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentValue": [
+    3,
+    10,
+    "https://w3id.org/fhir-sulo/var#componentValue"
+   ],
+   "https://w3id.org/fhir-sulo/var#effective": [
+    2,
+    "https://w3id.org/fhir-sulo/var#effective"
+   ],
+   "https://w3id.org/fhir-sulo/var#status": [
+    0,
+    "https://w3id.org/fhir-sulo/var#status"
+   ],
+   "https://w3id.org/fhir-sulo/var#subject": [
+    1,
+    "https://w3id.org/fhir-sulo/var#subject"
+   ]
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": [
+    3,
+    11,
+    "https://w3id.org/fhir-sulo/var#componentCode"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentUnit": [
+    3,
+    11,
+    "https://w3id.org/fhir-sulo/var#componentUnit"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentValue": [
+    3,
+    11,
+    "https://w3id.org/fhir-sulo/var#componentValue"
+   ],
+   "https://w3id.org/fhir-sulo/var#effective": [
+    2,
+    "https://w3id.org/fhir-sulo/var#effective"
+   ],
+   "https://w3id.org/fhir-sulo/var#status": [
+    0,
+    "https://w3id.org/fhir-sulo/var#status"
+   ],
+   "https://w3id.org/fhir-sulo/var#subject": [
+    1,
+    "https://w3id.org/fhir-sulo/var#subject"
+   ]
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": [
+    3,
+    12,
+    "https://w3id.org/fhir-sulo/var#componentCode"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentUnit": [
+    3,
+    12,
+    "https://w3id.org/fhir-sulo/var#componentUnit"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentValue": [
+    3,
+    12,
+    "https://w3id.org/fhir-sulo/var#componentValue"
+   ],
+   "https://w3id.org/fhir-sulo/var#effective": [
+    2,
+    "https://w3id.org/fhir-sulo/var#effective"
+   ],
+   "https://w3id.org/fhir-sulo/var#status": [
+    0,
+    "https://w3id.org/fhir-sulo/var#status"
+   ],
+   "https://w3id.org/fhir-sulo/var#subject": [
+    1,
+    "https://w3id.org/fhir-sulo/var#subject"
+   ]
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": [
+    3,
+    13,
+    "https://w3id.org/fhir-sulo/var#componentCode"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentUnit": [
+    3,
+    13,
+    "https://w3id.org/fhir-sulo/var#componentUnit"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentValue": [
+    3,
+    13,
+    "https://w3id.org/fhir-sulo/var#componentValue"
+   ],
+   "https://w3id.org/fhir-sulo/var#effective": [
+    2,
+    "https://w3id.org/fhir-sulo/var#effective"
+   ],
+   "https://w3id.org/fhir-sulo/var#status": [
+    0,
+    "https://w3id.org/fhir-sulo/var#status"
+   ],
+   "https://w3id.org/fhir-sulo/var#subject": [
+    1,
+    "https://w3id.org/fhir-sulo/var#subject"
+   ]
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": [
+    3,
+    14,
+    "https://w3id.org/fhir-sulo/var#componentCode"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentUnit": [
+    3,
+    14,
+    "https://w3id.org/fhir-sulo/var#componentUnit"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentValue": [
+    3,
+    14,
+    "https://w3id.org/fhir-sulo/var#componentValue"
+   ],
+   "https://w3id.org/fhir-sulo/var#effective": [
+    2,
+    "https://w3id.org/fhir-sulo/var#effective"
+   ],
+   "https://w3id.org/fhir-sulo/var#status": [
+    0,
+    "https://w3id.org/fhir-sulo/var#status"
+   ],
+   "https://w3id.org/fhir-sulo/var#subject": [
+    1,
+    "https://w3id.org/fhir-sulo/var#subject"
+   ]
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": [
+    3,
+    15,
+    "https://w3id.org/fhir-sulo/var#componentCode"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentUnit": [
+    3,
+    15,
+    "https://w3id.org/fhir-sulo/var#componentUnit"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentValue": [
+    3,
+    15,
+    "https://w3id.org/fhir-sulo/var#componentValue"
+   ],
+   "https://w3id.org/fhir-sulo/var#effective": [
+    2,
+    "https://w3id.org/fhir-sulo/var#effective"
+   ],
+   "https://w3id.org/fhir-sulo/var#status": [
+    0,
+    "https://w3id.org/fhir-sulo/var#status"
+   ],
+   "https://w3id.org/fhir-sulo/var#subject": [
+    1,
+    "https://w3id.org/fhir-sulo/var#subject"
+   ]
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": [
+    3,
+    16,
+    "https://w3id.org/fhir-sulo/var#componentCode"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentUnit": [
+    3,
+    16,
+    "https://w3id.org/fhir-sulo/var#componentUnit"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentValue": [
+    3,
+    16,
+    "https://w3id.org/fhir-sulo/var#componentValue"
+   ],
+   "https://w3id.org/fhir-sulo/var#effective": [
+    2,
+    "https://w3id.org/fhir-sulo/var#effective"
+   ],
+   "https://w3id.org/fhir-sulo/var#status": [
+    0,
+    "https://w3id.org/fhir-sulo/var#status"
+   ],
+   "https://w3id.org/fhir-sulo/var#subject": [
+    1,
+    "https://w3id.org/fhir-sulo/var#subject"
+   ]
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": [
+    3,
+    17,
+    "https://w3id.org/fhir-sulo/var#componentCode"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentUnit": [
+    3,
+    17,
+    "https://w3id.org/fhir-sulo/var#componentUnit"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentValue": [
+    3,
+    17,
+    "https://w3id.org/fhir-sulo/var#componentValue"
+   ],
+   "https://w3id.org/fhir-sulo/var#effective": [
+    2,
+    "https://w3id.org/fhir-sulo/var#effective"
+   ],
+   "https://w3id.org/fhir-sulo/var#status": [
+    0,
+    "https://w3id.org/fhir-sulo/var#status"
+   ],
+   "https://w3id.org/fhir-sulo/var#subject": [
+    1,
+    "https://w3id.org/fhir-sulo/var#subject"
+   ]
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": [
+    3,
+    18,
+    "https://w3id.org/fhir-sulo/var#componentCode"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentUnit": [
+    3,
+    18,
+    "https://w3id.org/fhir-sulo/var#componentUnit"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentValue": [
+    3,
+    18,
+    "https://w3id.org/fhir-sulo/var#componentValue"
+   ],
+   "https://w3id.org/fhir-sulo/var#effective": [
+    2,
+    "https://w3id.org/fhir-sulo/var#effective"
+   ],
+   "https://w3id.org/fhir-sulo/var#status": [
+    0,
+    "https://w3id.org/fhir-sulo/var#status"
+   ],
+   "https://w3id.org/fhir-sulo/var#subject": [
+    1,
+    "https://w3id.org/fhir-sulo/var#subject"
+   ]
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": [
+    3,
+    19,
+    "https://w3id.org/fhir-sulo/var#componentCode"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentUnit": [
+    3,
+    19,
+    "https://w3id.org/fhir-sulo/var#componentUnit"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentValue": [
+    3,
+    19,
+    "https://w3id.org/fhir-sulo/var#componentValue"
+   ],
+   "https://w3id.org/fhir-sulo/var#effective": [
+    2,
+    "https://w3id.org/fhir-sulo/var#effective"
+   ],
+   "https://w3id.org/fhir-sulo/var#status": [
+    0,
+    "https://w3id.org/fhir-sulo/var#status"
+   ],
+   "https://w3id.org/fhir-sulo/var#subject": [
+    1,
+    "https://w3id.org/fhir-sulo/var#subject"
+   ]
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": [
+    3,
+    20,
+    "https://w3id.org/fhir-sulo/var#componentCode"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentUnit": [
+    3,
+    20,
+    "https://w3id.org/fhir-sulo/var#componentUnit"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentValue": [
+    3,
+    20,
+    "https://w3id.org/fhir-sulo/var#componentValue"
+   ],
+   "https://w3id.org/fhir-sulo/var#effective": [
+    2,
+    "https://w3id.org/fhir-sulo/var#effective"
+   ],
+   "https://w3id.org/fhir-sulo/var#status": [
+    0,
+    "https://w3id.org/fhir-sulo/var#status"
+   ],
+   "https://w3id.org/fhir-sulo/var#subject": [
+    1,
+    "https://w3id.org/fhir-sulo/var#subject"
+   ]
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": [
+    3,
+    21,
+    "https://w3id.org/fhir-sulo/var#componentCode"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentUnit": [
+    3,
+    21,
+    "https://w3id.org/fhir-sulo/var#componentUnit"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentValue": [
+    3,
+    21,
+    "https://w3id.org/fhir-sulo/var#componentValue"
+   ],
+   "https://w3id.org/fhir-sulo/var#effective": [
+    2,
+    "https://w3id.org/fhir-sulo/var#effective"
+   ],
+   "https://w3id.org/fhir-sulo/var#status": [
+    0,
+    "https://w3id.org/fhir-sulo/var#status"
+   ],
+   "https://w3id.org/fhir-sulo/var#subject": [
+    1,
+    "https://w3id.org/fhir-sulo/var#subject"
+   ]
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": [
+    3,
+    22,
+    "https://w3id.org/fhir-sulo/var#componentCode"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentUnit": [
+    3,
+    22,
+    "https://w3id.org/fhir-sulo/var#componentUnit"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentValue": [
+    3,
+    22,
+    "https://w3id.org/fhir-sulo/var#componentValue"
+   ],
+   "https://w3id.org/fhir-sulo/var#effective": [
+    2,
+    "https://w3id.org/fhir-sulo/var#effective"
+   ],
+   "https://w3id.org/fhir-sulo/var#status": [
+    0,
+    "https://w3id.org/fhir-sulo/var#status"
+   ],
+   "https://w3id.org/fhir-sulo/var#subject": [
+    1,
+    "https://w3id.org/fhir-sulo/var#subject"
+   ]
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": [
+    3,
+    23,
+    "https://w3id.org/fhir-sulo/var#componentCode"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentUnit": [
+    3,
+    23,
+    "https://w3id.org/fhir-sulo/var#componentUnit"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentValue": [
+    3,
+    23,
+    "https://w3id.org/fhir-sulo/var#componentValue"
+   ],
+   "https://w3id.org/fhir-sulo/var#effective": [
+    2,
+    "https://w3id.org/fhir-sulo/var#effective"
+   ],
+   "https://w3id.org/fhir-sulo/var#status": [
+    0,
+    "https://w3id.org/fhir-sulo/var#status"
+   ],
+   "https://w3id.org/fhir-sulo/var#subject": [
+    1,
+    "https://w3id.org/fhir-sulo/var#subject"
+   ]
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": [
+    3,
+    24,
+    "https://w3id.org/fhir-sulo/var#componentCode"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentUnit": [
+    3,
+    24,
+    "https://w3id.org/fhir-sulo/var#componentUnit"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentValue": [
+    3,
+    24,
+    "https://w3id.org/fhir-sulo/var#componentValue"
+   ],
+   "https://w3id.org/fhir-sulo/var#effective": [
+    2,
+    "https://w3id.org/fhir-sulo/var#effective"
+   ],
+   "https://w3id.org/fhir-sulo/var#status": [
+    0,
+    "https://w3id.org/fhir-sulo/var#status"
+   ],
+   "https://w3id.org/fhir-sulo/var#subject": [
+    1,
+    "https://w3id.org/fhir-sulo/var#subject"
+   ]
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": [
+    3,
+    25,
+    "https://w3id.org/fhir-sulo/var#componentCode"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentUnit": [
+    3,
+    25,
+    "https://w3id.org/fhir-sulo/var#componentUnit"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentValue": [
+    3,
+    25,
+    "https://w3id.org/fhir-sulo/var#componentValue"
+   ],
+   "https://w3id.org/fhir-sulo/var#effective": [
+    2,
+    "https://w3id.org/fhir-sulo/var#effective"
+   ],
+   "https://w3id.org/fhir-sulo/var#status": [
+    0,
+    "https://w3id.org/fhir-sulo/var#status"
+   ],
+   "https://w3id.org/fhir-sulo/var#subject": [
+    1,
+    "https://w3id.org/fhir-sulo/var#subject"
+   ]
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": [
+    3,
+    26,
+    "https://w3id.org/fhir-sulo/var#componentCode"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentUnit": [
+    3,
+    26,
+    "https://w3id.org/fhir-sulo/var#componentUnit"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentValue": [
+    3,
+    26,
+    "https://w3id.org/fhir-sulo/var#componentValue"
+   ],
+   "https://w3id.org/fhir-sulo/var#effective": [
+    2,
+    "https://w3id.org/fhir-sulo/var#effective"
+   ],
+   "https://w3id.org/fhir-sulo/var#status": [
+    0,
+    "https://w3id.org/fhir-sulo/var#status"
+   ],
+   "https://w3id.org/fhir-sulo/var#subject": [
+    1,
+    "https://w3id.org/fhir-sulo/var#subject"
+   ]
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": [
+    3,
+    27,
+    "https://w3id.org/fhir-sulo/var#componentCode"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentUnit": [
+    3,
+    27,
+    "https://w3id.org/fhir-sulo/var#componentUnit"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentValue": [
+    3,
+    27,
+    "https://w3id.org/fhir-sulo/var#componentValue"
+   ],
+   "https://w3id.org/fhir-sulo/var#effective": [
+    2,
+    "https://w3id.org/fhir-sulo/var#effective"
+   ],
+   "https://w3id.org/fhir-sulo/var#status": [
+    0,
+    "https://w3id.org/fhir-sulo/var#status"
+   ],
+   "https://w3id.org/fhir-sulo/var#subject": [
+    1,
+    "https://w3id.org/fhir-sulo/var#subject"
+   ]
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": [
+    3,
+    28,
+    "https://w3id.org/fhir-sulo/var#componentCode"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentUnit": [
+    3,
+    28,
+    "https://w3id.org/fhir-sulo/var#componentUnit"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentValue": [
+    3,
+    28,
+    "https://w3id.org/fhir-sulo/var#componentValue"
+   ],
+   "https://w3id.org/fhir-sulo/var#effective": [
+    2,
+    "https://w3id.org/fhir-sulo/var#effective"
+   ],
+   "https://w3id.org/fhir-sulo/var#status": [
+    0,
+    "https://w3id.org/fhir-sulo/var#status"
+   ],
+   "https://w3id.org/fhir-sulo/var#subject": [
+    1,
+    "https://w3id.org/fhir-sulo/var#subject"
+   ]
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": [
+    3,
+    29,
+    "https://w3id.org/fhir-sulo/var#componentCode"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentUnit": [
+    3,
+    29,
+    "https://w3id.org/fhir-sulo/var#componentUnit"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentValue": [
+    3,
+    29,
+    "https://w3id.org/fhir-sulo/var#componentValue"
+   ],
+   "https://w3id.org/fhir-sulo/var#effective": [
+    2,
+    "https://w3id.org/fhir-sulo/var#effective"
+   ],
+   "https://w3id.org/fhir-sulo/var#status": [
+    0,
+    "https://w3id.org/fhir-sulo/var#status"
+   ],
+   "https://w3id.org/fhir-sulo/var#subject": [
+    1,
+    "https://w3id.org/fhir-sulo/var#subject"
+   ]
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": [
+    3,
+    30,
+    "https://w3id.org/fhir-sulo/var#componentCode"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentUnit": [
+    3,
+    30,
+    "https://w3id.org/fhir-sulo/var#componentUnit"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentValue": [
+    3,
+    30,
+    "https://w3id.org/fhir-sulo/var#componentValue"
+   ],
+   "https://w3id.org/fhir-sulo/var#effective": [
+    2,
+    "https://w3id.org/fhir-sulo/var#effective"
+   ],
+   "https://w3id.org/fhir-sulo/var#status": [
+    0,
+    "https://w3id.org/fhir-sulo/var#status"
+   ],
+   "https://w3id.org/fhir-sulo/var#subject": [
+    1,
+    "https://w3id.org/fhir-sulo/var#subject"
+   ]
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": [
+    3,
+    31,
+    "https://w3id.org/fhir-sulo/var#componentCode"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentUnit": [
+    3,
+    31,
+    "https://w3id.org/fhir-sulo/var#componentUnit"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentValue": [
+    3,
+    31,
+    "https://w3id.org/fhir-sulo/var#componentValue"
+   ],
+   "https://w3id.org/fhir-sulo/var#effective": [
+    2,
+    "https://w3id.org/fhir-sulo/var#effective"
+   ],
+   "https://w3id.org/fhir-sulo/var#status": [
+    0,
+    "https://w3id.org/fhir-sulo/var#status"
+   ],
+   "https://w3id.org/fhir-sulo/var#subject": [
+    1,
+    "https://w3id.org/fhir-sulo/var#subject"
+   ]
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": [
+    3,
+    32,
+    "https://w3id.org/fhir-sulo/var#componentCode"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentUnit": [
+    3,
+    32,
+    "https://w3id.org/fhir-sulo/var#componentUnit"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentValue": [
+    3,
+    32,
+    "https://w3id.org/fhir-sulo/var#componentValue"
+   ],
+   "https://w3id.org/fhir-sulo/var#effective": [
+    2,
+    "https://w3id.org/fhir-sulo/var#effective"
+   ],
+   "https://w3id.org/fhir-sulo/var#status": [
+    0,
+    "https://w3id.org/fhir-sulo/var#status"
+   ],
+   "https://w3id.org/fhir-sulo/var#subject": [
+    1,
+    "https://w3id.org/fhir-sulo/var#subject"
+   ]
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": [
+    3,
+    33,
+    "https://w3id.org/fhir-sulo/var#componentCode"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentUnit": [
+    3,
+    33,
+    "https://w3id.org/fhir-sulo/var#componentUnit"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentValue": [
+    3,
+    33,
+    "https://w3id.org/fhir-sulo/var#componentValue"
+   ],
+   "https://w3id.org/fhir-sulo/var#effective": [
+    2,
+    "https://w3id.org/fhir-sulo/var#effective"
+   ],
+   "https://w3id.org/fhir-sulo/var#status": [
+    0,
+    "https://w3id.org/fhir-sulo/var#status"
+   ],
+   "https://w3id.org/fhir-sulo/var#subject": [
+    1,
+    "https://w3id.org/fhir-sulo/var#subject"
+   ]
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": [
+    3,
+    34,
+    "https://w3id.org/fhir-sulo/var#componentCode"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentUnit": [
+    3,
+    34,
+    "https://w3id.org/fhir-sulo/var#componentUnit"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentValue": [
+    3,
+    34,
+    "https://w3id.org/fhir-sulo/var#componentValue"
+   ],
+   "https://w3id.org/fhir-sulo/var#effective": [
+    2,
+    "https://w3id.org/fhir-sulo/var#effective"
+   ],
+   "https://w3id.org/fhir-sulo/var#status": [
+    0,
+    "https://w3id.org/fhir-sulo/var#status"
+   ],
+   "https://w3id.org/fhir-sulo/var#subject": [
+    1,
+    "https://w3id.org/fhir-sulo/var#subject"
+   ]
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": [
+    3,
+    35,
+    "https://w3id.org/fhir-sulo/var#componentCode"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentUnit": [
+    3,
+    35,
+    "https://w3id.org/fhir-sulo/var#componentUnit"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentValue": [
+    3,
+    35,
+    "https://w3id.org/fhir-sulo/var#componentValue"
+   ],
+   "https://w3id.org/fhir-sulo/var#effective": [
+    2,
+    "https://w3id.org/fhir-sulo/var#effective"
+   ],
+   "https://w3id.org/fhir-sulo/var#status": [
+    0,
+    "https://w3id.org/fhir-sulo/var#status"
+   ],
+   "https://w3id.org/fhir-sulo/var#subject": [
+    1,
+    "https://w3id.org/fhir-sulo/var#subject"
+   ]
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": [
+    3,
+    36,
+    "https://w3id.org/fhir-sulo/var#componentCode"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentUnit": [
+    3,
+    36,
+    "https://w3id.org/fhir-sulo/var#componentUnit"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentValue": [
+    3,
+    36,
+    "https://w3id.org/fhir-sulo/var#componentValue"
+   ],
+   "https://w3id.org/fhir-sulo/var#effective": [
+    2,
+    "https://w3id.org/fhir-sulo/var#effective"
+   ],
+   "https://w3id.org/fhir-sulo/var#status": [
+    0,
+    "https://w3id.org/fhir-sulo/var#status"
+   ],
+   "https://w3id.org/fhir-sulo/var#subject": [
+    1,
+    "https://w3id.org/fhir-sulo/var#subject"
+   ]
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": [
+    3,
+    37,
+    "https://w3id.org/fhir-sulo/var#componentCode"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentUnit": [
+    3,
+    37,
+    "https://w3id.org/fhir-sulo/var#componentUnit"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentValue": [
+    3,
+    37,
+    "https://w3id.org/fhir-sulo/var#componentValue"
+   ],
+   "https://w3id.org/fhir-sulo/var#effective": [
+    2,
+    "https://w3id.org/fhir-sulo/var#effective"
+   ],
+   "https://w3id.org/fhir-sulo/var#status": [
+    0,
+    "https://w3id.org/fhir-sulo/var#status"
+   ],
+   "https://w3id.org/fhir-sulo/var#subject": [
+    1,
+    "https://w3id.org/fhir-sulo/var#subject"
+   ]
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": [
+    3,
+    38,
+    "https://w3id.org/fhir-sulo/var#componentCode"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentUnit": [
+    3,
+    38,
+    "https://w3id.org/fhir-sulo/var#componentUnit"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentValue": [
+    3,
+    38,
+    "https://w3id.org/fhir-sulo/var#componentValue"
+   ],
+   "https://w3id.org/fhir-sulo/var#effective": [
+    2,
+    "https://w3id.org/fhir-sulo/var#effective"
+   ],
+   "https://w3id.org/fhir-sulo/var#status": [
+    0,
+    "https://w3id.org/fhir-sulo/var#status"
+   ],
+   "https://w3id.org/fhir-sulo/var#subject": [
+    1,
+    "https://w3id.org/fhir-sulo/var#subject"
+   ]
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": [
+    3,
+    39,
+    "https://w3id.org/fhir-sulo/var#componentCode"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentUnit": [
+    3,
+    39,
+    "https://w3id.org/fhir-sulo/var#componentUnit"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentValue": [
+    3,
+    39,
+    "https://w3id.org/fhir-sulo/var#componentValue"
+   ],
+   "https://w3id.org/fhir-sulo/var#effective": [
+    2,
+    "https://w3id.org/fhir-sulo/var#effective"
+   ],
+   "https://w3id.org/fhir-sulo/var#status": [
+    0,
+    "https://w3id.org/fhir-sulo/var#status"
+   ],
+   "https://w3id.org/fhir-sulo/var#subject": [
+    1,
+    "https://w3id.org/fhir-sulo/var#subject"
+   ]
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": [
+    3,
+    40,
+    "https://w3id.org/fhir-sulo/var#componentCode"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentUnit": [
+    3,
+    40,
+    "https://w3id.org/fhir-sulo/var#componentUnit"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentValue": [
+    3,
+    40,
+    "https://w3id.org/fhir-sulo/var#componentValue"
+   ],
+   "https://w3id.org/fhir-sulo/var#effective": [
+    2,
+    "https://w3id.org/fhir-sulo/var#effective"
+   ],
+   "https://w3id.org/fhir-sulo/var#status": [
+    0,
+    "https://w3id.org/fhir-sulo/var#status"
+   ],
+   "https://w3id.org/fhir-sulo/var#subject": [
+    1,
+    "https://w3id.org/fhir-sulo/var#subject"
+   ]
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": [
+    3,
+    41,
+    "https://w3id.org/fhir-sulo/var#componentCode"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentUnit": [
+    3,
+    41,
+    "https://w3id.org/fhir-sulo/var#componentUnit"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentValue": [
+    3,
+    41,
+    "https://w3id.org/fhir-sulo/var#componentValue"
+   ],
+   "https://w3id.org/fhir-sulo/var#effective": [
+    2,
+    "https://w3id.org/fhir-sulo/var#effective"
+   ],
+   "https://w3id.org/fhir-sulo/var#status": [
+    0,
+    "https://w3id.org/fhir-sulo/var#status"
+   ],
+   "https://w3id.org/fhir-sulo/var#subject": [
+    1,
+    "https://w3id.org/fhir-sulo/var#subject"
+   ]
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": [
+    3,
+    42,
+    "https://w3id.org/fhir-sulo/var#componentCode"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentUnit": [
+    3,
+    42,
+    "https://w3id.org/fhir-sulo/var#componentUnit"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentValue": [
+    3,
+    42,
+    "https://w3id.org/fhir-sulo/var#componentValue"
+   ],
+   "https://w3id.org/fhir-sulo/var#effective": [
+    2,
+    "https://w3id.org/fhir-sulo/var#effective"
+   ],
+   "https://w3id.org/fhir-sulo/var#status": [
+    0,
+    "https://w3id.org/fhir-sulo/var#status"
+   ],
+   "https://w3id.org/fhir-sulo/var#subject": [
+    1,
+    "https://w3id.org/fhir-sulo/var#subject"
+   ]
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": [
+    3,
+    43,
+    "https://w3id.org/fhir-sulo/var#componentCode"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentUnit": [
+    3,
+    43,
+    "https://w3id.org/fhir-sulo/var#componentUnit"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentValue": [
+    3,
+    43,
+    "https://w3id.org/fhir-sulo/var#componentValue"
+   ],
+   "https://w3id.org/fhir-sulo/var#effective": [
+    2,
+    "https://w3id.org/fhir-sulo/var#effective"
+   ],
+   "https://w3id.org/fhir-sulo/var#status": [
+    0,
+    "https://w3id.org/fhir-sulo/var#status"
+   ],
+   "https://w3id.org/fhir-sulo/var#subject": [
+    1,
+    "https://w3id.org/fhir-sulo/var#subject"
+   ]
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": [
+    3,
+    44,
+    "https://w3id.org/fhir-sulo/var#componentCode"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentUnit": [
+    3,
+    44,
+    "https://w3id.org/fhir-sulo/var#componentUnit"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentValue": [
+    3,
+    44,
+    "https://w3id.org/fhir-sulo/var#componentValue"
+   ],
+   "https://w3id.org/fhir-sulo/var#effective": [
+    2,
+    "https://w3id.org/fhir-sulo/var#effective"
+   ],
+   "https://w3id.org/fhir-sulo/var#status": [
+    0,
+    "https://w3id.org/fhir-sulo/var#status"
+   ],
+   "https://w3id.org/fhir-sulo/var#subject": [
+    1,
+    "https://w3id.org/fhir-sulo/var#subject"
+   ]
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": [
+    3,
+    45,
+    "https://w3id.org/fhir-sulo/var#componentCode"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentUnit": [
+    3,
+    45,
+    "https://w3id.org/fhir-sulo/var#componentUnit"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentValue": [
+    3,
+    45,
+    "https://w3id.org/fhir-sulo/var#componentValue"
+   ],
+   "https://w3id.org/fhir-sulo/var#effective": [
+    2,
+    "https://w3id.org/fhir-sulo/var#effective"
+   ],
+   "https://w3id.org/fhir-sulo/var#status": [
+    0,
+    "https://w3id.org/fhir-sulo/var#status"
+   ],
+   "https://w3id.org/fhir-sulo/var#subject": [
+    1,
+    "https://w3id.org/fhir-sulo/var#subject"
+   ]
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": [
+    3,
+    46,
+    "https://w3id.org/fhir-sulo/var#componentCode"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentUnit": [
+    3,
+    46,
+    "https://w3id.org/fhir-sulo/var#componentUnit"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentValue": [
+    3,
+    46,
+    "https://w3id.org/fhir-sulo/var#componentValue"
+   ],
+   "https://w3id.org/fhir-sulo/var#effective": [
+    2,
+    "https://w3id.org/fhir-sulo/var#effective"
+   ],
+   "https://w3id.org/fhir-sulo/var#status": [
+    0,
+    "https://w3id.org/fhir-sulo/var#status"
+   ],
+   "https://w3id.org/fhir-sulo/var#subject": [
+    1,
+    "https://w3id.org/fhir-sulo/var#subject"
+   ]
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": [
+    3,
+    47,
+    "https://w3id.org/fhir-sulo/var#componentCode"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentUnit": [
+    3,
+    47,
+    "https://w3id.org/fhir-sulo/var#componentUnit"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentValue": [
+    3,
+    47,
+    "https://w3id.org/fhir-sulo/var#componentValue"
+   ],
+   "https://w3id.org/fhir-sulo/var#effective": [
+    2,
+    "https://w3id.org/fhir-sulo/var#effective"
+   ],
+   "https://w3id.org/fhir-sulo/var#status": [
+    0,
+    "https://w3id.org/fhir-sulo/var#status"
+   ],
+   "https://w3id.org/fhir-sulo/var#subject": [
+    1,
+    "https://w3id.org/fhir-sulo/var#subject"
+   ]
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": [
+    3,
+    48,
+    "https://w3id.org/fhir-sulo/var#componentCode"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentUnit": [
+    3,
+    48,
+    "https://w3id.org/fhir-sulo/var#componentUnit"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentValue": [
+    3,
+    48,
+    "https://w3id.org/fhir-sulo/var#componentValue"
+   ],
+   "https://w3id.org/fhir-sulo/var#effective": [
+    2,
+    "https://w3id.org/fhir-sulo/var#effective"
+   ],
+   "https://w3id.org/fhir-sulo/var#status": [
+    0,
+    "https://w3id.org/fhir-sulo/var#status"
+   ],
+   "https://w3id.org/fhir-sulo/var#subject": [
+    1,
+    "https://w3id.org/fhir-sulo/var#subject"
+   ]
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": [
+    3,
+    49,
+    "https://w3id.org/fhir-sulo/var#componentCode"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentUnit": [
+    3,
+    49,
+    "https://w3id.org/fhir-sulo/var#componentUnit"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentValue": [
+    3,
+    49,
+    "https://w3id.org/fhir-sulo/var#componentValue"
+   ],
+   "https://w3id.org/fhir-sulo/var#effective": [
+    2,
+    "https://w3id.org/fhir-sulo/var#effective"
+   ],
+   "https://w3id.org/fhir-sulo/var#status": [
+    0,
+    "https://w3id.org/fhir-sulo/var#status"
+   ],
+   "https://w3id.org/fhir-sulo/var#subject": [
+    1,
+    "https://w3id.org/fhir-sulo/var#subject"
+   ]
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": [
+    3,
+    50,
+    "https://w3id.org/fhir-sulo/var#componentCode"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentUnit": [
+    3,
+    50,
+    "https://w3id.org/fhir-sulo/var#componentUnit"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentValue": [
+    3,
+    50,
+    "https://w3id.org/fhir-sulo/var#componentValue"
+   ],
+   "https://w3id.org/fhir-sulo/var#effective": [
+    2,
+    "https://w3id.org/fhir-sulo/var#effective"
+   ],
+   "https://w3id.org/fhir-sulo/var#status": [
+    0,
+    "https://w3id.org/fhir-sulo/var#status"
+   ],
+   "https://w3id.org/fhir-sulo/var#subject": [
+    1,
+    "https://w3id.org/fhir-sulo/var#subject"
+   ]
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": [
+    3,
+    51,
+    "https://w3id.org/fhir-sulo/var#componentCode"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentUnit": [
+    3,
+    51,
+    "https://w3id.org/fhir-sulo/var#componentUnit"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentValue": [
+    3,
+    51,
+    "https://w3id.org/fhir-sulo/var#componentValue"
+   ],
+   "https://w3id.org/fhir-sulo/var#effective": [
+    2,
+    "https://w3id.org/fhir-sulo/var#effective"
+   ],
+   "https://w3id.org/fhir-sulo/var#status": [
+    0,
+    "https://w3id.org/fhir-sulo/var#status"
+   ],
+   "https://w3id.org/fhir-sulo/var#subject": [
+    1,
+    "https://w3id.org/fhir-sulo/var#subject"
+   ]
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": [
+    3,
+    52,
+    "https://w3id.org/fhir-sulo/var#componentCode"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentUnit": [
+    3,
+    52,
+    "https://w3id.org/fhir-sulo/var#componentUnit"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentValue": [
+    3,
+    52,
+    "https://w3id.org/fhir-sulo/var#componentValue"
+   ],
+   "https://w3id.org/fhir-sulo/var#effective": [
+    2,
+    "https://w3id.org/fhir-sulo/var#effective"
+   ],
+   "https://w3id.org/fhir-sulo/var#status": [
+    0,
+    "https://w3id.org/fhir-sulo/var#status"
+   ],
+   "https://w3id.org/fhir-sulo/var#subject": [
+    1,
+    "https://w3id.org/fhir-sulo/var#subject"
+   ]
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": [
+    3,
+    53,
+    "https://w3id.org/fhir-sulo/var#componentCode"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentUnit": [
+    3,
+    53,
+    "https://w3id.org/fhir-sulo/var#componentUnit"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentValue": [
+    3,
+    53,
+    "https://w3id.org/fhir-sulo/var#componentValue"
+   ],
+   "https://w3id.org/fhir-sulo/var#effective": [
+    2,
+    "https://w3id.org/fhir-sulo/var#effective"
+   ],
+   "https://w3id.org/fhir-sulo/var#status": [
+    0,
+    "https://w3id.org/fhir-sulo/var#status"
+   ],
+   "https://w3id.org/fhir-sulo/var#subject": [
+    1,
+    "https://w3id.org/fhir-sulo/var#subject"
+   ]
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": [
+    3,
+    54,
+    "https://w3id.org/fhir-sulo/var#componentCode"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentUnit": [
+    3,
+    54,
+    "https://w3id.org/fhir-sulo/var#componentUnit"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentValue": [
+    3,
+    54,
+    "https://w3id.org/fhir-sulo/var#componentValue"
+   ],
+   "https://w3id.org/fhir-sulo/var#effective": [
+    2,
+    "https://w3id.org/fhir-sulo/var#effective"
+   ],
+   "https://w3id.org/fhir-sulo/var#status": [
+    0,
+    "https://w3id.org/fhir-sulo/var#status"
+   ],
+   "https://w3id.org/fhir-sulo/var#subject": [
+    1,
+    "https://w3id.org/fhir-sulo/var#subject"
+   ]
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": [
+    3,
+    55,
+    "https://w3id.org/fhir-sulo/var#componentCode"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentUnit": [
+    3,
+    55,
+    "https://w3id.org/fhir-sulo/var#componentUnit"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentValue": [
+    3,
+    55,
+    "https://w3id.org/fhir-sulo/var#componentValue"
+   ],
+   "https://w3id.org/fhir-sulo/var#effective": [
+    2,
+    "https://w3id.org/fhir-sulo/var#effective"
+   ],
+   "https://w3id.org/fhir-sulo/var#status": [
+    0,
+    "https://w3id.org/fhir-sulo/var#status"
+   ],
+   "https://w3id.org/fhir-sulo/var#subject": [
+    1,
+    "https://w3id.org/fhir-sulo/var#subject"
+   ]
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": [
+    3,
+    56,
+    "https://w3id.org/fhir-sulo/var#componentCode"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentUnit": [
+    3,
+    56,
+    "https://w3id.org/fhir-sulo/var#componentUnit"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentValue": [
+    3,
+    56,
+    "https://w3id.org/fhir-sulo/var#componentValue"
+   ],
+   "https://w3id.org/fhir-sulo/var#effective": [
+    2,
+    "https://w3id.org/fhir-sulo/var#effective"
+   ],
+   "https://w3id.org/fhir-sulo/var#status": [
+    0,
+    "https://w3id.org/fhir-sulo/var#status"
+   ],
+   "https://w3id.org/fhir-sulo/var#subject": [
+    1,
+    "https://w3id.org/fhir-sulo/var#subject"
+   ]
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": [
+    3,
+    57,
+    "https://w3id.org/fhir-sulo/var#componentCode"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentUnit": [
+    3,
+    57,
+    "https://w3id.org/fhir-sulo/var#componentUnit"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentValue": [
+    3,
+    57,
+    "https://w3id.org/fhir-sulo/var#componentValue"
+   ],
+   "https://w3id.org/fhir-sulo/var#effective": [
+    2,
+    "https://w3id.org/fhir-sulo/var#effective"
+   ],
+   "https://w3id.org/fhir-sulo/var#status": [
+    0,
+    "https://w3id.org/fhir-sulo/var#status"
+   ],
+   "https://w3id.org/fhir-sulo/var#subject": [
+    1,
+    "https://w3id.org/fhir-sulo/var#subject"
+   ]
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": [
+    3,
+    58,
+    "https://w3id.org/fhir-sulo/var#componentCode"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentUnit": [
+    3,
+    58,
+    "https://w3id.org/fhir-sulo/var#componentUnit"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentValue": [
+    3,
+    58,
+    "https://w3id.org/fhir-sulo/var#componentValue"
+   ],
+   "https://w3id.org/fhir-sulo/var#effective": [
+    2,
+    "https://w3id.org/fhir-sulo/var#effective"
+   ],
+   "https://w3id.org/fhir-sulo/var#status": [
+    0,
+    "https://w3id.org/fhir-sulo/var#status"
+   ],
+   "https://w3id.org/fhir-sulo/var#subject": [
+    1,
+    "https://w3id.org/fhir-sulo/var#subject"
+   ]
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": [
+    3,
+    59,
+    "https://w3id.org/fhir-sulo/var#componentCode"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentUnit": [
+    3,
+    59,
+    "https://w3id.org/fhir-sulo/var#componentUnit"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentValue": [
+    3,
+    59,
+    "https://w3id.org/fhir-sulo/var#componentValue"
+   ],
+   "https://w3id.org/fhir-sulo/var#effective": [
+    2,
+    "https://w3id.org/fhir-sulo/var#effective"
+   ],
+   "https://w3id.org/fhir-sulo/var#status": [
+    0,
+    "https://w3id.org/fhir-sulo/var#status"
+   ],
+   "https://w3id.org/fhir-sulo/var#subject": [
+    1,
+    "https://w3id.org/fhir-sulo/var#subject"
+   ]
+  }
+ ],
+ "frames": [
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100000",
+   "https://w3id.org/fhir-sulo/var#componentUnit": {
+    "value": "mm[Hg]"
+   },
+   "https://w3id.org/fhir-sulo/var#componentValue": {
+    "type": "http://www.w3.org/2001/XMLSchema#decimal",
+    "value": "100"
+   },
+   "https://w3id.org/fhir-sulo/var#effective": {
+    "type": "http://www.w3.org/2001/XMLSchema#dateTime",
+    "value": "2026-03-04T09:15:00Z"
+   },
+   "https://w3id.org/fhir-sulo/var#status": {
+    "value": "final"
+   },
+   "https://w3id.org/fhir-sulo/var#subject": "https://fhir.example/Patient/p-1"
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100001",
+   "https://w3id.org/fhir-sulo/var#componentUnit": {
+    "value": "mm[Hg]"
+   },
+   "https://w3id.org/fhir-sulo/var#componentValue": {
+    "type": "http://www.w3.org/2001/XMLSchema#decimal",
+    "value": "101"
+   },
+   "https://w3id.org/fhir-sulo/var#effective": {
+    "type": "http://www.w3.org/2001/XMLSchema#dateTime",
+    "value": "2026-03-04T09:15:00Z"
+   },
+   "https://w3id.org/fhir-sulo/var#status": {
+    "value": "final"
+   },
+   "https://w3id.org/fhir-sulo/var#subject": "https://fhir.example/Patient/p-1"
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100010",
+   "https://w3id.org/fhir-sulo/var#componentUnit": {
+    "value": "mm[Hg]"
+   },
+   "https://w3id.org/fhir-sulo/var#componentValue": {
+    "type": "http://www.w3.org/2001/XMLSchema#decimal",
+    "value": "110"
+   },
+   "https://w3id.org/fhir-sulo/var#effective": {
+    "type": "http://www.w3.org/2001/XMLSchema#dateTime",
+    "value": "2026-03-04T09:15:00Z"
+   },
+   "https://w3id.org/fhir-sulo/var#status": {
+    "value": "final"
+   },
+   "https://w3id.org/fhir-sulo/var#subject": "https://fhir.example/Patient/p-1"
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100011",
+   "https://w3id.org/fhir-sulo/var#componentUnit": {
+    "value": "mm[Hg]"
+   },
+   "https://w3id.org/fhir-sulo/var#componentValue": {
+    "type": "http://www.w3.org/2001/XMLSchema#decimal",
+    "value": "111"
+   },
+   "https://w3id.org/fhir-sulo/var#effective": {
+    "type": "http://www.w3.org/2001/XMLSchema#dateTime",
+    "value": "2026-03-04T09:15:00Z"
+   },
+   "https://w3id.org/fhir-sulo/var#status": {
+    "value": "final"
+   },
+   "https://w3id.org/fhir-sulo/var#subject": "https://fhir.example/Patient/p-1"
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100012",
+   "https://w3id.org/fhir-sulo/var#componentUnit": {
+    "value": "mm[Hg]"
+   },
+   "https://w3id.org/fhir-sulo/var#componentValue": {
+    "type": "http://www.w3.org/2001/XMLSchema#decimal",
+    "value": "112"
+   },
+   "https://w3id.org/fhir-sulo/var#effective": {
+    "type": "http://www.w3.org/2001/XMLSchema#dateTime",
+    "value": "2026-03-04T09:15:00Z"
+   },
+   "https://w3id.org/fhir-sulo/var#status": {
+    "value": "final"
+   },
+   "https://w3id.org/fhir-sulo/var#subject": "https://fhir.example/Patient/p-1"
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100013",
+   "https://w3id.org/fhir-sulo/var#componentUnit": {
+    "value": "mm[Hg]"
+   },
+   "https://w3id.org/fhir-sulo/var#componentValue": {
+    "type": "http://www.w3.org/2001/XMLSchema#decimal",
+    "value": "113"
+   },
+   "https://w3id.org/fhir-sulo/var#effective": {
+    "type": "http://www.w3.org/2001/XMLSchema#dateTime",
+    "value": "2026-03-04T09:15:00Z"
+   },
+   "https://w3id.org/fhir-sulo/var#status": {
+    "value": "final"
+   },
+   "https://w3id.org/fhir-sulo/var#subject": "https://fhir.example/Patient/p-1"
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100014",
+   "https://w3id.org/fhir-sulo/var#componentUnit": {
+    "value": "mm[Hg]"
+   },
+   "https://w3id.org/fhir-sulo/var#componentValue": {
+    "type": "http://www.w3.org/2001/XMLSchema#decimal",
+    "value": "114"
+   },
+   "https://w3id.org/fhir-sulo/var#effective": {
+    "type": "http://www.w3.org/2001/XMLSchema#dateTime",
+    "value": "2026-03-04T09:15:00Z"
+   },
+   "https://w3id.org/fhir-sulo/var#status": {
+    "value": "final"
+   },
+   "https://w3id.org/fhir-sulo/var#subject": "https://fhir.example/Patient/p-1"
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100015",
+   "https://w3id.org/fhir-sulo/var#componentUnit": {
+    "value": "mm[Hg]"
+   },
+   "https://w3id.org/fhir-sulo/var#componentValue": {
+    "type": "http://www.w3.org/2001/XMLSchema#decimal",
+    "value": "115"
+   },
+   "https://w3id.org/fhir-sulo/var#effective": {
+    "type": "http://www.w3.org/2001/XMLSchema#dateTime",
+    "value": "2026-03-04T09:15:00Z"
+   },
+   "https://w3id.org/fhir-sulo/var#status": {
+    "value": "final"
+   },
+   "https://w3id.org/fhir-sulo/var#subject": "https://fhir.example/Patient/p-1"
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100016",
+   "https://w3id.org/fhir-sulo/var#componentUnit": {
+    "value": "mm[Hg]"
+   },
+   "https://w3id.org/fhir-sulo/var#componentValue": {
+    "type": "http://www.w3.org/2001/XMLSchema#decimal",
+    "value": "116"
+   },
+   "https://w3id.org/fhir-sulo/var#effective": {
+    "type": "http://www.w3.org/2001/XMLSchema#dateTime",
+    "value": "2026-03-04T09:15:00Z"
+   },
+   "https://w3id.org/fhir-sulo/var#status": {
+    "value": "final"
+   },
+   "https://w3id.org/fhir-sulo/var#subject": "https://fhir.example/Patient/p-1"
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100017",
+   "https://w3id.org/fhir-sulo/var#componentUnit": {
+    "value": "mm[Hg]"
+   },
+   "https://w3id.org/fhir-sulo/var#componentValue": {
+    "type": "http://www.w3.org/2001/XMLSchema#decimal",
+    "value": "117"
+   },
+   "https://w3id.org/fhir-sulo/var#effective": {
+    "type": "http://www.w3.org/2001/XMLSchema#dateTime",
+    "value": "2026-03-04T09:15:00Z"
+   },
+   "https://w3id.org/fhir-sulo/var#status": {
+    "value": "final"
+   },
+   "https://w3id.org/fhir-sulo/var#subject": "https://fhir.example/Patient/p-1"
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100018",
+   "https://w3id.org/fhir-sulo/var#componentUnit": {
+    "value": "mm[Hg]"
+   },
+   "https://w3id.org/fhir-sulo/var#componentValue": {
+    "type": "http://www.w3.org/2001/XMLSchema#decimal",
+    "value": "118"
+   },
+   "https://w3id.org/fhir-sulo/var#effective": {
+    "type": "http://www.w3.org/2001/XMLSchema#dateTime",
+    "value": "2026-03-04T09:15:00Z"
+   },
+   "https://w3id.org/fhir-sulo/var#status": {
+    "value": "final"
+   },
+   "https://w3id.org/fhir-sulo/var#subject": "https://fhir.example/Patient/p-1"
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100019",
+   "https://w3id.org/fhir-sulo/var#componentUnit": {
+    "value": "mm[Hg]"
+   },
+   "https://w3id.org/fhir-sulo/var#componentValue": {
+    "type": "http://www.w3.org/2001/XMLSchema#decimal",
+    "value": "119"
+   },
+   "https://w3id.org/fhir-sulo/var#effective": {
+    "type": "http://www.w3.org/2001/XMLSchema#dateTime",
+    "value": "2026-03-04T09:15:00Z"
+   },
+   "https://w3id.org/fhir-sulo/var#status": {
+    "value": "final"
+   },
+   "https://w3id.org/fhir-sulo/var#subject": "https://fhir.example/Patient/p-1"
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100002",
+   "https://w3id.org/fhir-sulo/var#componentUnit": {
+    "value": "mm[Hg]"
+   },
+   "https://w3id.org/fhir-sulo/var#componentValue": {
+    "type": "http://www.w3.org/2001/XMLSchema#decimal",
+    "value": "102"
+   },
+   "https://w3id.org/fhir-sulo/var#effective": {
+    "type": "http://www.w3.org/2001/XMLSchema#dateTime",
+    "value": "2026-03-04T09:15:00Z"
+   },
+   "https://w3id.org/fhir-sulo/var#status": {
+    "value": "final"
+   },
+   "https://w3id.org/fhir-sulo/var#subject": "https://fhir.example/Patient/p-1"
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100020",
+   "https://w3id.org/fhir-sulo/var#componentUnit": {
+    "value": "mm[Hg]"
+   },
+   "https://w3id.org/fhir-sulo/var#componentValue": {
+    "type": "http://www.w3.org/2001/XMLSchema#decimal",
+    "value": "120"
+   },
+   "https://w3id.org/fhir-sulo/var#effective": {
+    "type": "http://www.w3.org/2001/XMLSchema#dateTime",
+    "value": "2026-03-04T09:15:00Z"
+   },
+   "https://w3id.org/fhir-sulo/var#status": {
+    "value": "final"
+   },
+   "https://w3id.org/fhir-sulo/var#subject": "https://fhir.example/Patient/p-1"
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100021",
+   "https://w3id.org/fhir-sulo/var#componentUnit": {
+    "value": "mm[Hg]"
+   },
+   "https://w3id.org/fhir-sulo/var#componentValue": {
+    "type": "http://www.w3.org/2001/XMLSchema#decimal",
+    "value": "121"
+   },
+   "https://w3id.org/fhir-sulo/var#effective": {
+    "type": "http://www.w3.org/2001/XMLSchema#dateTime",
+    "value": "2026-03-04T09:15:00Z"
+   },
+   "https://w3id.org/fhir-sulo/var#status": {
+    "value": "final"
+   },
+   "https://w3id.org/fhir-sulo/var#subject": "https://fhir.example/Patient/p-1"
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100022",
+   "https://w3id.org/fhir-sulo/var#componentUnit": {
+    "value": "mm[Hg]"
+   },
+   "https://w3id.org/fhir-sulo/var#componentValue": {
+    "type": "http://www.w3.org/2001/XMLSchema#decimal",
+    "value": "122"
+   },
+   "https://w3id.org/fhir-sulo/var#effective": {
+    "type": "http://www.w3.org/2001/XMLSchema#dateTime",
+    "value": "2026-03-04T09:15:00Z"
+   },
+   "https://w3id.org/fhir-sulo/var#status": {
+    "value": "final"
+   },
+   "https://w3id.org/fhir-sulo/var#subject": "https://fhir.example/Patient/p-1"
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100023",
+   "https://w3id.org/fhir-sulo/var#componentUnit": {
+    "value": "mm[Hg]"
+   },
+   "https://w3id.org/fhir-sulo/var#componentValue": {
+    "type": "http://www.w3.org/2001/XMLSchema#decimal",
+    "value": "123"
+   },
+   "https://w3id.org/fhir-sulo/var#effective": {
+    "type": "http://www.w3.org/2001/XMLSchema#dateTime",
+    "value": "2026-03-04T09:15:00Z"
+   },
+   "https://w3id.org/fhir-sulo/var#status": {
+    "value": "final"
+   },
+   "https://w3id.org/fhir-sulo/var#subject": "https://fhir.example/Patient/p-1"
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100024",
+   "https://w3id.org/fhir-sulo/var#componentUnit": {
+    "value": "mm[Hg]"
+   },
+   "https://w3id.org/fhir-sulo/var#componentValue": {
+    "type": "http://www.w3.org/2001/XMLSchema#decimal",
+    "value": "124"
+   },
+   "https://w3id.org/fhir-sulo/var#effective": {
+    "type": "http://www.w3.org/2001/XMLSchema#dateTime",
+    "value": "2026-03-04T09:15:00Z"
+   },
+   "https://w3id.org/fhir-sulo/var#status": {
+    "value": "final"
+   },
+   "https://w3id.org/fhir-sulo/var#subject": "https://fhir.example/Patient/p-1"
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100025",
+   "https://w3id.org/fhir-sulo/var#componentUnit": {
+    "value": "mm[Hg]"
+   },
+   "https://w3id.org/fhir-sulo/var#componentValue": {
+    "type": "http://www.w3.org/2001/XMLSchema#decimal",
+    "value": "125"
+   },
+   "https://w3id.org/fhir-sulo/var#effective": {
+    "type": "http://www.w3.org/2001/XMLSchema#dateTime",
+    "value": "2026-03-04T09:15:00Z"
+   },
+   "https://w3id.org/fhir-sulo/var#status": {
+    "value": "final"
+   },
+   "https://w3id.org/fhir-sulo/var#subject": "https://fhir.example/Patient/p-1"
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100026",
+   "https://w3id.org/fhir-sulo/var#componentUnit": {
+    "value": "mm[Hg]"
+   },
+   "https://w3id.org/fhir-sulo/var#componentValue": {
+    "type": "http://www.w3.org/2001/XMLSchema#decimal",
+    "value": "126"
+   },
+   "https://w3id.org/fhir-sulo/var#effective": {
+    "type": "http://www.w3.org/2001/XMLSchema#dateTime",
+    "value": "2026-03-04T09:15:00Z"
+   },
+   "https://w3id.org/fhir-sulo/var#status": {
+    "value": "final"
+   },
+   "https://w3id.org/fhir-sulo/var#subject": "https://fhir.example/Patient/p-1"
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100027",
+   "https://w3id.org/fhir-sulo/var#componentUnit": {
+    "value": "mm[Hg]"
+   },
+   "https://w3id.org/fhir-sulo/var#componentValue": {
+    "type": "http://www.w3.org/2001/XMLSchema#decimal",
+    "value": "127"
+   },
+   "https://w3id.org/fhir-sulo/var#effective": {
+    "type": "http://www.w3.org/2001/XMLSchema#dateTime",
+    "value": "2026-03-04T09:15:00Z"
+   },
+   "https://w3id.org/fhir-sulo/var#status": {
+    "value": "final"
+   },
+   "https://w3id.org/fhir-sulo/var#subject": "https://fhir.example/Patient/p-1"
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100028",
+   "https://w3id.org/fhir-sulo/var#componentUnit": {
+    "value": "mm[Hg]"
+   },
+   "https://w3id.org/fhir-sulo/var#componentValue": {
+    "type": "http://www.w3.org/2001/XMLSchema#decimal",
+    "value": "128"
+   },
+   "https://w3id.org/fhir-sulo/var#effective": {
+    "type": "http://www.w3.org/2001/XMLSchema#dateTime",
+    "value": "2026-03-04T09:15:00Z"
+   },
+   "https://w3id.org/fhir-sulo/var#status": {
+    "value": "final"
+   },
+   "https://w3id.org/fhir-sulo/var#subject": "https://fhir.example/Patient/p-1"
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100029",
+   "https://w3id.org/fhir-sulo/var#componentUnit": {
+    "value": "mm[Hg]"
+   },
+   "https://w3id.org/fhir-sulo/var#componentValue": {
+    "type": "http://www.w3.org/2001/XMLSchema#decimal",
+    "value": "129"
+   },
+   "https://w3id.org/fhir-sulo/var#effective": {
+    "type": "http://www.w3.org/2001/XMLSchema#dateTime",
+    "value": "2026-03-04T09:15:00Z"
+   },
+   "https://w3id.org/fhir-sulo/var#status": {
+    "value": "final"
+   },
+   "https://w3id.org/fhir-sulo/var#subject": "https://fhir.example/Patient/p-1"
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100003",
+   "https://w3id.org/fhir-sulo/var#componentUnit": {
+    "value": "mm[Hg]"
+   },
+   "https://w3id.org/fhir-sulo/var#componentValue": {
+    "type": "http://www.w3.org/2001/XMLSchema#decimal",
+    "value": "103"
+   },
+   "https://w3id.org/fhir-sulo/var#effective": {
+    "type": "http://www.w3.org/2001/XMLSchema#dateTime",
+    "value": "2026-03-04T09:15:00Z"
+   },
+   "https://w3id.org/fhir-sulo/var#status": {
+    "value": "final"
+   },
+   "https://w3id.org/fhir-sulo/var#subject": "https://fhir.example/Patient/p-1"
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100030",
+   "https://w3id.org/fhir-sulo/var#componentUnit": {
+    "value": "mm[Hg]"
+   },
+   "https://w3id.org/fhir-sulo/var#componentValue": {
+    "type": "http://www.w3.org/2001/XMLSchema#decimal",
+    "value": "130"
+   },
+   "https://w3id.org/fhir-sulo/var#effective": {
+    "type": "http://www.w3.org/2001/XMLSchema#dateTime",
+    "value": "2026-03-04T09:15:00Z"
+   },
+   "https://w3id.org/fhir-sulo/var#status": {
+    "value": "final"
+   },
+   "https://w3id.org/fhir-sulo/var#subject": "https://fhir.example/Patient/p-1"
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100031",
+   "https://w3id.org/fhir-sulo/var#componentUnit": {
+    "value": "mm[Hg]"
+   },
+   "https://w3id.org/fhir-sulo/var#componentValue": {
+    "type": "http://www.w3.org/2001/XMLSchema#decimal",
+    "value": "131"
+   },
+   "https://w3id.org/fhir-sulo/var#effective": {
+    "type": "http://www.w3.org/2001/XMLSchema#dateTime",
+    "value": "2026-03-04T09:15:00Z"
+   },
+   "https://w3id.org/fhir-sulo/var#status": {
+    "value": "final"
+   },
+   "https://w3id.org/fhir-sulo/var#subject": "https://fhir.example/Patient/p-1"
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100032",
+   "https://w3id.org/fhir-sulo/var#componentUnit": {
+    "value": "mm[Hg]"
+   },
+   "https://w3id.org/fhir-sulo/var#componentValue": {
+    "type": "http://www.w3.org/2001/XMLSchema#decimal",
+    "value": "132"
+   },
+   "https://w3id.org/fhir-sulo/var#effective": {
+    "type": "http://www.w3.org/2001/XMLSchema#dateTime",
+    "value": "2026-03-04T09:15:00Z"
+   },
+   "https://w3id.org/fhir-sulo/var#status": {
+    "value": "final"
+   },
+   "https://w3id.org/fhir-sulo/var#subject": "https://fhir.example/Patient/p-1"
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100033",
+   "https://w3id.org/fhir-sulo/var#componentUnit": {
+    "value": "mm[Hg]"
+   },
+   "https://w3id.org/fhir-sulo/var#componentValue": {
+    "type": "http://www.w3.org/2001/XMLSchema#decimal",
+    "value": "133"
+   },
+   "https://w3id.org/fhir-sulo/var#effective": {
+    "type": "http://www.w3.org/2001/XMLSchema#dateTime",
+    "value": "2026-03-04T09:15:00Z"
+   },
+   "https://w3id.org/fhir-sulo/var#status": {
+    "value": "final"
+   },
+   "https://w3id.org/fhir-sulo/var#subject": "https://fhir.example/Patient/p-1"
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100034",
+   "https://w3id.org/fhir-sulo/var#componentUnit": {
+    "value": "mm[Hg]"
+   },
+   "https://w3id.org/fhir-sulo/var#componentValue": {
+    "type": "http://www.w3.org/2001/XMLSchema#decimal",
+    "value": "134"
+   },
+   "https://w3id.org/fhir-sulo/var#effective": {
+    "type": "http://www.w3.org/2001/XMLSchema#dateTime",
+    "value": "2026-03-04T09:15:00Z"
+   },
+   "https://w3id.org/fhir-sulo/var#status": {
+    "value": "final"
+   },
+   "https://w3id.org/fhir-sulo/var#subject": "https://fhir.example/Patient/p-1"
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100035",
+   "https://w3id.org/fhir-sulo/var#componentUnit": {
+    "value": "mm[Hg]"
+   },
+   "https://w3id.org/fhir-sulo/var#componentValue": {
+    "type": "http://www.w3.org/2001/XMLSchema#decimal",
+    "value": "135"
+   },
+   "https://w3id.org/fhir-sulo/var#effective": {
+    "type": "http://www.w3.org/2001/XMLSchema#dateTime",
+    "value": "2026-03-04T09:15:00Z"
+   },
+   "https://w3id.org/fhir-sulo/var#status": {
+    "value": "final"
+   },
+   "https://w3id.org/fhir-sulo/var#subject": "https://fhir.example/Patient/p-1"
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100036",
+   "https://w3id.org/fhir-sulo/var#componentUnit": {
+    "value": "mm[Hg]"
+   },
+   "https://w3id.org/fhir-sulo/var#componentValue": {
+    "type": "http://www.w3.org/2001/XMLSchema#decimal",
+    "value": "136"
+   },
+   "https://w3id.org/fhir-sulo/var#effective": {
+    "type": "http://www.w3.org/2001/XMLSchema#dateTime",
+    "value": "2026-03-04T09:15:00Z"
+   },
+   "https://w3id.org/fhir-sulo/var#status": {
+    "value": "final"
+   },
+   "https://w3id.org/fhir-sulo/var#subject": "https://fhir.example/Patient/p-1"
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100037",
+   "https://w3id.org/fhir-sulo/var#componentUnit": {
+    "value": "mm[Hg]"
+   },
+   "https://w3id.org/fhir-sulo/var#componentValue": {
+    "type": "http://www.w3.org/2001/XMLSchema#decimal",
+    "value": "137"
+   },
+   "https://w3id.org/fhir-sulo/var#effective": {
+    "type": "http://www.w3.org/2001/XMLSchema#dateTime",
+    "value": "2026-03-04T09:15:00Z"
+   },
+   "https://w3id.org/fhir-sulo/var#status": {
+    "value": "final"
+   },
+   "https://w3id.org/fhir-sulo/var#subject": "https://fhir.example/Patient/p-1"
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100038",
+   "https://w3id.org/fhir-sulo/var#componentUnit": {
+    "value": "mm[Hg]"
+   },
+   "https://w3id.org/fhir-sulo/var#componentValue": {
+    "type": "http://www.w3.org/2001/XMLSchema#decimal",
+    "value": "138"
+   },
+   "https://w3id.org/fhir-sulo/var#effective": {
+    "type": "http://www.w3.org/2001/XMLSchema#dateTime",
+    "value": "2026-03-04T09:15:00Z"
+   },
+   "https://w3id.org/fhir-sulo/var#status": {
+    "value": "final"
+   },
+   "https://w3id.org/fhir-sulo/var#subject": "https://fhir.example/Patient/p-1"
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100039",
+   "https://w3id.org/fhir-sulo/var#componentUnit": {
+    "value": "mm[Hg]"
+   },
+   "https://w3id.org/fhir-sulo/var#componentValue": {
+    "type": "http://www.w3.org/2001/XMLSchema#decimal",
+    "value": "139"
+   },
+   "https://w3id.org/fhir-sulo/var#effective": {
+    "type": "http://www.w3.org/2001/XMLSchema#dateTime",
+    "value": "2026-03-04T09:15:00Z"
+   },
+   "https://w3id.org/fhir-sulo/var#status": {
+    "value": "final"
+   },
+   "https://w3id.org/fhir-sulo/var#subject": "https://fhir.example/Patient/p-1"
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100004",
+   "https://w3id.org/fhir-sulo/var#componentUnit": {
+    "value": "mm[Hg]"
+   },
+   "https://w3id.org/fhir-sulo/var#componentValue": {
+    "type": "http://www.w3.org/2001/XMLSchema#decimal",
+    "value": "104"
+   },
+   "https://w3id.org/fhir-sulo/var#effective": {
+    "type": "http://www.w3.org/2001/XMLSchema#dateTime",
+    "value": "2026-03-04T09:15:00Z"
+   },
+   "https://w3id.org/fhir-sulo/var#status": {
+    "value": "final"
+   },
+   "https://w3id.org/fhir-sulo/var#subject": "https://fhir.example/Patient/p-1"
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100040",
+   "https://w3id.org/fhir-sulo/var#componentUnit": {
+    "value": "mm[Hg]"
+   },
+   "https://w3id.org/fhir-sulo/var#componentValue": {
+    "type": "http://www.w3.org/2001/XMLSchema#decimal",
+    "value": "140"
+   },
+   "https://w3id.org/fhir-sulo/var#effective": {
+    "type": "http://www.w3.org/2001/XMLSchema#dateTime",
+    "value": "2026-03-04T09:15:00Z"
+   },
+   "https://w3id.org/fhir-sulo/var#status": {
+    "value": "final"
+   },
+   "https://w3id.org/fhir-sulo/var#subject": "https://fhir.example/Patient/p-1"
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100041",
+   "https://w3id.org/fhir-sulo/var#componentUnit": {
+    "value": "mm[Hg]"
+   },
+   "https://w3id.org/fhir-sulo/var#componentValue": {
+    "type": "http://www.w3.org/2001/XMLSchema#decimal",
+    "value": "141"
+   },
+   "https://w3id.org/fhir-sulo/var#effective": {
+    "type": "http://www.w3.org/2001/XMLSchema#dateTime",
+    "value": "2026-03-04T09:15:00Z"
+   },
+   "https://w3id.org/fhir-sulo/var#status": {
+    "value": "final"
+   },
+   "https://w3id.org/fhir-sulo/var#subject": "https://fhir.example/Patient/p-1"
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100042",
+   "https://w3id.org/fhir-sulo/var#componentUnit": {
+    "value": "mm[Hg]"
+   },
+   "https://w3id.org/fhir-sulo/var#componentValue": {
+    "type": "http://www.w3.org/2001/XMLSchema#decimal",
+    "value": "142"
+   },
+   "https://w3id.org/fhir-sulo/var#effective": {
+    "type": "http://www.w3.org/2001/XMLSchema#dateTime",
+    "value": "2026-03-04T09:15:00Z"
+   },
+   "https://w3id.org/fhir-sulo/var#status": {
+    "value": "final"
+   },
+   "https://w3id.org/fhir-sulo/var#subject": "https://fhir.example/Patient/p-1"
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100043",
+   "https://w3id.org/fhir-sulo/var#componentUnit": {
+    "value": "mm[Hg]"
+   },
+   "https://w3id.org/fhir-sulo/var#componentValue": {
+    "type": "http://www.w3.org/2001/XMLSchema#decimal",
+    "value": "143"
+   },
+   "https://w3id.org/fhir-sulo/var#effective": {
+    "type": "http://www.w3.org/2001/XMLSchema#dateTime",
+    "value": "2026-03-04T09:15:00Z"
+   },
+   "https://w3id.org/fhir-sulo/var#status": {
+    "value": "final"
+   },
+   "https://w3id.org/fhir-sulo/var#subject": "https://fhir.example/Patient/p-1"
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100044",
+   "https://w3id.org/fhir-sulo/var#componentUnit": {
+    "value": "mm[Hg]"
+   },
+   "https://w3id.org/fhir-sulo/var#componentValue": {
+    "type": "http://www.w3.org/2001/XMLSchema#decimal",
+    "value": "144"
+   },
+   "https://w3id.org/fhir-sulo/var#effective": {
+    "type": "http://www.w3.org/2001/XMLSchema#dateTime",
+    "value": "2026-03-04T09:15:00Z"
+   },
+   "https://w3id.org/fhir-sulo/var#status": {
+    "value": "final"
+   },
+   "https://w3id.org/fhir-sulo/var#subject": "https://fhir.example/Patient/p-1"
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100045",
+   "https://w3id.org/fhir-sulo/var#componentUnit": {
+    "value": "mm[Hg]"
+   },
+   "https://w3id.org/fhir-sulo/var#componentValue": {
+    "type": "http://www.w3.org/2001/XMLSchema#decimal",
+    "value": "145"
+   },
+   "https://w3id.org/fhir-sulo/var#effective": {
+    "type": "http://www.w3.org/2001/XMLSchema#dateTime",
+    "value": "2026-03-04T09:15:00Z"
+   },
+   "https://w3id.org/fhir-sulo/var#status": {
+    "value": "final"
+   },
+   "https://w3id.org/fhir-sulo/var#subject": "https://fhir.example/Patient/p-1"
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100046",
+   "https://w3id.org/fhir-sulo/var#componentUnit": {
+    "value": "mm[Hg]"
+   },
+   "https://w3id.org/fhir-sulo/var#componentValue": {
+    "type": "http://www.w3.org/2001/XMLSchema#decimal",
+    "value": "146"
+   },
+   "https://w3id.org/fhir-sulo/var#effective": {
+    "type": "http://www.w3.org/2001/XMLSchema#dateTime",
+    "value": "2026-03-04T09:15:00Z"
+   },
+   "https://w3id.org/fhir-sulo/var#status": {
+    "value": "final"
+   },
+   "https://w3id.org/fhir-sulo/var#subject": "https://fhir.example/Patient/p-1"
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100047",
+   "https://w3id.org/fhir-sulo/var#componentUnit": {
+    "value": "mm[Hg]"
+   },
+   "https://w3id.org/fhir-sulo/var#componentValue": {
+    "type": "http://www.w3.org/2001/XMLSchema#decimal",
+    "value": "147"
+   },
+   "https://w3id.org/fhir-sulo/var#effective": {
+    "type": "http://www.w3.org/2001/XMLSchema#dateTime",
+    "value": "2026-03-04T09:15:00Z"
+   },
+   "https://w3id.org/fhir-sulo/var#status": {
+    "value": "final"
+   },
+   "https://w3id.org/fhir-sulo/var#subject": "https://fhir.example/Patient/p-1"
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100048",
+   "https://w3id.org/fhir-sulo/var#componentUnit": {
+    "value": "mm[Hg]"
+   },
+   "https://w3id.org/fhir-sulo/var#componentValue": {
+    "type": "http://www.w3.org/2001/XMLSchema#decimal",
+    "value": "148"
+   },
+   "https://w3id.org/fhir-sulo/var#effective": {
+    "type": "http://www.w3.org/2001/XMLSchema#dateTime",
+    "value": "2026-03-04T09:15:00Z"
+   },
+   "https://w3id.org/fhir-sulo/var#status": {
+    "value": "final"
+   },
+   "https://w3id.org/fhir-sulo/var#subject": "https://fhir.example/Patient/p-1"
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100049",
+   "https://w3id.org/fhir-sulo/var#componentUnit": {
+    "value": "mm[Hg]"
+   },
+   "https://w3id.org/fhir-sulo/var#componentValue": {
+    "type": "http://www.w3.org/2001/XMLSchema#decimal",
+    "value": "149"
+   },
+   "https://w3id.org/fhir-sulo/var#effective": {
+    "type": "http://www.w3.org/2001/XMLSchema#dateTime",
+    "value": "2026-03-04T09:15:00Z"
+   },
+   "https://w3id.org/fhir-sulo/var#status": {
+    "value": "final"
+   },
+   "https://w3id.org/fhir-sulo/var#subject": "https://fhir.example/Patient/p-1"
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100005",
+   "https://w3id.org/fhir-sulo/var#componentUnit": {
+    "value": "mm[Hg]"
+   },
+   "https://w3id.org/fhir-sulo/var#componentValue": {
+    "type": "http://www.w3.org/2001/XMLSchema#decimal",
+    "value": "105"
+   },
+   "https://w3id.org/fhir-sulo/var#effective": {
+    "type": "http://www.w3.org/2001/XMLSchema#dateTime",
+    "value": "2026-03-04T09:15:00Z"
+   },
+   "https://w3id.org/fhir-sulo/var#status": {
+    "value": "final"
+   },
+   "https://w3id.org/fhir-sulo/var#subject": "https://fhir.example/Patient/p-1"
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100050",
+   "https://w3id.org/fhir-sulo/var#componentUnit": {
+    "value": "mm[Hg]"
+   },
+   "https://w3id.org/fhir-sulo/var#componentValue": {
+    "type": "http://www.w3.org/2001/XMLSchema#decimal",
+    "value": "150"
+   },
+   "https://w3id.org/fhir-sulo/var#effective": {
+    "type": "http://www.w3.org/2001/XMLSchema#dateTime",
+    "value": "2026-03-04T09:15:00Z"
+   },
+   "https://w3id.org/fhir-sulo/var#status": {
+    "value": "final"
+   },
+   "https://w3id.org/fhir-sulo/var#subject": "https://fhir.example/Patient/p-1"
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100051",
+   "https://w3id.org/fhir-sulo/var#componentUnit": {
+    "value": "mm[Hg]"
+   },
+   "https://w3id.org/fhir-sulo/var#componentValue": {
+    "type": "http://www.w3.org/2001/XMLSchema#decimal",
+    "value": "151"
+   },
+   "https://w3id.org/fhir-sulo/var#effective": {
+    "type": "http://www.w3.org/2001/XMLSchema#dateTime",
+    "value": "2026-03-04T09:15:00Z"
+   },
+   "https://w3id.org/fhir-sulo/var#status": {
+    "value": "final"
+   },
+   "https://w3id.org/fhir-sulo/var#subject": "https://fhir.example/Patient/p-1"
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100052",
+   "https://w3id.org/fhir-sulo/var#componentUnit": {
+    "value": "mm[Hg]"
+   },
+   "https://w3id.org/fhir-sulo/var#componentValue": {
+    "type": "http://www.w3.org/2001/XMLSchema#decimal",
+    "value": "152"
+   },
+   "https://w3id.org/fhir-sulo/var#effective": {
+    "type": "http://www.w3.org/2001/XMLSchema#dateTime",
+    "value": "2026-03-04T09:15:00Z"
+   },
+   "https://w3id.org/fhir-sulo/var#status": {
+    "value": "final"
+   },
+   "https://w3id.org/fhir-sulo/var#subject": "https://fhir.example/Patient/p-1"
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100053",
+   "https://w3id.org/fhir-sulo/var#componentUnit": {
+    "value": "mm[Hg]"
+   },
+   "https://w3id.org/fhir-sulo/var#componentValue": {
+    "type": "http://www.w3.org/2001/XMLSchema#decimal",
+    "value": "153"
+   },
+   "https://w3id.org/fhir-sulo/var#effective": {
+    "type": "http://www.w3.org/2001/XMLSchema#dateTime",
+    "value": "2026-03-04T09:15:00Z"
+   },
+   "https://w3id.org/fhir-sulo/var#status": {
+    "value": "final"
+   },
+   "https://w3id.org/fhir-sulo/var#subject": "https://fhir.example/Patient/p-1"
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100054",
+   "https://w3id.org/fhir-sulo/var#componentUnit": {
+    "value": "mm[Hg]"
+   },
+   "https://w3id.org/fhir-sulo/var#componentValue": {
+    "type": "http://www.w3.org/2001/XMLSchema#decimal",
+    "value": "154"
+   },
+   "https://w3id.org/fhir-sulo/var#effective": {
+    "type": "http://www.w3.org/2001/XMLSchema#dateTime",
+    "value": "2026-03-04T09:15:00Z"
+   },
+   "https://w3id.org/fhir-sulo/var#status": {
+    "value": "final"
+   },
+   "https://w3id.org/fhir-sulo/var#subject": "https://fhir.example/Patient/p-1"
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100055",
+   "https://w3id.org/fhir-sulo/var#componentUnit": {
+    "value": "mm[Hg]"
+   },
+   "https://w3id.org/fhir-sulo/var#componentValue": {
+    "type": "http://www.w3.org/2001/XMLSchema#decimal",
+    "value": "155"
+   },
+   "https://w3id.org/fhir-sulo/var#effective": {
+    "type": "http://www.w3.org/2001/XMLSchema#dateTime",
+    "value": "2026-03-04T09:15:00Z"
+   },
+   "https://w3id.org/fhir-sulo/var#status": {
+    "value": "final"
+   },
+   "https://w3id.org/fhir-sulo/var#subject": "https://fhir.example/Patient/p-1"
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100056",
+   "https://w3id.org/fhir-sulo/var#componentUnit": {
+    "value": "mm[Hg]"
+   },
+   "https://w3id.org/fhir-sulo/var#componentValue": {
+    "type": "http://www.w3.org/2001/XMLSchema#decimal",
+    "value": "156"
+   },
+   "https://w3id.org/fhir-sulo/var#effective": {
+    "type": "http://www.w3.org/2001/XMLSchema#dateTime",
+    "value": "2026-03-04T09:15:00Z"
+   },
+   "https://w3id.org/fhir-sulo/var#status": {
+    "value": "final"
+   },
+   "https://w3id.org/fhir-sulo/var#subject": "https://fhir.example/Patient/p-1"
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100057",
+   "https://w3id.org/fhir-sulo/var#componentUnit": {
+    "value": "mm[Hg]"
+   },
+   "https://w3id.org/fhir-sulo/var#componentValue": {
+    "type": "http://www.w3.org/2001/XMLSchema#decimal",
+    "value": "157"
+   },
+   "https://w3id.org/fhir-sulo/var#effective": {
+    "type": "http://www.w3.org/2001/XMLSchema#dateTime",
+    "value": "2026-03-04T09:15:00Z"
+   },
+   "https://w3id.org/fhir-sulo/var#status": {
+    "value": "final"
+   },
+   "https://w3id.org/fhir-sulo/var#subject": "https://fhir.example/Patient/p-1"
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100058",
+   "https://w3id.org/fhir-sulo/var#componentUnit": {
+    "value": "mm[Hg]"
+   },
+   "https://w3id.org/fhir-sulo/var#componentValue": {
+    "type": "http://www.w3.org/2001/XMLSchema#decimal",
+    "value": "158"
+   },
+   "https://w3id.org/fhir-sulo/var#effective": {
+    "type": "http://www.w3.org/2001/XMLSchema#dateTime",
+    "value": "2026-03-04T09:15:00Z"
+   },
+   "https://w3id.org/fhir-sulo/var#status": {
+    "value": "final"
+   },
+   "https://w3id.org/fhir-sulo/var#subject": "https://fhir.example/Patient/p-1"
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100059",
+   "https://w3id.org/fhir-sulo/var#componentUnit": {
+    "value": "mm[Hg]"
+   },
+   "https://w3id.org/fhir-sulo/var#componentValue": {
+    "type": "http://www.w3.org/2001/XMLSchema#decimal",
+    "value": "159"
+   },
+   "https://w3id.org/fhir-sulo/var#effective": {
+    "type": "http://www.w3.org/2001/XMLSchema#dateTime",
+    "value": "2026-03-04T09:15:00Z"
+   },
+   "https://w3id.org/fhir-sulo/var#status": {
+    "value": "final"
+   },
+   "https://w3id.org/fhir-sulo/var#subject": "https://fhir.example/Patient/p-1"
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100006",
+   "https://w3id.org/fhir-sulo/var#componentUnit": {
+    "value": "mm[Hg]"
+   },
+   "https://w3id.org/fhir-sulo/var#componentValue": {
+    "type": "http://www.w3.org/2001/XMLSchema#decimal",
+    "value": "106"
+   },
+   "https://w3id.org/fhir-sulo/var#effective": {
+    "type": "http://www.w3.org/2001/XMLSchema#dateTime",
+    "value": "2026-03-04T09:15:00Z"
+   },
+   "https://w3id.org/fhir-sulo/var#status": {
+    "value": "final"
+   },
+   "https://w3id.org/fhir-sulo/var#subject": "https://fhir.example/Patient/p-1"
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100007",
+   "https://w3id.org/fhir-sulo/var#componentUnit": {
+    "value": "mm[Hg]"
+   },
+   "https://w3id.org/fhir-sulo/var#componentValue": {
+    "type": "http://www.w3.org/2001/XMLSchema#decimal",
+    "value": "107"
+   },
+   "https://w3id.org/fhir-sulo/var#effective": {
+    "type": "http://www.w3.org/2001/XMLSchema#dateTime",
+    "value": "2026-03-04T09:15:00Z"
+   },
+   "https://w3id.org/fhir-sulo/var#status": {
+    "value": "final"
+   },
+   "https://w3id.org/fhir-sulo/var#subject": "https://fhir.example/Patient/p-1"
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100008",
+   "https://w3id.org/fhir-sulo/var#componentUnit": {
+    "value": "mm[Hg]"
+   },
+   "https://w3id.org/fhir-sulo/var#componentValue": {
+    "type": "http://www.w3.org/2001/XMLSchema#decimal",
+    "value": "108"
+   },
+   "https://w3id.org/fhir-sulo/var#effective": {
+    "type": "http://www.w3.org/2001/XMLSchema#dateTime",
+    "value": "2026-03-04T09:15:00Z"
+   },
+   "https://w3id.org/fhir-sulo/var#status": {
+    "value": "final"
+   },
+   "https://w3id.org/fhir-sulo/var#subject": "https://fhir.example/Patient/p-1"
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/100009",
+   "https://w3id.org/fhir-sulo/var#componentUnit": {
+    "value": "mm[Hg]"
+   },
+   "https://w3id.org/fhir-sulo/var#componentValue": {
+    "type": "http://www.w3.org/2001/XMLSchema#decimal",
+    "value": "109"
+   },
+   "https://w3id.org/fhir-sulo/var#effective": {
+    "type": "http://www.w3.org/2001/XMLSchema#dateTime",
+    "value": "2026-03-04T09:15:00Z"
+   },
+   "https://w3id.org/fhir-sulo/var#status": {
+    "value": "final"
+   },
+   "https://w3id.org/fhir-sulo/var#subject": "https://fhir.example/Patient/p-1"
+  }
+ ],
+ "lastReport": {
+  "alternatives": 20,
+  "configsPruned": 0,
+  "explorationTruncated": false,
+  "unboundVariables": [],
+  "unusedStatics": []
+ },
+ "ok": true,
+ "provenance": [
+  {
+   "constraintId": "tc:0",
+   "frame": 0,
+   "kind": "binding",
+   "predicate": "https://w3id.org/fhir-sulo/recordStatus",
+   "quadIndex": 0,
+   "variables": [
+    "https://w3id.org/fhir-sulo/var#status"
+   ]
+  },
+  {
+   "constraintId": "tc:1",
+   "frame": 0,
+   "kind": "binding",
+   "predicate": "https://w3id.org/fhir-sulo/aboutParticipant",
+   "quadIndex": 1,
+   "variables": [
+    "https://w3id.org/fhir-sulo/var#subject"
+   ]
+  },
+  {
+   "constraintId": "tc:2",
+   "frame": 0,
+   "kind": "binding",
+   "predicate": "https://w3id.org/fhir-sulo/atTime",
+   "quadIndex": 2,
+   "variables": [
+    "https://w3id.org/fhir-sulo/var#effective"
+   ]
+  },
+  {
+   "constraintId": "tc:3",
+   "frame": null,
+   "kind": "structural",
+   "predicate": "https://w3id.org/fhir-sulo/hasMeasurement",
+   "quadIndex": 3,
+   "variables": []
+  },
+  {
+   "constraintId": "tc:4",
+   "frame": 0,
+   "kind": "binding",
+   "predicate": "https://w3id.org/fhir-sulo/measures",
+   "quadIndex": 4,
+   "variables": [
+    "https://w3id.org/fhir-sulo/var#componentCode"
+   ]
+  },
+  {
+   "constraintId": "tc:5",
+   "frame": 0,
+   "kind": "binding",
+   "predicate": "https://w3id.org/fhir-sulo/magnitude",
+   "quadIndex": 5,
+   "variables": [
+    "https://w3id.org/fhir-sulo/var#componentValue"
+   ]
+  },
+  {
+   "constraintId": "tc:6",
+   "frame": 0,
+   "kind": "binding",
+   "predicate": "https://w3id.org/fhir-sulo/unit",
+   "quadIndex": 6,
+   "variables": [
+    "https://w3id.org/fhir-sulo/var#componentUnit"
+   ]
+  },
+  {
+   "constraintId": "tc:3",
+   "frame": null,
+   "kind": "structural",
+   "predicate": "https://w3id.org/fhir-sulo/hasMeasurement",
+   "quadIndex": 7,
+   "variables": []
+  },
+  {
+   "constraintId": "tc:4",
+   "frame": 1,
+   "kind": "binding",
+   "predicate": "https://w3id.org/fhir-sulo/measures",
+   "quadIndex": 8,
+   "variables": [
+    "https://w3id.org/fhir-sulo/var#componentCode"
+   ]
+  },
+  {
+   "constraintId": "tc:5",
+   "frame": 1,
+   "kind": "binding",
+   "predicate": "https://w3id.org/fhir-sulo/magnitude",
+   "quadIndex": 9,
+   "variables": [
+    "https://w3id.org/fhir-sulo/var#componentValue"
+   ]
+  },
+  {
+   "constraintId": "tc:6",
+   "frame": 1,
+   "kind": "binding",
+   "predicate": "https://w3id.org/fhir-sulo/unit",
+   "quadIndex": 10,
+   "variables": [
+    "https://w3id.org/fhir-sulo/var#componentUnit"
+   ]
+  },
+  {
+   "constraintId": "tc:3",
+   "frame": null,
+   "kind": "structural",
+   "predicate": "https://w3id.org/fhir-sulo/hasMeasurement",
+   "quadIndex": 11,
+   "variables": []
+  },
+  {
+   "constraintId": "tc:4",
+   "frame": 2,
+   "kind": "binding",
+   "predicate": "https://w3id.org/fhir-sulo/measures",
+   "quadIndex": 12,
+   "variables": [
+    "https://w3id.org/fhir-sulo/var#componentCode"
+   ]
+  },
+  {
+   "constraintId": "tc:5",
+   "frame": 2,
+   "kind": "binding",
+   "predicate": "https://w3id.org/fhir-sulo/magnitude",
+   "quadIndex": 13,
+   "variables": [
+    "https://w3id.org/fhir-sulo/var#componentValue"
+   ]
+  },
+  {
+   "constraintId": "tc:6",
+   "frame": 2,
+   "kind": "binding",
+   "predicate": "https://w3id.org/fhir-sulo/unit",
+   "quadIndex": 14,
+   "variables": [
+    "https://w3id.org/fhir-sulo/var#componentUnit"
+   ]
+  },
+  {
+   "constraintId": "tc:3",
+   "frame": null,
+   "kind": "structural",
+   "predicate": "https://w3id.org/fhir-sulo/hasMeasurement",
+   "quadIndex": 15,
+   "variables": []
+  },
+  {
+   "constraintId": "tc:4",
+   "frame": 3,
+   "kind": "binding",
+   "predicate": "https://w3id.org/fhir-sulo/measures",
+   "quadIndex": 16,
+   "variables": [
+    "https://w3id.org/fhir-sulo/var#componentCode"
+   ]
+  },
+  {
+   "constraintId": "tc:5",
+   "frame": 3,
+   "kind": "binding",
+   "predicate": "https://w3id.org/fhir-sulo/magnitude",
+   "quadIndex": 17,
+   "variables": [
+    "https://w3id.org/fhir-sulo/var#componentValue"
+   ]
+  },
+  {
+   "constraintId": "tc:6",
+   "frame": 3,
+   "kind": "binding",
+   "predicate": "https://w3id.org/fhir-sulo/unit",
+   "quadIndex": 18,
+   "variables": [
+    "https://w3id.org/fhir-sulo/var#componentUnit"
+   ]
+  },
+  {
+   "constraintId": "tc:3",
+   "frame": null,
+   "kind": "structural",
+   "predicate": "https://w3id.org/fhir-sulo/hasMeasurement",
+   "quadIndex": 19,
+   "variables": []
+  },
+  {
+   "constraintId": "tc:4",
+   "frame": 4,
+   "kind": "binding",
+   "predicate": "https://w3id.org/fhir-sulo/measures",
+   "quadIndex": 20,
+   "variables": [
+    "https://w3id.org/fhir-sulo/var#componentCode"
+   ]
+  },
+  {
+   "constraintId": "tc:5",
+   "frame": 4,
+   "kind": "binding",
+   "predicate": "https://w3id.org/fhir-sulo/magnitude",
+   "quadIndex": 21,
+   "variables": [
+    "https://w3id.org/fhir-sulo/var#componentValue"
+   ]
+  },
+  {
+   "constraintId": "tc:6",
+   "frame": 4,
+   "kind": "binding",
+   "predicate": "https://w3id.org/fhir-sulo/unit",
+   "quadIndex": 22,
+   "variables": [
+    "https://w3id.org/fhir-sulo/var#componentUnit"
+   ]
+  },
+  {
+   "constraintId": "tc:3",
+   "frame": null,
+   "kind": "structural",
+   "predicate": "https://w3id.org/fhir-sulo/hasMeasurement",
+   "quadIndex": 23,
+   "variables": []
+  },
+  {
+   "constraintId": "tc:4",
+   "frame": 5,
+   "kind": "binding",
+   "predicate": "https://w3id.org/fhir-sulo/measures",
+   "quadIndex": 24,
+   "variables": [
+    "https://w3id.org/fhir-sulo/var#componentCode"
+   ]
+  },
+  {
+   "constraintId": "tc:5",
+   "frame": 5,
+   "kind": "binding",
+   "predicate": "https://w3id.org/fhir-sulo/magnitude",
+   "quadIndex": 25,
+   "variables": [
+    "https://w3id.org/fhir-sulo/var#componentValue"
+   ]
+  },
+  {
+   "constraintId": "tc:6",
+   "frame": 5,
+   "kind": "binding",
+   "predicate": "https://w3id.org/fhir-sulo/unit",
+   "quadIndex": 26,
+   "variables": [
+    "https://w3id.org/fhir-sulo/var#componentUnit"
+   ]
+  },
+  {
+   "constraintId": "tc:3",
+   "frame": null,
+   "kind": "structural",
+   "predicate": "https://w3id.org/fhir-sulo/hasMeasurement",
+   "quadIndex": 27,
+   "variables": []
+  },
+  {
+   "constraintId": "tc:4",
+   "frame": 6,
+   "kind": "binding",
+   "predicate": "https://w3id.org/fhir-sulo/measures",
+   "quadIndex": 28,
+   "variables": [
+    "https://w3id.org/fhir-sulo/var#componentCode"
+   ]
+  },
+  {
+   "constraintId": "tc:5",
+   "frame": 6,
+   "kind": "binding",
+   "predicate": "https://w3id.org/fhir-sulo/magnitude",
+   "quadIndex": 29,
+   "variables": [
+    "https://w3id.org/fhir-sulo/var#componentValue"
+   ]
+  },
+  {
+   "constraintId": "tc:6",
+   "frame": 6,
+   "kind": "binding",
+   "predicate": "https://w3id.org/fhir-sulo/unit",
+   "quadIndex": 30,
+   "variables": [
+    "https://w3id.org/fhir-sulo/var#componentUnit"
+   ]
+  },
+  {
+   "constraintId": "tc:3",
+   "frame": null,
+   "kind": "structural",
+   "predicate": "https://w3id.org/fhir-sulo/hasMeasurement",
+   "quadIndex": 31,
+   "variables": []
+  },
+  {
+   "constraintId": "tc:4",
+   "frame": 7,
+   "kind": "binding",
+   "predicate": "https://w3id.org/fhir-sulo/measures",
+   "quadIndex": 32,
+   "variables": [
+    "https://w3id.org/fhir-sulo/var#componentCode"
+   ]
+  },
+  {
+   "constraintId": "tc:5",
+   "frame": 7,
+   "kind": "binding",
+   "predicate": "https://w3id.org/fhir-sulo/magnitude",
+   "quadIndex": 33,
+   "variables": [
+    "https://w3id.org/fhir-sulo/var#componentValue"
+   ]
+  },
+  {
+   "constraintId": "tc:6",
+   "frame": 7,
+   "kind": "binding",
+   "predicate": "https://w3id.org/fhir-sulo/unit",
+   "quadIndex": 34,
+   "variables": [
+    "https://w3id.org/fhir-sulo/var#componentUnit"
+   ]
+  },
+  {
+   "constraintId": "tc:3",
+   "frame": null,
+   "kind": "structural",
+   "predicate": "https://w3id.org/fhir-sulo/hasMeasurement",
+   "quadIndex": 35,
+   "variables": []
+  },
+  {
+   "constraintId": "tc:4",
+   "frame": 8,
+   "kind": "binding",
+   "predicate": "https://w3id.org/fhir-sulo/measures",
+   "quadIndex": 36,
+   "variables": [
+    "https://w3id.org/fhir-sulo/var#componentCode"
+   ]
+  },
+  {
+   "constraintId": "tc:5",
+   "frame": 8,
+   "kind": "binding",
+   "predicate": "https://w3id.org/fhir-sulo/magnitude",
+   "quadIndex": 37,
+   "variables": [
+    "https://w3id.org/fhir-sulo/var#componentValue"
+   ]
+  },
+  {
+   "constraintId": "tc:6",
+   "frame": 8,
+   "kind": "binding",
+   "predicate": "https://w3id.org/fhir-sulo/unit",
+   "quadIndex": 38,
+   "variables": [
+    "https://w3id.org/fhir-sulo/var#componentUnit"
+   ]
+  },
+  {
+   "constraintId": "tc:3",
+   "frame": null,
+   "kind": "structural",
+   "predicate": "https://w3id.org/fhir-sulo/hasMeasurement",
+   "quadIndex": 39,
+   "variables": []
+  },
+  {
+   "constraintId": "tc:4",
+   "frame": 9,
+   "kind": "binding",
+   "predicate": "https://w3id.org/fhir-sulo/measures",
+   "quadIndex": 40,
+   "variables": [
+    "https://w3id.org/fhir-sulo/var#componentCode"
+   ]
+  },
+  {
+   "constraintId": "tc:5",
+   "frame": 9,
+   "kind": "binding",
+   "predicate": "https://w3id.org/fhir-sulo/magnitude",
+   "quadIndex": 41,
+   "variables": [
+    "https://w3id.org/fhir-sulo/var#componentValue"
+   ]
+  },
+  {
+   "constraintId": "tc:6",
+   "frame": 9,
+   "kind": "binding",
+   "predicate": "https://w3id.org/fhir-sulo/unit",
+   "quadIndex": 42,
+   "variables": [
+    "https://w3id.org/fhir-sulo/var#componentUnit"
+   ]
+  },
+  {
+   "constraintId": "tc:3",
+   "frame": null,
+   "kind": "structural",
+   "predicate": "https://w3id.org/fhir-sulo/hasMeasurement",
+   "quadIndex": 43,
+   "variables": []
+  },
+  {
+   "constraintId": "tc:4",
+   "frame": 10,
+   "kind": "binding",
+   "predicate": "https://w3id.org/fhir-sulo/measures",
+   "quadIndex": 44,
+   "variables": [
+    "https://w3id.org/fhir-sulo/var#componentCode"
+   ]
+  },
+  {
+   "constraintId": "tc:5",
+   "frame": 10,
+   "kind": "binding",
+   "predicate": "https://w3id.org/fhir-sulo/magnitude",
+   "quadIndex": 45,
+   "variables": [
+    "https://w3id.org/fhir-sulo/var#componentValue"
+   ]
+  },
+  {
+   "constraintId": "tc:6",
+   "frame": 10,
+   "kind": "binding",
+   "predicate": "https://w3id.org/fhir-sulo/unit",
+   "quadIndex": 46,
+   "variables": [
+    "https://w3id.org/fhir-sulo/var#componentUnit"
+   ]
+  },
+  {
+   "constraintId": "tc:3",
+   "frame": null,
+   "kind": "structural",
+   "predicate": "https://w3id.org/fhir-sulo/hasMeasurement",
+   "quadIndex": 47,
+   "variables": []
+  },
+  {
+   "constraintId": "tc:4",
+   "frame": 11,
+   "kind": "binding",
+   "predicate": "https://w3id.org/fhir-sulo/measures",
+   "quadIndex": 48,
+   "variables": [
+    "https://w3id.org/fhir-sulo/var#componentCode"
+   ]
+  },
+  {
+   "constraintId": "tc:5",
+   "frame": 11,
+   "kind": "binding",
+   "predicate": "https://w3id.org/fhir-sulo/magnitude",
+   "quadIndex": 49,
+   "variables": [
+    "https://w3id.org/fhir-sulo/var#componentValue"
+   ]
+  },
+  {
+   "constraintId": "tc:6",
+   "frame": 11,
+   "kind": "binding",
+   "predicate": "https://w3id.org/fhir-sulo/unit",
+   "quadIndex": 50,
+   "variables": [
+    "https://w3id.org/fhir-sulo/var#componentUnit"
+   ]
+  },
+  {
+   "constraintId": "tc:3",
+   "frame": null,
+   "kind": "structural",
+   "predicate": "https://w3id.org/fhir-sulo/hasMeasurement",
+   "quadIndex": 51,
+   "variables": []
+  },
+  {
+   "constraintId": "tc:4",
+   "frame": 12,
+   "kind": "binding",
+   "predicate": "https://w3id.org/fhir-sulo/measures",
+   "quadIndex": 52,
+   "variables": [
+    "https://w3id.org/fhir-sulo/var#componentCode"
+   ]
+  },
+  {
+   "constraintId": "tc:5",
+   "frame": 12,
+   "kind": "binding",
+   "predicate": "https://w3id.org/fhir-sulo/magnitude",
+   "quadIndex": 53,
+   "variables": [
+    "https://w3id.org/fhir-sulo/var#componentValue"
+   ]
+  },
+  {
+   "constraintId": "tc:6",
+   "frame": 12,
+   "kind": "binding",
+   "predicate": "https://w3id.org/fhir-sulo/unit",
+   "quadIndex": 54,
+   "variables": [
+    "https://w3id.org/fhir-sulo/var#componentUnit"
+   ]
+  },
+  {
+   "constraintId": "tc:3",
+   "frame": null,
+   "kind": "structural",
+   "predicate": "https://w3id.org/fhir-sulo/hasMeasurement",
+   "quadIndex": 55,
+   "variables": []
+  },
+  {
+   "constraintId": "tc:4",
+   "frame": 13,
+   "kind": "binding",
+   "predicate": "https://w3id.org/fhir-sulo/measures",
+   "quadIndex": 56,
+   "variables": [
+    "https://w3id.org/fhir-sulo/var#componentCode"
+   ]
+  },
+  {
+   "constraintId": "tc:5",
+   "frame": 13,
+   "kind": "binding",
+   "predicate": "https://w3id.org/fhir-sulo/magnitude",
+   "quadIndex": 57,
+   "variables": [
+    "https://w3id.org/fhir-sulo/var#componentValue"
+   ]
+  },
+  {
+   "constraintId": "tc:6",
+   "frame": 13,
+   "kind": "binding",
+   "predicate": "https://w3id.org/fhir-sulo/unit",
+   "quadIndex": 58,
+   "variables": [
+    "https://w3id.org/fhir-sulo/var#componentUnit"
+   ]
+  },
+  {
+   "constraintId": "tc:3",
+   "frame": null,
+   "kind": "structural",
+   "predicate": "https://w3id.org/fhir-sulo/hasMeasurement",
+   "quadIndex": 59,
+   "variables": []
+  },
+  {
+   "constraintId": "tc:4",
+   "frame": 14,
+   "kind": "binding",
+   "predicate": "https://w3id.org/fhir-sulo/measures",
+   "quadIndex": 60,
+   "variables": [
+    "https://w3id.org/fhir-sulo/var#componentCode"
+   ]
+  },
+  {
+   "constraintId": "tc:5",
+   "frame": 14,
+   "kind": "binding",
+   "predicate": "https://w3id.org/fhir-sulo/magnitude",
+   "quadIndex": 61,
+   "variables": [
+    "https://w3id.org/fhir-sulo/var#componentValue"
+   ]
+  },
+  {
+   "constraintId": "tc:6",
+   "frame": 14,
+   "kind": "binding",
+   "predicate": "https://w3id.org/fhir-sulo/unit",
+   "quadIndex": 62,
+   "variables": [
+    "https://w3id.org/fhir-sulo/var#componentUnit"
+   ]
+  },
+  {
+   "constraintId": "tc:3",
+   "frame": null,
+   "kind": "structural",
+   "predicate": "https://w3id.org/fhir-sulo/hasMeasurement",
+   "quadIndex": 63,
+   "variables": []
+  },
+  {
+   "constraintId": "tc:4",
+   "frame": 15,
+   "kind": "binding",
+   "predicate": "https://w3id.org/fhir-sulo/measures",
+   "quadIndex": 64,
+   "variables": [
+    "https://w3id.org/fhir-sulo/var#componentCode"
+   ]
+  },
+  {
+   "constraintId": "tc:5",
+   "frame": 15,
+   "kind": "binding",
+   "predicate": "https://w3id.org/fhir-sulo/magnitude",
+   "quadIndex": 65,
+   "variables": [
+    "https://w3id.org/fhir-sulo/var#componentValue"
+   ]
+  },
+  {
+   "constraintId": "tc:6",
+   "frame": 15,
+   "kind": "binding",
+   "predicate": "https://w3id.org/fhir-sulo/unit",
+   "quadIndex": 66,
+   "variables": [
+    "https://w3id.org/fhir-sulo/var#componentUnit"
+   ]
+  },
+  {
+   "constraintId": "tc:3",
+   "frame": null,
+   "kind": "structural",
+   "predicate": "https://w3id.org/fhir-sulo/hasMeasurement",
+   "quadIndex": 67,
+   "variables": []
+  },
+  {
+   "constraintId": "tc:4",
+   "frame": 16,
+   "kind": "binding",
+   "predicate": "https://w3id.org/fhir-sulo/measures",
+   "quadIndex": 68,
+   "variables": [
+    "https://w3id.org/fhir-sulo/var#componentCode"
+   ]
+  },
+  {
+   "constraintId": "tc:5",
+   "frame": 16,
+   "kind": "binding",
+   "predicate": "https://w3id.org/fhir-sulo/magnitude",
+   "quadIndex": 69,
+   "variables": [
+    "https://w3id.org/fhir-sulo/var#componentValue"
+   ]
+  },
+  {
+   "constraintId": "tc:6",
+   "frame": 16,
+   "kind": "binding",
+   "predicate": "https://w3id.org/fhir-sulo/unit",
+   "quadIndex": 70,
+   "variables": [
+    "https://w3id.org/fhir-sulo/var#componentUnit"
+   ]
+  },
+  {
+   "constraintId": "tc:3",
+   "frame": null,
+   "kind": "structural",
+   "predicate": "https://w3id.org/fhir-sulo/hasMeasurement",
+   "quadIndex": 71,
+   "variables": []
+  },
+  {
+   "constraintId": "tc:4",
+   "frame": 17,
+   "kind": "binding",
+   "predicate": "https://w3id.org/fhir-sulo/measures",
+   "quadIndex": 72,
+   "variables": [
+    "https://w3id.org/fhir-sulo/var#componentCode"
+   ]
+  },
+  {
+   "constraintId": "tc:5",
+   "frame": 17,
+   "kind": "binding",
+   "predicate": "https://w3id.org/fhir-sulo/magnitude",
+   "quadIndex": 73,
+   "variables": [
+    "https://w3id.org/fhir-sulo/var#componentValue"
+   ]
+  },
+  {
+   "constraintId": "tc:6",
+   "frame": 17,
+   "kind": "binding",
+   "predicate": "https://w3id.org/fhir-sulo/unit",
+   "quadIndex": 74,
+   "variables": [
+    "https://w3id.org/fhir-sulo/var#componentUnit"
+   ]
+  },
+  {
+   "constraintId": "tc:3",
+   "frame": null,
+   "kind": "structural",
+   "predicate": "https://w3id.org/fhir-sulo/hasMeasurement",
+   "quadIndex": 75,
+   "variables": []
+  },
+  {
+   "constraintId": "tc:4",
+   "frame": 18,
+   "kind": "binding",
+   "predicate": "https://w3id.org/fhir-sulo/measures",
+   "quadIndex": 76,
+   "variables": [
+    "https://w3id.org/fhir-sulo/var#componentCode"
+   ]
+  },
+  {
+   "constraintId": "tc:5",
+   "frame": 18,
+   "kind": "binding",
+   "predicate": "https://w3id.org/fhir-sulo/magnitude",
+   "quadIndex": 77,
+   "variables": [
+    "https://w3id.org/fhir-sulo/var#componentValue"
+   ]
+  },
+  {
+   "constraintId": "tc:6",
+   "frame": 18,
+   "kind": "binding",
+   "predicate": "https://w3id.org/fhir-sulo/unit",
+   "quadIndex": 78,
+   "variables": [
+    "https://w3id.org/fhir-sulo/var#componentUnit"
+   ]
+  }
+ ],
+ "quads": [
+  {
+   "o": {
+    "dt": "http://www.w3.org/2001/XMLSchema#string",
+    "t": "literal",
+    "v": "final"
+   },
+   "p": {
+    "t": "iri",
+    "v": "https://w3id.org/fhir-sulo/recordStatus"
+   },
+   "s": {
+    "t": "iri",
+    "v": "urn:g:x"
+   }
+  },
+  {
+   "o": {
+    "t": "iri",
+    "v": "https://fhir.example/Patient/p-1"
+   },
+   "p": {
+    "t": "iri",
+    "v": "https://w3id.org/fhir-sulo/aboutParticipant"
+   },
+   "s": {
+    "t": "iri",
+    "v": "urn:g:x"
+   }
+  },
+  {
+   "o": {
+    "dt": "http://www.w3.org/2001/XMLSchema#dateTime",
+    "t": "literal",
+    "v": "2026-03-04T09:15:00Z"
+   },
+   "p": {
+    "t": "iri",
+    "v": "https://w3id.org/fhir-sulo/atTime"
+   },
+   "s": {
+    "t": "iri",
+    "v": "urn:g:x"
+   }
+  },
+  {
+   "o": {
+    "t": "bnode",
+    "v": "tm0"
+   },
+   "p": {
+    "t": "iri",
+    "v": "https://w3id.org/fhir-sulo/hasMeasurement"
+   },
+   "s": {
+    "t": "iri",
+    "v": "urn:g:x"
+   }
+  },
+  {
+   "o": {
+    "t": "iri",
+    "v": "http://snomed.info/id/100000"
+   },
+   "p": {
+    "t": "iri",
+    "v": "https://w3id.org/fhir-sulo/measures"
+   },
+   "s": {
+    "t": "bnode",
+    "v": "tm0"
+   }
+  },
+  {
+   "o": {
+    "dt": "http://www.w3.org/2001/XMLSchema#decimal",
+    "t": "literal",
+    "v": "100"
+   },
+   "p": {
+    "t": "iri",
+    "v": "https://w3id.org/fhir-sulo/magnitude"
+   },
+   "s": {
+    "t": "bnode",
+    "v": "tm0"
+   }
+  },
+  {
+   "o": {
+    "dt": "http://www.w3.org/2001/XMLSchema#string",
+    "t": "literal",
+    "v": "mm[Hg]"
+   },
+   "p": {
+    "t": "iri",
+    "v": "https://w3id.org/fhir-sulo/unit"
+   },
+   "s": {
+    "t": "bnode",
+    "v": "tm0"
+   }
+  },
+  {
+   "o": {
+    "t": "bnode",
+    "v": "tm1"
+   },
+   "p": {
+    "t": "iri",
+    "v": "https://w3id.org/fhir-sulo/hasMeasurement"
+   },
+   "s": {
+    "t": "iri",
+    "v": "urn:g:x"
+   }
+  },
+  {
+   "o": {
+    "t": "iri",
+    "v": "http://snomed.info/id/100001"
+   },
+   "p": {
+    "t": "iri",
+    "v": "https://w3id.org/fhir-sulo/measures"
+   },
+   "s": {
+    "t": "bnode",
+    "v": "tm1"
+   }
+  },
+  {
+   "o": {
+    "dt": "http://www.w3.org/2001/XMLSchema#decimal",
+    "t": "literal",
+    "v": "101"
+   },
+   "p": {
+    "t": "iri",
+    "v": "https://w3id.org/fhir-sulo/magnitude"
+   },
+   "s": {
+    "t": "bnode",
+    "v": "tm1"
+   }
+  },
+  {
+   "o": {
+    "dt": "http://www.w3.org/2001/XMLSchema#string",
+    "t": "literal",
+    "v": "mm[Hg]"
+   },
+   "p": {
+    "t": "iri",
+    "v": "https://w3id.org/fhir-sulo/unit"
+   },
+   "s": {
+    "t": "bnode",
+    "v": "tm1"
+   }
+  },
+  {
+   "o": {
+    "t": "bnode",
+    "v": "tm2"
+   },
+   "p": {
+    "t": "iri",
+    "v": "https://w3id.org/fhir-sulo/hasMeasurement"
+   },
+   "s": {
+    "t": "iri",
+    "v": "urn:g:x"
+   }
+  },
+  {
+   "o": {
+    "t": "iri",
+    "v": "http://snomed.info/id/100010"
+   },
+   "p": {
+    "t": "iri",
+    "v": "https://w3id.org/fhir-sulo/measures"
+   },
+   "s": {
+    "t": "bnode",
+    "v": "tm2"
+   }
+  },
+  {
+   "o": {
+    "dt": "http://www.w3.org/2001/XMLSchema#decimal",
+    "t": "literal",
+    "v": "110"
+   },
+   "p": {
+    "t": "iri",
+    "v": "https://w3id.org/fhir-sulo/magnitude"
+   },
+   "s": {
+    "t": "bnode",
+    "v": "tm2"
+   }
+  },
+  {
+   "o": {
+    "dt": "http://www.w3.org/2001/XMLSchema#string",
+    "t": "literal",
+    "v": "mm[Hg]"
+   },
+   "p": {
+    "t": "iri",
+    "v": "https://w3id.org/fhir-sulo/unit"
+   },
+   "s": {
+    "t": "bnode",
+    "v": "tm2"
+   }
+  },
+  {
+   "o": {
+    "t": "bnode",
+    "v": "tm3"
+   },
+   "p": {
+    "t": "iri",
+    "v": "https://w3id.org/fhir-sulo/hasMeasurement"
+   },
+   "s": {
+    "t": "iri",
+    "v": "urn:g:x"
+   }
+  },
+  {
+   "o": {
+    "t": "iri",
+    "v": "http://snomed.info/id/100011"
+   },
+   "p": {
+    "t": "iri",
+    "v": "https://w3id.org/fhir-sulo/measures"
+   },
+   "s": {
+    "t": "bnode",
+    "v": "tm3"
+   }
+  },
+  {
+   "o": {
+    "dt": "http://www.w3.org/2001/XMLSchema#decimal",
+    "t": "literal",
+    "v": "111"
+   },
+   "p": {
+    "t": "iri",
+    "v": "https://w3id.org/fhir-sulo/magnitude"
+   },
+   "s": {
+    "t": "bnode",
+    "v": "tm3"
+   }
+  },
+  {
+   "o": {
+    "dt": "http://www.w3.org/2001/XMLSchema#string",
+    "t": "literal",
+    "v": "mm[Hg]"
+   },
+   "p": {
+    "t": "iri",
+    "v": "https://w3id.org/fhir-sulo/unit"
+   },
+   "s": {
+    "t": "bnode",
+    "v": "tm3"
+   }
+  },
+  {
+   "o": {
+    "t": "bnode",
+    "v": "tm4"
+   },
+   "p": {
+    "t": "iri",
+    "v": "https://w3id.org/fhir-sulo/hasMeasurement"
+   },
+   "s": {
+    "t": "iri",
+    "v": "urn:g:x"
+   }
+  },
+  {
+   "o": {
+    "t": "iri",
+    "v": "http://snomed.info/id/100012"
+   },
+   "p": {
+    "t": "iri",
+    "v": "https://w3id.org/fhir-sulo/measures"
+   },
+   "s": {
+    "t": "bnode",
+    "v": "tm4"
+   }
+  },
+  {
+   "o": {
+    "dt": "http://www.w3.org/2001/XMLSchema#decimal",
+    "t": "literal",
+    "v": "112"
+   },
+   "p": {
+    "t": "iri",
+    "v": "https://w3id.org/fhir-sulo/magnitude"
+   },
+   "s": {
+    "t": "bnode",
+    "v": "tm4"
+   }
+  },
+  {
+   "o": {
+    "dt": "http://www.w3.org/2001/XMLSchema#string",
+    "t": "literal",
+    "v": "mm[Hg]"
+   },
+   "p": {
+    "t": "iri",
+    "v": "https://w3id.org/fhir-sulo/unit"
+   },
+   "s": {
+    "t": "bnode",
+    "v": "tm4"
+   }
+  },
+  {
+   "o": {
+    "t": "bnode",
+    "v": "tm5"
+   },
+   "p": {
+    "t": "iri",
+    "v": "https://w3id.org/fhir-sulo/hasMeasurement"
+   },
+   "s": {
+    "t": "iri",
+    "v": "urn:g:x"
+   }
+  },
+  {
+   "o": {
+    "t": "iri",
+    "v": "http://snomed.info/id/100013"
+   },
+   "p": {
+    "t": "iri",
+    "v": "https://w3id.org/fhir-sulo/measures"
+   },
+   "s": {
+    "t": "bnode",
+    "v": "tm5"
+   }
+  },
+  {
+   "o": {
+    "dt": "http://www.w3.org/2001/XMLSchema#decimal",
+    "t": "literal",
+    "v": "113"
+   },
+   "p": {
+    "t": "iri",
+    "v": "https://w3id.org/fhir-sulo/magnitude"
+   },
+   "s": {
+    "t": "bnode",
+    "v": "tm5"
+   }
+  },
+  {
+   "o": {
+    "dt": "http://www.w3.org/2001/XMLSchema#string",
+    "t": "literal",
+    "v": "mm[Hg]"
+   },
+   "p": {
+    "t": "iri",
+    "v": "https://w3id.org/fhir-sulo/unit"
+   },
+   "s": {
+    "t": "bnode",
+    "v": "tm5"
+   }
+  },
+  {
+   "o": {
+    "t": "bnode",
+    "v": "tm6"
+   },
+   "p": {
+    "t": "iri",
+    "v": "https://w3id.org/fhir-sulo/hasMeasurement"
+   },
+   "s": {
+    "t": "iri",
+    "v": "urn:g:x"
+   }
+  },
+  {
+   "o": {
+    "t": "iri",
+    "v": "http://snomed.info/id/100014"
+   },
+   "p": {
+    "t": "iri",
+    "v": "https://w3id.org/fhir-sulo/measures"
+   },
+   "s": {
+    "t": "bnode",
+    "v": "tm6"
+   }
+  },
+  {
+   "o": {
+    "dt": "http://www.w3.org/2001/XMLSchema#decimal",
+    "t": "literal",
+    "v": "114"
+   },
+   "p": {
+    "t": "iri",
+    "v": "https://w3id.org/fhir-sulo/magnitude"
+   },
+   "s": {
+    "t": "bnode",
+    "v": "tm6"
+   }
+  },
+  {
+   "o": {
+    "dt": "http://www.w3.org/2001/XMLSchema#string",
+    "t": "literal",
+    "v": "mm[Hg]"
+   },
+   "p": {
+    "t": "iri",
+    "v": "https://w3id.org/fhir-sulo/unit"
+   },
+   "s": {
+    "t": "bnode",
+    "v": "tm6"
+   }
+  },
+  {
+   "o": {
+    "t": "bnode",
+    "v": "tm7"
+   },
+   "p": {
+    "t": "iri",
+    "v": "https://w3id.org/fhir-sulo/hasMeasurement"
+   },
+   "s": {
+    "t": "iri",
+    "v": "urn:g:x"
+   }
+  },
+  {
+   "o": {
+    "t": "iri",
+    "v": "http://snomed.info/id/100015"
+   },
+   "p": {
+    "t": "iri",
+    "v": "https://w3id.org/fhir-sulo/measures"
+   },
+   "s": {
+    "t": "bnode",
+    "v": "tm7"
+   }
+  },
+  {
+   "o": {
+    "dt": "http://www.w3.org/2001/XMLSchema#decimal",
+    "t": "literal",
+    "v": "115"
+   },
+   "p": {
+    "t": "iri",
+    "v": "https://w3id.org/fhir-sulo/magnitude"
+   },
+   "s": {
+    "t": "bnode",
+    "v": "tm7"
+   }
+  },
+  {
+   "o": {
+    "dt": "http://www.w3.org/2001/XMLSchema#string",
+    "t": "literal",
+    "v": "mm[Hg]"
+   },
+   "p": {
+    "t": "iri",
+    "v": "https://w3id.org/fhir-sulo/unit"
+   },
+   "s": {
+    "t": "bnode",
+    "v": "tm7"
+   }
+  },
+  {
+   "o": {
+    "t": "bnode",
+    "v": "tm8"
+   },
+   "p": {
+    "t": "iri",
+    "v": "https://w3id.org/fhir-sulo/hasMeasurement"
+   },
+   "s": {
+    "t": "iri",
+    "v": "urn:g:x"
+   }
+  },
+  {
+   "o": {
+    "t": "iri",
+    "v": "http://snomed.info/id/100016"
+   },
+   "p": {
+    "t": "iri",
+    "v": "https://w3id.org/fhir-sulo/measures"
+   },
+   "s": {
+    "t": "bnode",
+    "v": "tm8"
+   }
+  },
+  {
+   "o": {
+    "dt": "http://www.w3.org/2001/XMLSchema#decimal",
+    "t": "literal",
+    "v": "116"
+   },
+   "p": {
+    "t": "iri",
+    "v": "https://w3id.org/fhir-sulo/magnitude"
+   },
+   "s": {
+    "t": "bnode",
+    "v": "tm8"
+   }
+  },
+  {
+   "o": {
+    "dt": "http://www.w3.org/2001/XMLSchema#string",
+    "t": "literal",
+    "v": "mm[Hg]"
+   },
+   "p": {
+    "t": "iri",
+    "v": "https://w3id.org/fhir-sulo/unit"
+   },
+   "s": {
+    "t": "bnode",
+    "v": "tm8"
+   }
+  },
+  {
+   "o": {
+    "t": "bnode",
+    "v": "tm9"
+   },
+   "p": {
+    "t": "iri",
+    "v": "https://w3id.org/fhir-sulo/hasMeasurement"
+   },
+   "s": {
+    "t": "iri",
+    "v": "urn:g:x"
+   }
+  },
+  {
+   "o": {
+    "t": "iri",
+    "v": "http://snomed.info/id/100017"
+   },
+   "p": {
+    "t": "iri",
+    "v": "https://w3id.org/fhir-sulo/measures"
+   },
+   "s": {
+    "t": "bnode",
+    "v": "tm9"
+   }
+  },
+  {
+   "o": {
+    "dt": "http://www.w3.org/2001/XMLSchema#decimal",
+    "t": "literal",
+    "v": "117"
+   },
+   "p": {
+    "t": "iri",
+    "v": "https://w3id.org/fhir-sulo/magnitude"
+   },
+   "s": {
+    "t": "bnode",
+    "v": "tm9"
+   }
+  },
+  {
+   "o": {
+    "dt": "http://www.w3.org/2001/XMLSchema#string",
+    "t": "literal",
+    "v": "mm[Hg]"
+   },
+   "p": {
+    "t": "iri",
+    "v": "https://w3id.org/fhir-sulo/unit"
+   },
+   "s": {
+    "t": "bnode",
+    "v": "tm9"
+   }
+  },
+  {
+   "o": {
+    "t": "bnode",
+    "v": "tm10"
+   },
+   "p": {
+    "t": "iri",
+    "v": "https://w3id.org/fhir-sulo/hasMeasurement"
+   },
+   "s": {
+    "t": "iri",
+    "v": "urn:g:x"
+   }
+  },
+  {
+   "o": {
+    "t": "iri",
+    "v": "http://snomed.info/id/100018"
+   },
+   "p": {
+    "t": "iri",
+    "v": "https://w3id.org/fhir-sulo/measures"
+   },
+   "s": {
+    "t": "bnode",
+    "v": "tm10"
+   }
+  },
+  {
+   "o": {
+    "dt": "http://www.w3.org/2001/XMLSchema#decimal",
+    "t": "literal",
+    "v": "118"
+   },
+   "p": {
+    "t": "iri",
+    "v": "https://w3id.org/fhir-sulo/magnitude"
+   },
+   "s": {
+    "t": "bnode",
+    "v": "tm10"
+   }
+  },
+  {
+   "o": {
+    "dt": "http://www.w3.org/2001/XMLSchema#string",
+    "t": "literal",
+    "v": "mm[Hg]"
+   },
+   "p": {
+    "t": "iri",
+    "v": "https://w3id.org/fhir-sulo/unit"
+   },
+   "s": {
+    "t": "bnode",
+    "v": "tm10"
+   }
+  },
+  {
+   "o": {
+    "t": "bnode",
+    "v": "tm11"
+   },
+   "p": {
+    "t": "iri",
+    "v": "https://w3id.org/fhir-sulo/hasMeasurement"
+   },
+   "s": {
+    "t": "iri",
+    "v": "urn:g:x"
+   }
+  },
+  {
+   "o": {
+    "t": "iri",
+    "v": "http://snomed.info/id/100019"
+   },
+   "p": {
+    "t": "iri",
+    "v": "https://w3id.org/fhir-sulo/measures"
+   },
+   "s": {
+    "t": "bnode",
+    "v": "tm11"
+   }
+  },
+  {
+   "o": {
+    "dt": "http://www.w3.org/2001/XMLSchema#decimal",
+    "t": "literal",
+    "v": "119"
+   },
+   "p": {
+    "t": "iri",
+    "v": "https://w3id.org/fhir-sulo/magnitude"
+   },
+   "s": {
+    "t": "bnode",
+    "v": "tm11"
+   }
+  },
+  {
+   "o": {
+    "dt": "http://www.w3.org/2001/XMLSchema#string",
+    "t": "literal",
+    "v": "mm[Hg]"
+   },
+   "p": {
+    "t": "iri",
+    "v": "https://w3id.org/fhir-sulo/unit"
+   },
+   "s": {
+    "t": "bnode",
+    "v": "tm11"
+   }
+  },
+  {
+   "o": {
+    "t": "bnode",
+    "v": "tm12"
+   },
+   "p": {
+    "t": "iri",
+    "v": "https://w3id.org/fhir-sulo/hasMeasurement"
+   },
+   "s": {
+    "t": "iri",
+    "v": "urn:g:x"
+   }
+  },
+  {
+   "o": {
+    "t": "iri",
+    "v": "http://snomed.info/id/100002"
+   },
+   "p": {
+    "t": "iri",
+    "v": "https://w3id.org/fhir-sulo/measures"
+   },
+   "s": {
+    "t": "bnode",
+    "v": "tm12"
+   }
+  },
+  {
+   "o": {
+    "dt": "http://www.w3.org/2001/XMLSchema#decimal",
+    "t": "literal",
+    "v": "102"
+   },
+   "p": {
+    "t": "iri",
+    "v": "https://w3id.org/fhir-sulo/magnitude"
+   },
+   "s": {
+    "t": "bnode",
+    "v": "tm12"
+   }
+  },
+  {
+   "o": {
+    "dt": "http://www.w3.org/2001/XMLSchema#string",
+    "t": "literal",
+    "v": "mm[Hg]"
+   },
+   "p": {
+    "t": "iri",
+    "v": "https://w3id.org/fhir-sulo/unit"
+   },
+   "s": {
+    "t": "bnode",
+    "v": "tm12"
+   }
+  },
+  {
+   "o": {
+    "t": "bnode",
+    "v": "tm13"
+   },
+   "p": {
+    "t": "iri",
+    "v": "https://w3id.org/fhir-sulo/hasMeasurement"
+   },
+   "s": {
+    "t": "iri",
+    "v": "urn:g:x"
+   }
+  },
+  {
+   "o": {
+    "t": "iri",
+    "v": "http://snomed.info/id/100020"
+   },
+   "p": {
+    "t": "iri",
+    "v": "https://w3id.org/fhir-sulo/measures"
+   },
+   "s": {
+    "t": "bnode",
+    "v": "tm13"
+   }
+  },
+  {
+   "o": {
+    "dt": "http://www.w3.org/2001/XMLSchema#decimal",
+    "t": "literal",
+    "v": "120"
+   },
+   "p": {
+    "t": "iri",
+    "v": "https://w3id.org/fhir-sulo/magnitude"
+   },
+   "s": {
+    "t": "bnode",
+    "v": "tm13"
+   }
+  },
+  {
+   "o": {
+    "dt": "http://www.w3.org/2001/XMLSchema#string",
+    "t": "literal",
+    "v": "mm[Hg]"
+   },
+   "p": {
+    "t": "iri",
+    "v": "https://w3id.org/fhir-sulo/unit"
+   },
+   "s": {
+    "t": "bnode",
+    "v": "tm13"
+   }
+  },
+  {
+   "o": {
+    "t": "bnode",
+    "v": "tm14"
+   },
+   "p": {
+    "t": "iri",
+    "v": "https://w3id.org/fhir-sulo/hasMeasurement"
+   },
+   "s": {
+    "t": "iri",
+    "v": "urn:g:x"
+   }
+  },
+  {
+   "o": {
+    "t": "iri",
+    "v": "http://snomed.info/id/100021"
+   },
+   "p": {
+    "t": "iri",
+    "v": "https://w3id.org/fhir-sulo/measures"
+   },
+   "s": {
+    "t": "bnode",
+    "v": "tm14"
+   }
+  },
+  {
+   "o": {
+    "dt": "http://www.w3.org/2001/XMLSchema#decimal",
+    "t": "literal",
+    "v": "121"
+   },
+   "p": {
+    "t": "iri",
+    "v": "https://w3id.org/fhir-sulo/magnitude"
+   },
+   "s": {
+    "t": "bnode",
+    "v": "tm14"
+   }
+  },
+  {
+   "o": {
+    "dt": "http://www.w3.org/2001/XMLSchema#string",
+    "t": "literal",
+    "v": "mm[Hg]"
+   },
+   "p": {
+    "t": "iri",
+    "v": "https://w3id.org/fhir-sulo/unit"
+   },
+   "s": {
+    "t": "bnode",
+    "v": "tm14"
+   }
+  },
+  {
+   "o": {
+    "t": "bnode",
+    "v": "tm15"
+   },
+   "p": {
+    "t": "iri",
+    "v": "https://w3id.org/fhir-sulo/hasMeasurement"
+   },
+   "s": {
+    "t": "iri",
+    "v": "urn:g:x"
+   }
+  },
+  {
+   "o": {
+    "t": "iri",
+    "v": "http://snomed.info/id/100022"
+   },
+   "p": {
+    "t": "iri",
+    "v": "https://w3id.org/fhir-sulo/measures"
+   },
+   "s": {
+    "t": "bnode",
+    "v": "tm15"
+   }
+  },
+  {
+   "o": {
+    "dt": "http://www.w3.org/2001/XMLSchema#decimal",
+    "t": "literal",
+    "v": "122"
+   },
+   "p": {
+    "t": "iri",
+    "v": "https://w3id.org/fhir-sulo/magnitude"
+   },
+   "s": {
+    "t": "bnode",
+    "v": "tm15"
+   }
+  },
+  {
+   "o": {
+    "dt": "http://www.w3.org/2001/XMLSchema#string",
+    "t": "literal",
+    "v": "mm[Hg]"
+   },
+   "p": {
+    "t": "iri",
+    "v": "https://w3id.org/fhir-sulo/unit"
+   },
+   "s": {
+    "t": "bnode",
+    "v": "tm15"
+   }
+  },
+  {
+   "o": {
+    "t": "bnode",
+    "v": "tm16"
+   },
+   "p": {
+    "t": "iri",
+    "v": "https://w3id.org/fhir-sulo/hasMeasurement"
+   },
+   "s": {
+    "t": "iri",
+    "v": "urn:g:x"
+   }
+  },
+  {
+   "o": {
+    "t": "iri",
+    "v": "http://snomed.info/id/100023"
+   },
+   "p": {
+    "t": "iri",
+    "v": "https://w3id.org/fhir-sulo/measures"
+   },
+   "s": {
+    "t": "bnode",
+    "v": "tm16"
+   }
+  },
+  {
+   "o": {
+    "dt": "http://www.w3.org/2001/XMLSchema#decimal",
+    "t": "literal",
+    "v": "123"
+   },
+   "p": {
+    "t": "iri",
+    "v": "https://w3id.org/fhir-sulo/magnitude"
+   },
+   "s": {
+    "t": "bnode",
+    "v": "tm16"
+   }
+  },
+  {
+   "o": {
+    "dt": "http://www.w3.org/2001/XMLSchema#string",
+    "t": "literal",
+    "v": "mm[Hg]"
+   },
+   "p": {
+    "t": "iri",
+    "v": "https://w3id.org/fhir-sulo/unit"
+   },
+   "s": {
+    "t": "bnode",
+    "v": "tm16"
+   }
+  },
+  {
+   "o": {
+    "t": "bnode",
+    "v": "tm17"
+   },
+   "p": {
+    "t": "iri",
+    "v": "https://w3id.org/fhir-sulo/hasMeasurement"
+   },
+   "s": {
+    "t": "iri",
+    "v": "urn:g:x"
+   }
+  },
+  {
+   "o": {
+    "t": "iri",
+    "v": "http://snomed.info/id/100024"
+   },
+   "p": {
+    "t": "iri",
+    "v": "https://w3id.org/fhir-sulo/measures"
+   },
+   "s": {
+    "t": "bnode",
+    "v": "tm17"
+   }
+  },
+  {
+   "o": {
+    "dt": "http://www.w3.org/2001/XMLSchema#decimal",
+    "t": "literal",
+    "v": "124"
+   },
+   "p": {
+    "t": "iri",
+    "v": "https://w3id.org/fhir-sulo/magnitude"
+   },
+   "s": {
+    "t": "bnode",
+    "v": "tm17"
+   }
+  },
+  {
+   "o": {
+    "dt": "http://www.w3.org/2001/XMLSchema#string",
+    "t": "literal",
+    "v": "mm[Hg]"
+   },
+   "p": {
+    "t": "iri",
+    "v": "https://w3id.org/fhir-sulo/unit"
+   },
+   "s": {
+    "t": "bnode",
+    "v": "tm17"
+   }
+  },
+  {
+   "o": {
+    "t": "bnode",
+    "v": "tm18"
+   },
+   "p": {
+    "t": "iri",
+    "v": "https://w3id.org/fhir-sulo/hasMeasurement"
+   },
+   "s": {
+    "t": "iri",
+    "v": "urn:g:x"
+   }
+  },
+  {
+   "o": {
+    "t": "iri",
+    "v": "http://snomed.info/id/100025"
+   },
+   "p": {
+    "t": "iri",
+    "v": "https://w3id.org/fhir-sulo/measures"
+   },
+   "s": {
+    "t": "bnode",
+    "v": "tm18"
+   }
+  },
+  {
+   "o": {
+    "dt": "http://www.w3.org/2001/XMLSchema#decimal",
+    "t": "literal",
+    "v": "125"
+   },
+   "p": {
+    "t": "iri",
+    "v": "https://w3id.org/fhir-sulo/magnitude"
+   },
+   "s": {
+    "t": "bnode",
+    "v": "tm18"
+   }
+  },
+  {
+   "o": {
+    "dt": "http://www.w3.org/2001/XMLSchema#string",
+    "t": "literal",
+    "v": "mm[Hg]"
+   },
+   "p": {
+    "t": "iri",
+    "v": "https://w3id.org/fhir-sulo/unit"
+   },
+   "s": {
+    "t": "bnode",
+    "v": "tm18"
+   }
+  }
+ ]
+}

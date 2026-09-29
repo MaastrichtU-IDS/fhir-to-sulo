@@ -1,0 +1,135 @@
+{
+ "prefixes": {
+  "Map": "http://shex.io/extensions/Map/#",
+  "fhir": "http://hl7.org/fhir/",
+  "v": "https://w3id.org/fhir-sulo/var#",
+  "xsd": "http://www.w3.org/2001/XMLSchema#"
+ },
+ "schema": {
+  "shapes": [
+   {
+    "id": "BPObservation",
+    "shapeExpr": {
+     "expression": {
+      "expressions": [
+       {
+        "predicate": "http://hl7.org/fhir/status",
+        "semActs": [
+         {
+          "code": " v:status ",
+          "name": "http://shex.io/extensions/Map/#",
+          "type": "SemAct"
+         }
+        ],
+        "type": "TripleConstraint",
+        "valueExpr": {
+         "datatype": "http://www.w3.org/2001/XMLSchema#string",
+         "type": "NodeConstraint"
+        }
+       },
+       {
+        "predicate": "http://hl7.org/fhir/subject",
+        "semActs": [
+         {
+          "code": " v:subject ",
+          "name": "http://shex.io/extensions/Map/#",
+          "type": "SemAct"
+         }
+        ],
+        "type": "TripleConstraint",
+        "valueExpr": {
+         "nodeKind": "iri",
+         "type": "NodeConstraint"
+        }
+       },
+       {
+        "predicate": "http://hl7.org/fhir/effective",
+        "semActs": [
+         {
+          "code": " v:effective ",
+          "name": "http://shex.io/extensions/Map/#",
+          "type": "SemAct"
+         }
+        ],
+        "type": "TripleConstraint",
+        "valueExpr": {
+         "datatype": "http://www.w3.org/2001/XMLSchema#dateTime",
+         "type": "NodeConstraint"
+        }
+       },
+       {
+        "max": -1,
+        "min": 0,
+        "predicate": "http://hl7.org/fhir/component",
+        "type": "TripleConstraint",
+        "valueExpr": "BPComponent"
+       }
+      ],
+      "type": "EachOf"
+     },
+     "type": "Shape"
+    },
+    "type": "ShapeDecl"
+   },
+   {
+    "id": "BPComponent",
+    "shapeExpr": {
+     "expression": {
+      "expressions": [
+       {
+        "predicate": "http://hl7.org/fhir/code",
+        "semActs": [
+         {
+          "code": " v:componentCode ",
+          "name": "http://shex.io/extensions/Map/#",
+          "type": "SemAct"
+         }
+        ],
+        "type": "TripleConstraint",
+        "valueExpr": {
+         "nodeKind": "iri",
+         "type": "NodeConstraint"
+        }
+       },
+       {
+        "predicate": "http://hl7.org/fhir/value",
+        "semActs": [
+         {
+          "code": " v:componentValue ",
+          "name": "http://shex.io/extensions/Map/#",
+          "type": "SemAct"
+         }
+        ],
+        "type": "TripleConstraint",
+        "valueExpr": {
+         "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+         "type": "NodeConstraint"
+        }
+       },
+       {
+        "predicate": "http://hl7.org/fhir/unit",
+        "semActs": [
+         {
+          "code": " v:componentUnit ",
+          "name": "http://shex.io/extensions/Map/#",
+          "type": "SemAct"
+         }
+        ],
+        "type": "TripleConstraint",
+        "valueExpr": {
+         "datatype": "http://www.w3.org/2001/XMLSchema#string",
+         "type": "NodeConstraint"
+        }
+       }
+      ],
+      "type": "EachOf"
+     },
+     "type": "Shape"
+    },
+    "type": "ShapeDecl"
+   }
+  ],
+  "start": "BPObservation",
+  "type": "Schema"
+ }
+}

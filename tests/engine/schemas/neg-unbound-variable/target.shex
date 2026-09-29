@@ -1,0 +1,23 @@
+# SP001. `v:componentSystem` is bound by nothing.
+#
+# What the engine does (DR-301 probe 8c): every thread that needs the variable
+# dies, so <Measurement> is never emitted at all. shexmap-materialize prints the
+# surviving fragment, exits 0, and writes nothing to stderr. The only place the
+# problem surfaces is materializer.lastReport, which the CLI discards.
+PREFIX ex:  <https://w3id.org/fhir-sulo/>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX Map: <http://shex.io/extensions/Map/#>
+PREFIX v:   <https://w3id.org/fhir-sulo/var#>
+
+start = @<Panel>
+
+<Panel> {
+  ex:aboutParticipant IRI %Map:{ v:subject %};
+  ex:hasMeasurement   @<Measurement>*
+}
+
+<Measurement> {
+  ex:measures  IRI         %Map:{ v:componentCode %};
+  ex:magnitude xsd:decimal %Map:{ v:componentValue %};
+  ex:system    IRI         %Map:{ v:componentSystem %}
+}

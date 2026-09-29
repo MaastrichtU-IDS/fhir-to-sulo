@@ -1,0 +1,332 @@
+{
+ "accepts": [
+  {
+   "consumed": 3,
+   "quads": 4,
+   "skipped": 0
+  },
+  {
+   "consumed": 1,
+   "quads": 1,
+   "skipped": 0
+  },
+  {
+   "consumed": 5,
+   "quads": 7,
+   "skipped": 0
+  }
+ ],
+ "bindings": [
+  {
+   "https://w3id.org/fhir-sulo/var#effective": {
+    "type": "http://www.w3.org/2001/XMLSchema#dateTime",
+    "value": "2026-03-04T09:15:00Z"
+   }
+  },
+  [
+   {
+    "https://w3id.org/fhir-sulo/var#componentUnit": {
+     "value": "mm[Hg]"
+    },
+    "https://w3id.org/fhir-sulo/var#componentValue": {
+     "type": "http://www.w3.org/2001/XMLSchema#decimal",
+     "value": "120"
+    }
+   },
+   {
+    "https://w3id.org/fhir-sulo/var#componentUnit": {
+     "value": "mm[Hg]"
+    },
+    "https://w3id.org/fhir-sulo/var#componentValue": {
+     "type": "http://www.w3.org/2001/XMLSchema#decimal",
+     "value": "80"
+    }
+   }
+  ]
+ ],
+ "constraints": [
+  {
+   "id": "tc:0",
+   "inverse": false,
+   "mapCodes": [
+    " v:effective "
+   ],
+   "predicate": "https://w3id.org/fhir-sulo/atTime",
+   "shape": "Panel"
+  },
+  {
+   "id": "tc:1",
+   "inverse": false,
+   "mapCodes": [],
+   "predicate": "https://w3id.org/fhir-sulo/hasMeasurement",
+   "shape": "Panel"
+  },
+  {
+   "id": "tc:2",
+   "inverse": false,
+   "mapCodes": [
+    " v:componentValue "
+   ],
+   "predicate": "https://w3id.org/fhir-sulo/magnitude",
+   "shape": "Measurement"
+  },
+  {
+   "id": "tc:3",
+   "inverse": false,
+   "mapCodes": [
+    " v:componentUnit "
+   ],
+   "predicate": "https://w3id.org/fhir-sulo/unit",
+   "shape": "Measurement"
+  }
+ ],
+ "coverage": {
+  "chosenAvailable": true,
+  "consumed": 5,
+  "total": 5,
+  "unconsumed": []
+ },
+ "frameOrigins": [
+  {
+   "https://w3id.org/fhir-sulo/var#componentUnit": [
+    1,
+    0,
+    "https://w3id.org/fhir-sulo/var#componentUnit"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentValue": [
+    1,
+    0,
+    "https://w3id.org/fhir-sulo/var#componentValue"
+   ],
+   "https://w3id.org/fhir-sulo/var#effective": [
+    0,
+    "https://w3id.org/fhir-sulo/var#effective"
+   ]
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentUnit": [
+    1,
+    1,
+    "https://w3id.org/fhir-sulo/var#componentUnit"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentValue": [
+    1,
+    1,
+    "https://w3id.org/fhir-sulo/var#componentValue"
+   ],
+   "https://w3id.org/fhir-sulo/var#effective": [
+    0,
+    "https://w3id.org/fhir-sulo/var#effective"
+   ]
+  }
+ ],
+ "frames": [
+  {
+   "https://w3id.org/fhir-sulo/var#componentUnit": {
+    "value": "mm[Hg]"
+   },
+   "https://w3id.org/fhir-sulo/var#componentValue": {
+    "type": "http://www.w3.org/2001/XMLSchema#decimal",
+    "value": "120"
+   },
+   "https://w3id.org/fhir-sulo/var#effective": {
+    "type": "http://www.w3.org/2001/XMLSchema#dateTime",
+    "value": "2026-03-04T09:15:00Z"
+   }
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentUnit": {
+    "value": "mm[Hg]"
+   },
+   "https://w3id.org/fhir-sulo/var#componentValue": {
+    "type": "http://www.w3.org/2001/XMLSchema#decimal",
+    "value": "80"
+   },
+   "https://w3id.org/fhir-sulo/var#effective": {
+    "type": "http://www.w3.org/2001/XMLSchema#dateTime",
+    "value": "2026-03-04T09:15:00Z"
+   }
+  }
+ ],
+ "lastReport": {
+  "alternatives": 3,
+  "configsPruned": 0,
+  "explorationTruncated": false,
+  "unboundVariables": [],
+  "unusedStatics": []
+ },
+ "ok": true,
+ "provenance": [
+  {
+   "constraintId": "tc:0",
+   "frame": 0,
+   "kind": "binding",
+   "predicate": "https://w3id.org/fhir-sulo/atTime",
+   "quadIndex": 0,
+   "variables": [
+    "https://w3id.org/fhir-sulo/var#effective"
+   ]
+  },
+  {
+   "constraintId": "tc:1",
+   "frame": null,
+   "kind": "structural",
+   "predicate": "https://w3id.org/fhir-sulo/hasMeasurement",
+   "quadIndex": 1,
+   "variables": []
+  },
+  {
+   "constraintId": "tc:2",
+   "frame": 0,
+   "kind": "binding",
+   "predicate": "https://w3id.org/fhir-sulo/magnitude",
+   "quadIndex": 2,
+   "variables": [
+    "https://w3id.org/fhir-sulo/var#componentValue"
+   ]
+  },
+  {
+   "constraintId": "tc:3",
+   "frame": 0,
+   "kind": "binding",
+   "predicate": "https://w3id.org/fhir-sulo/unit",
+   "quadIndex": 3,
+   "variables": [
+    "https://w3id.org/fhir-sulo/var#componentUnit"
+   ]
+  },
+  {
+   "constraintId": "tc:1",
+   "frame": null,
+   "kind": "structural",
+   "predicate": "https://w3id.org/fhir-sulo/hasMeasurement",
+   "quadIndex": 4,
+   "variables": []
+  },
+  {
+   "constraintId": "tc:2",
+   "frame": 1,
+   "kind": "binding",
+   "predicate": "https://w3id.org/fhir-sulo/magnitude",
+   "quadIndex": 5,
+   "variables": [
+    "https://w3id.org/fhir-sulo/var#componentValue"
+   ]
+  },
+  {
+   "constraintId": "tc:3",
+   "frame": 1,
+   "kind": "binding",
+   "predicate": "https://w3id.org/fhir-sulo/unit",
+   "quadIndex": 6,
+   "variables": [
+    "https://w3id.org/fhir-sulo/var#componentUnit"
+   ]
+  }
+ ],
+ "quads": [
+  {
+   "o": {
+    "dt": "http://www.w3.org/2001/XMLSchema#dateTime",
+    "t": "literal",
+    "v": "2026-03-04T09:15:00Z"
+   },
+   "p": {
+    "t": "iri",
+    "v": "https://w3id.org/fhir-sulo/atTime"
+   },
+   "s": {
+    "t": "iri",
+    "v": "https://fhir.example/Observation/bp-1"
+   }
+  },
+  {
+   "o": {
+    "t": "bnode",
+    "v": "tm0"
+   },
+   "p": {
+    "t": "iri",
+    "v": "https://w3id.org/fhir-sulo/hasMeasurement"
+   },
+   "s": {
+    "t": "iri",
+    "v": "https://fhir.example/Observation/bp-1"
+   }
+  },
+  {
+   "o": {
+    "dt": "http://www.w3.org/2001/XMLSchema#decimal",
+    "t": "literal",
+    "v": "120"
+   },
+   "p": {
+    "t": "iri",
+    "v": "https://w3id.org/fhir-sulo/magnitude"
+   },
+   "s": {
+    "t": "bnode",
+    "v": "tm0"
+   }
+  },
+  {
+   "o": {
+    "dt": "http://www.w3.org/2001/XMLSchema#string",
+    "t": "literal",
+    "v": "mm[Hg]"
+   },
+   "p": {
+    "t": "iri",
+    "v": "https://w3id.org/fhir-sulo/unit"
+   },
+   "s": {
+    "t": "bnode",
+    "v": "tm0"
+   }
+  },
+  {
+   "o": {
+    "t": "bnode",
+    "v": "tm1"
+   },
+   "p": {
+    "t": "iri",
+    "v": "https://w3id.org/fhir-sulo/hasMeasurement"
+   },
+   "s": {
+    "t": "iri",
+    "v": "https://fhir.example/Observation/bp-1"
+   }
+  },
+  {
+   "o": {
+    "dt": "http://www.w3.org/2001/XMLSchema#decimal",
+    "t": "literal",
+    "v": "80"
+   },
+   "p": {
+    "t": "iri",
+    "v": "https://w3id.org/fhir-sulo/magnitude"
+   },
+   "s": {
+    "t": "bnode",
+    "v": "tm1"
+   }
+  },
+  {
+   "o": {
+    "dt": "http://www.w3.org/2001/XMLSchema#string",
+    "t": "literal",
+    "v": "mm[Hg]"
+   },
+   "p": {
+    "t": "iri",
+    "v": "https://w3id.org/fhir-sulo/unit"
+   },
+   "s": {
+    "t": "bnode",
+    "v": "tm1"
+   }
+  }
+ ]
+}

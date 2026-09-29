@@ -1,0 +1,24 @@
+# SP003, the OTHER route. A function call with no colon in it misses
+# variablePattern and reaches extensions.lower, which throws
+# `Unknown extension: skolemize(...)`. The throw is caught by the thread loop,
+# so the effect is identical to the colon case: the shape disappears in silence.
+#
+# Both routes are in the negative set because which one an author hits depends
+# only on whether their argument happens to contain a colon.
+PREFIX ex:  <https://w3id.org/fhir-sulo/>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX Map: <http://shex.io/extensions/Map/#>
+PREFIX v:   <https://w3id.org/fhir-sulo/var#>
+
+start = @<Panel>
+
+<Panel> {
+  ex:aboutParticipant IRI %Map:{ v:subject %};
+  ex:hasMeasurement   @<Measurement>*
+}
+
+<Measurement> {
+  ex:iri       IRI         %Map:{ skolemize(componentCode) %};
+  ex:magnitude xsd:decimal %Map:{ v:componentValue %};
+  ex:unit      xsd:string  %Map:{ v:componentUnit %}
+}
