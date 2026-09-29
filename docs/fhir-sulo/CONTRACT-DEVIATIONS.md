@@ -38,6 +38,16 @@ function uses fail before data processing".
 **Built (DR-303):** `tools/shexmap-lint` / `fhir_sulo.engine.linter`. Error codes SP001
 (unbound), SP002 (nested repetition), SP003 (unknown Map function *and* undeclared prefix),
 plus SP004–SP007 for the other silent-deletion paths. Exit 1 on any error; no downgrade flag.
+
+**Corrected (DR-304): as first built, this row was not actually carried.** The linter walked
+a target schema from its `start` shape. The maps put every IRI-identified target node at the
+root of its own pass, so the blood-pressure target has ten root shapes and `start` names one:
+SP001, SP003 and SP004 were unchecked on nine of ten BP shapes and five of six eGFR ones.
+Discovery also matched only `source.shex`, so `make lint-schemas` found nothing and exited 2
+on every run it ever had. `fhir_sulo.engine.maplint.lint_map` now lints once per pass declared
+in the family's run-binding manifest, with that pass's staticVars in scope. All three maps
+lint clean across all 25 root shapes, and fault injection into a non-`start` shape is caught.
+New SP302 reports a target shape no pass reaches, because an unreachable shape is unlinted.
 Negative schemas live in `tests/engine/schemas/neg-*`, and `TestTheLinterIsNotCryingWolf`
 checks each one against the live engine, so every refusal is backed by the misbehaviour it
 prevents rather than by assertion.
@@ -72,6 +82,15 @@ and is unusable.
 `run-pass.js` refuses a request that omits one, so an engine default cannot leak in. Each
 silent failure raises: `UnboundVariables`, `ExplorationTruncated`, `AcceptCeilingReached`,
 `BindingsNotConsumed`, `SourceValidationFailure`, `UntracedQuad`.
+
+**Completed (DR-304): until now nothing outside the driver's own tests used it.** The maps
+were executed by a test-only Node script that its own header said to delete when the driver
+landed. That script is gone; `fhir_sulo.engine.maprun` binds once and materializes every
+declared pass, and `fhir_sulo.pipeline` composes ingest, identity, terminology, the driver
+and the store into one path with `python -m fhir_sulo.pipeline.cli`. Agent 3's 98 map tests
+pass unchanged against it. One rule changed grain: binding coverage is checked over the union
+of the passes, not per pass, because a binding the diastolic pass reads is legitimately
+unconsumed by the systolic one.
 
 **One finding that changes how the two tools are read:** `BindingsNotConsumed` is not
 redundant with the unbound-variable check. The no-colon route of CD-1 leaves
@@ -118,3 +137,24 @@ character ranges. This is integration work, not a missing engine capability.
 "traces to the source *triple*", that is a named, scoped piece of work and not a property the
 current pipeline has. Recorded rather than glossed, because the two readings are easy to
 conflate and only one of them is true today.
+
+
+---
+
+## CD-5 — The engine image tag is shared mutable state across worktrees
+
+**Reality (DR-304):** `EngineImage.ensure_built()` is a no-op when the tag exists, and every
+agent worktree shares one Docker daemon. A bare version tag therefore means whoever built last
+wins and everyone else runs an image that does not match their source tree. This was not
+theoretical: it silently reverted the production bridge under a passing test run, twice,
+during the work that found it.
+
+**Substitute:** the tag carries a hash of the build context — `package.json`,
+`package-lock.json`, `Dockerfile` and every file in `bridge/` — so it reads
+`fhir-sulo/shexmap:1.0.0-alpha.33-<digest>`. Different bridges get different tags and cannot
+clobber one another. `FHIR_SULO_ENGINE_IMAGE` still overrides, which is how a CI job pins a
+prebuilt image.
+
+**Effect:** none on any acceptance row; recorded because the failure mode is invisible
+(a stale image runs happily and gives the wrong answer) and because any agent adding a
+Docker-backed tool will hit it.

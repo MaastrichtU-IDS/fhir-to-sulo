@@ -33,10 +33,9 @@ binding that will not reach the graph.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from string import Formatter
 from typing import Dict, List, Mapping, Optional, Sequence, Set, Tuple
 
-from ..pipeline.manifest import Manifest, PassSpec
+from ..pipeline.manifest import Manifest, PassSpec, host_consumed_variables
 from .linter import Finding, LintReport, Severity, lint_pair
 from .mapcode import parse_map_code
 from .shexj import Schema, SchemaTooLarge, map_codes_of, walk_paths
@@ -162,7 +161,7 @@ def lint_map(
                     "nothing to analyse and nothing the runner could execute",
         ))
 
-    declared_roles = _host_roles(manifest, contract)
+    declared_roles = host_consumed_variables(manifest, contract)
     for name in sorted(source_vars - all_target_vars):
         local = name[len(manifest.var_namespace):] \
             if name.startswith(manifest.var_namespace) else name
@@ -207,25 +206,6 @@ def lint_map(
         shapes_walked=tuple(walked),
         unreachable_shapes=tuple(unreachable),
     )
-
-
-def _host_roles(manifest: Manifest, contract: Optional[Mapping[str, object]]):
-    """Source variables the host is declared to consume.
-
-    Two sources, both already in the tree: every field name a node-key
-    template interpolates, and every ``pivot_variables`` entry that carries a
-    ``target_role``. The first is derivable from the manifest alone, which
-    keeps the check useful for a family that ships no contract yet.
-    """
-    roles = set()
-    for template in manifest.node_key_templates.values():
-        for _, field_name, _, _ in Formatter().parse(template):
-            if field_name:
-                roles.add(field_name)
-    for variable in (contract or {}).get("pivot_variables", ()):
-        if variable.get("target_role"):
-            roles.add(variable.get("name"))
-    return roles
 
 
 def _tag(finding: Finding, spec: PassSpec) -> Finding:

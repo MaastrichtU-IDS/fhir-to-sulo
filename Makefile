@@ -52,7 +52,11 @@ integration: ## Source-to-target and update tests (venv: no silent skips)
 
 .PHONY: engine-image
 engine-image: ## Build the pinned ShExMap engine image from the committed lockfile
-	docker build -t fhir-sulo/shexmap:1.0.0-alpha.33 tools/engine
+	@# The tag carries a hash of the build context: several agent worktrees
+	@# share one Docker daemon, so a bare version tag is mutable shared state
+	@# and whoever builds last silently wins.
+	PYTHONPATH=$(SRC) $(PY) -c "from fhir_sulo.engine.docker import EngineImage; \
+	  i = EngineImage(); i.ensure_built(); print('built', i.tag)"
 
 .PHONY: engine-tests
 engine-tests: ## Gate 1 - linter and driver tests (live ones skip without Docker)

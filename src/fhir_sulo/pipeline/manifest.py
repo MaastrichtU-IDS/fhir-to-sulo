@@ -24,7 +24,8 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, Mapping, Optional, Sequence, Tuple
+from string import Formatter
+from typing import Any, Dict, Mapping, Optional, Sequence, Set, Tuple
 
 MANIFEST_FORMAT = "fhir-sulo/map-run-bindings/0.1.0"
 
@@ -219,6 +220,12 @@ class MapFiles:
             return None
         return load_manifest_file(self.bindings, self.family)
 
+    @property
+    def contract_document(self) -> Optional[Dict[str, Any]]:
+        if self.contract is None:
+            return None
+        return json.loads(self.contract.read_text(encoding="utf-8"))
+
 
 def _pick(directory: Path, family: str, role: str, extension: str) -> Optional[Path]:
     """Newest ``<family>-<role>.v<N>.<ext>``, or the unversioned form."""
@@ -262,6 +269,33 @@ def discover(root: Path) -> Sequence[MapFiles]:
             contract=_pick(directory, family, "map-contract", ".json"),
         ))
     return found
+
+
+def host_consumed_variables(
+    manifest: Manifest, contract: Optional[Mapping[str, Any]] = None
+) -> Set[str]:
+    """Source variables the HOST reads, as local names.
+
+    In this architecture a bound variable legitimately never reaches a target
+    constraint: it names a node key, feeds the identity or terminology
+    service, or guards eligibility. Both the linter's SP101 and the runner's
+    binding-coverage check need this set, and they must agree -- a variable
+    the linter accepts and the runner calls dropped data would fail every run
+    of a map that passed its own gate.
+
+    Two machine-readable sources, both already in the tree: the field names a
+    node-key template interpolates, and ``pivot_variables[].target_role`` in
+    the family's MapContract.
+    """
+    consumed: Set[str] = set()
+    for template in manifest.node_key_templates.values():
+        for _, field_name, _, _ in Formatter().parse(template):
+            if field_name:
+                consumed.add(field_name)
+    for variable in (contract or {}).get("pivot_variables", ()):
+        if variable.get("target_role"):
+            consumed.add(variable.get("name"))
+    return consumed
 
 
 def load_manifest_file(path: Path, family: Optional[str] = None) -> Manifest:
