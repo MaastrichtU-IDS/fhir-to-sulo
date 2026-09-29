@@ -39,7 +39,7 @@ from dataclasses import dataclass
 from typing import List, Optional, Tuple
 
 from ..store.canonical import digest
-from .strictness import CONCEPT_NOTE_LITERAL, Strictness
+from .strictness import Strictness, resolve
 
 __all__ = [
     "SHAPES_DIR",
@@ -78,21 +78,38 @@ class ShapeReport:
     violations: Tuple[ShapeViolation, ...] = ()
     shape_modules: Tuple[str, ...] = ()
     text: str = ""
+    data_digest: str = ""
+    """Digest of the validated graph itself.
+
+    Without it, every conforming report hashes identically - there are no
+    violations to distinguish them - so ``RunRecord.validation_report_digest``
+    would carry no information about *which* graph was validated. All nine
+    expected fixture graphs and the 10,000-resource benchmark produced the
+    same digest before this field existed. A validation digest that cannot
+    tell you what was validated is not evidence.
+    """
+
+    triples_validated: int = 0
+    focus_nodes: int = 0
 
     @property
     def digest(self) -> str:
         """Stable digest, for ``RunRecord.validation_report_digest``.
 
-        Hashes the findings, not the prose: pySHACL's text output includes
-        blank-node labels that vary between runs, and a validation digest that
-        changed for that reason would make "identical graph hashes from a clean
-        deployment" impossible to demonstrate.
+        Hashes the findings and the identity of the graph they are about, not
+        the prose: pySHACL's text output includes blank-node labels that vary
+        between runs, and a validation digest that changed for that reason
+        would make "identical graph hashes from a clean deployment"
+        impossible to demonstrate.
         """
         return digest(
             {
                 "conforms": self.conforms,
                 "strictness": self.strictness_label,
                 "modules": list(self.shape_modules),
+                "data_digest": self.data_digest,
+                "triples_validated": self.triples_validated,
+                "focus_nodes": self.focus_nodes,
                 "violations": sorted(
                     [v.source_shape, v.focus_node, v.path or "", v.message, v.severity]
                     for v in self.violations
@@ -120,8 +137,14 @@ def _require_rdflib():
     return rdflib
 
 
-def load_shapes_graph(strictness: Strictness = CONCEPT_NOTE_LITERAL):
-    """Merge the base shapes with whichever R5 modules the switch enables."""
+def load_shapes_graph(strictness):
+    """Merge the base shapes with whichever R5 modules the switch enables.
+
+    ``strictness`` is required and has no default. It may be a ``Strictness``
+    or a mode name; anything else - including ``None`` - goes through
+    ``resolve()``, which refuses while R5 is unanswered.
+    """
+    strictness = resolve(strictness) if not isinstance(strictness, Strictness) else strictness
     rdflib = _require_rdflib()
     graph = rdflib.Graph()
     for module in strictness.modules():
@@ -149,13 +172,16 @@ def _as_graph(data):
     raise TypeError("cannot read a graph from %s" % type(data).__name__)
 
 
-def validate_graph(
-    data,
-    strictness: Strictness = CONCEPT_NOTE_LITERAL,
-    *,
-    shapes_graph=None,
-) -> ShapeReport:
-    """Validate a materialized target graph against the SULO shape contract."""
+def validate_graph(data, strictness, *, shapes_graph=None) -> ShapeReport:
+    """Validate a materialized target graph against the SULO shape contract.
+
+    ``strictness`` is a **required positional argument** with no default. That
+    is review item R5: an earlier version defaulted to the permissive answer,
+    which meant option B was in force everywhere while the flag claimed the
+    question was open. A caller must now name a mode - or pass ``None`` and
+    get ``R5PolicyUnset``.
+    """
+    strictness = resolve(strictness) if not isinstance(strictness, Strictness) else strictness
     try:
         from pyshacl import validate as pyshacl_validate
     except ImportError as exc:  # pragma: no cover - environment guard
@@ -205,4 +231,22 @@ def validate_graph(
         violations=tuple(sorted(violations, key=lambda v: (v.focus_node, v.message))),
         shape_modules=strictness.modules(),
         text=text,
+        data_digest=graph_digest(data_graph),
+        triples_validated=len(data_graph),
+        focus_nodes=len(set(data_graph.subjects())),
     )
+
+
+def graph_digest(graph) -> str:
+    """Canonical digest of an RDF graph's asserted triples.
+
+    N-Triples lines, sorted, hashed. Blank-node labels are not stable across
+    parses, so a graph containing them gets a digest that is stable only for a
+    given serialisation - which is stated here rather than silently assumed.
+    The target graphs this pilot validates carry no blank nodes (DR-302 gives
+    every repeated group a source IRI), so in practice it is fully stable.
+    """
+    lines = sorted(
+        "%s %s %s ." % (s.n3(), p.n3(), o.n3()) for s, p, o in graph
+    )
+    return digest(lines)

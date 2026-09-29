@@ -169,7 +169,7 @@ def stage_provenance(records, report: BenchmarkReport):
 def stage_shacl(store, report: BenchmarkReport, *, strictness_name: str):
     from fhir_sulo.validation import shapes_check, strictness as strictness_mod
 
-    strictness = getattr(strictness_mod, strictness_name)
+    strictness = strictness_mod.resolve(strictness_name)
     triples = store.current_triples()
     with Timer("shacl validation", len(triples)) as timer:
         graph_report = shapes_check.validate_graph("\n".join(triples), strictness)
@@ -177,6 +177,7 @@ def stage_shacl(store, report: BenchmarkReport, *, strictness_name: str):
         timer.detail["conforms"] = graph_report.conforms
         timer.detail["violations"] = len(graph_report.violations)
         timer.detail["report digest"] = graph_report.digest[:16]
+        timer.detail["graph digest"] = graph_report.data_digest[:16]
         if not graph_report.conforms:
             for violation in graph_report.violations[:5]:
                 print("  SHACL violation: %s" % violation, file=sys.stderr)
@@ -272,8 +273,13 @@ def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("-n", "--resources", type=int, default=10000)
     parser.add_argument("--seed", type=int, default=20260929)
-    parser.add_argument("--strictness", default="CONCEPT_NOTE_LITERAL",
-                        choices=["CONCEPT_NOTE_LITERAL", "R5_OPTION_A", "R5_OPTION_B"])
+    parser.add_argument(
+        "--strictness", required=True,
+        choices=["concept-note-literal", "closed-world-complete", "from-policy"],
+        help=("REQUIRED. Review item R5 is open and has no default, so every "
+              "benchmark report names the strictness it ran under. "
+              "'from-policy' uses the reviewer's recorded answer and fails "
+              "while it is unset."))
     parser.add_argument("--skip-shacl", action="store_true")
     parser.add_argument("--skip-reasoning", action="store_true")
     parser.add_argument("--reason-batch", type=int, default=50,
