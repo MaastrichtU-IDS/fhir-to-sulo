@@ -12,17 +12,44 @@ from __future__ import annotations
 
 import json
 import os
+import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, Mapping
 
 from .canonical import digest
 
-__all__ = ["PolicyBundle", "PolicyError", "default_policy_dir"]
+__all__ = [
+    "PolicyBundle",
+    "PolicyError",
+    "default_policy_dir",
+    "parse_policy_version",
+    "POLICY_BUNDLE_NAME",
+]
+
+POLICY_BUNDLE_NAME = "fhir-sulo-policies"
+
+_POLICY_VERSION_RE = re.compile(
+    r"^(?P<bundle>[a-z0-9-]+)/identity-(?P<identity>[^+]+)"
+    r"\+code-(?P<code_interpretation>[^+]+)"
+    r"\+unit-(?P<unit>[^+]+)"
+    r"\+sha256\.(?P<digest_prefix>[0-9a-f]{16})$"
+)
 
 
 class PolicyError(RuntimeError):
     """A policy table is missing, unparseable, or internally inconsistent."""
+
+
+def parse_policy_version(policy_version: str) -> Dict[str, str]:
+    """Resolve a ``RunRecord.policy_version`` string back to its components.
+
+    Raises ``PolicyError`` if the string is not one this project produced.
+    """
+    match = _POLICY_VERSION_RE.match(policy_version.strip())
+    if not match:
+        raise PolicyError("not a fhir-sulo policy version string: %r" % policy_version)
+    return match.groupdict()
 
 
 _FILES = {
@@ -78,16 +105,55 @@ class PolicyBundle:
     # -- versioning ------------------------------------------------------
 
     @property
+    def policy_version(self) -> str:
+        """The single string for ``RunRecord.policy_version``.
+
+        Covers all three tables at once and is resolvable back to them by
+        ``parse_policy_version``: it names each table's semantic version and
+        pins the exact bytes with the bundle digest.
+
+        Note that this string is *not* an input to any entity key. Entity IRIs
+        are keyed on ``key_revision`` instead, so a policy edit that does not
+        change the keying answer moves this string while leaving every IRI
+        alone. See ``entity_key_revision``.
+        """
+        return "%s/identity-%s+code-%s+unit-%s+sha256.%s" % (
+            POLICY_BUNDLE_NAME,
+            self.identity["version"],
+            self.code_interpretation["version"],
+            self.unit["version"],
+            self.bundle_digest[:16],
+        )
+
+    @property
+    def terminology_snapshot(self) -> str:
+        """The single string for ``RunRecord.terminology_snapshot``."""
+        code_snapshot = str(self.code_interpretation["terminology_snapshot"]["snapshot_id"])
+        ucum_snapshot = str(self.unit["ucum_snapshot"]["snapshot_id"])
+        if code_snapshot == ucum_snapshot:
+            return code_snapshot
+        return "code=%s+ucum=%s" % (code_snapshot, ucum_snapshot)
+
+    @property
+    def entity_key_revision(self) -> str:
+        """Bumping this - and only this - re-keys every entity IRI."""
+        return str(self.identity["entity_iri"]["key_revision"])
+
+    @property
+    def quality_key_revision(self) -> str:
+        return str(self.identity["quality_identity"]["key_revision"])
+
+    @property
     def versions(self) -> Dict[str, str]:
-        """Per-table versions plus the bundle digest, for the ``RunRecord``."""
+        """Per-table detail behind ``policy_version``, for audit records."""
         return {
+            "policy_version": self.policy_version,
             "identity_policy": str(self.identity["version"]),
             "code_interpretation": str(self.code_interpretation["version"]),
             "unit_policy": str(self.unit["version"]),
-            "terminology_snapshot": str(
-                self.code_interpretation["terminology_snapshot"]["snapshot_id"]
-            ),
-            "ucum_snapshot": str(self.unit["ucum_snapshot"]["snapshot_id"]),
+            "terminology_snapshot": self.terminology_snapshot,
+            "entity_key_revision": self.entity_key_revision,
+            "quality_key_revision": self.quality_key_revision,
             "policy_bundle_digest": self.bundle_digest,
         }
 
@@ -101,6 +167,10 @@ class PolicyBundle:
                 "unit_policy": self.unit,
             }
         )
+
+    def matches_policy_version(self, policy_version: str) -> bool:
+        """True if this bundle is byte-for-byte the one that string names."""
+        return self.policy_version == policy_version
 
     # -- internal consistency --------------------------------------------
 
@@ -121,6 +191,13 @@ class PolicyBundle:
             raise PolicyError("entity_iri.key_length_hex_chars must be an int in 8..64")
         if iri.get("key_hash_algorithm") != "sha256":
             raise PolicyError("only sha256 is supported for entity keys")
+        if not str(iri.get("key_revision", "")).strip():
+            raise PolicyError("entity_iri.key_revision is required")
+        if "policy_version" in iri.get("key_input_fields", []):
+            raise PolicyError(
+                "entity_iri.key_input_fields must not contain 'policy_version': entity "
+                "IRIs would move on every unrelated policy edit. Use 'key_revision'."
+            )
 
         quality = self.identity.get("quality_identity")
         if not isinstance(quality, dict):
@@ -128,6 +205,13 @@ class PolicyBundle:
         mode = quality.get("mode")
         if mode is not None and mode not in quality.get("allowed_modes", {}):
             raise PolicyError("unknown quality_identity.mode: %r" % (mode,))
+        if not str(quality.get("key_revision", "")).strip():
+            raise PolicyError("quality_identity.key_revision is required")
+        for name, spec in quality.get("allowed_modes", {}).items():
+            if "policy_version" in spec.get("key_input_fields", []):
+                raise PolicyError(
+                    "quality mode %r keys on 'policy_version'; use 'key_revision'" % name
+                )
 
         for table, entry_key, id_key in (
             (self.code_interpretation, "entries", "entry_id"),

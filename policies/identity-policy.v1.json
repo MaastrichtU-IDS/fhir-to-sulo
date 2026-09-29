@@ -22,9 +22,11 @@
     "single_source_scope": null,
     "key_hash_algorithm": "sha256",
     "key_length_hex_chars": 32,
+    "key_revision": "1",
+    "key_revision_note": "Deliberately NOT the table's semantic version. Entity IRIs are stable across every policy edit that does not change the keying answer; bumping this revision is an explicit, breaking re-keying decision that needs a DR-4xx record. Agent 6 can therefore treat an entity IRI as stable while identity-policy.version moves.",
     "key_input_fields": [
       "key_scheme",
-      "policy_version",
+      "key_revision",
       "entity_kind",
       "source_scope_id",
       "resource_type",
@@ -111,6 +113,8 @@
   "quality_identity": {
     "mode": null,
     "mode_status": "UNSET - RESERVED FOR THE CLINICAL/ONTOLOGY REVIEWER",
+    "key_revision": "1",
+    "key_revision_note": "As for entity_iri.key_revision: quality IRIs are stable across policy edits that do not change the keying answer. Note that CHANGING quality_identity.mode does change every quality IRI, unavoidably, because the two modes key on different inputs. That is a graph-key-affecting decision, not an incidental version bump.",
     "unset_behaviour": "reject",
     "unset_behaviour_note": "While mode is null every quality-identity request returns a rejection with reason_code quality-identity-policy-unset. Nothing downstream can accidentally ship a guessed policy.",
     "allowed_modes": {
@@ -118,7 +122,7 @@
         "description": "One persisting quality entity per (person, observable code). The same renal-filtration quality IRI is reused across every eGFR observation for that person.",
         "key_input_fields": [
           "key_scheme",
-          "policy_version",
+          "key_revision",
           "person_entity_iri",
           "quality_class_iri",
           "observable_system",
@@ -131,7 +135,7 @@
         "description": "A quality entity keyed by person, observable code, the source observation version, and the clinically relevant time.",
         "key_input_fields": [
           "key_scheme",
-          "policy_version",
+          "key_revision",
           "person_entity_iri",
           "quality_class_iri",
           "observable_system",

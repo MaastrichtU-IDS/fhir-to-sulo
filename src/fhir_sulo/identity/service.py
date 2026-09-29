@@ -117,7 +117,10 @@ class IdentityService:
 
         key_inputs = {
             "key_scheme": _KEY_SCHEME_VERSION,
-            "policy_version": str(self.policy.identity["version"]),
+            # Deliberately the key revision, not the table's semantic version:
+            # an entity IRI must not move when a policy edit did not change the
+            # keying answer. See DR-401 section 2.
+            "key_revision": str(self._iri["key_revision"]),
             "entity_kind": request.entity_kind,
             "source_scope_id": chosen.source_scope.scope_id,
             "resource_type": chosen.resource_type,
@@ -212,7 +215,7 @@ class IdentityService:
         fields: Sequence[str] = tuple(spec["key_input_fields"])
         key_inputs: Dict[str, Any] = {
             "key_scheme": _QUALITY_KEY_SCHEME_VERSION,
-            "policy_version": str(self.policy.identity["version"]),
+            "key_revision": str(self._quality["key_revision"]),
             "person_entity_iri": request.person.entity_iri,
             "quality_class_iri": request.quality_class_iri,
             "observable_system": request.observable_system,

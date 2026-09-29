@@ -13,10 +13,26 @@ affects the produced graph lives in code without a corresponding entry here.
 
 ## Versioning
 
-Each table carries its own semantic `version`. `PolicyBundle.versions` returns
-those plus `policy_bundle_digest`, a sha256 over the canonical form of all three
-tables. That digest is the single value Agent 6 records as the policy version in
-a `RunRecord`; it changes if any byte of any table changes.
+Each table carries its own semantic `version`. For a `RunRecord`:
+
+- `PolicyBundle.policy_version` is the single string covering all three, e.g.
+  `fhir-sulo-policies/identity-1.0.0+code-1.0.0+unit-1.0.0+sha256.6b2c35b7a7c69f3f`.
+  `parse_policy_version()` resolves it back to its components and
+  `matches_policy_version()` checks a checkout against it.
+- `PolicyBundle.terminology_snapshot` is the single snapshot string.
+
+`PolicyBundle.versions` keeps the per-table detail behind those.
+
+### Entity IRIs do not move when a version does
+
+`entity_iri.key_revision` and `quality_identity.key_revision`, **not** the table
+versions, are what entity and quality IRIs are keyed on. Bumping a table version,
+adding a code entry or approving a unit leaves every IRI unchanged; bumping a
+`key_revision` re-keys everything and needs its own DR-4xx record. Policy
+validation rejects a table that tries to key on `policy_version`.
+
+The one intended exception: answering the quality identity question changes every
+quality IRI, because the two modes key on different inputs.
 
 ```
 $ python -m fhir_sulo.policy.report        # Markdown view of all three tables
