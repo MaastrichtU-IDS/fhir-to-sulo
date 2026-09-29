@@ -32,7 +32,7 @@ against the union, not against a single pass.
 from __future__ import annotations
 
 import hashlib
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from typing import Any, Dict, List, Mapping, Optional, Sequence, Tuple
 
 from ..contracts import BindingNode, QuadLineage, TransformResult, TransformStatus
@@ -464,9 +464,34 @@ def union_passes(passes: Sequence[PassResult]) -> DriverResult:
     return DriverResult(
         records=tuple(records),
         passes=tuple(passes),
-        binding_tree=binding_tree_of(passes[0]) if passes else None,
+        binding_tree=combined_binding_tree(passes),
         diagnostics=tuple(diagnostics),
     )
+
+
+def combined_binding_tree(passes: Sequence[PassResult]) -> Optional[BindingNode]:
+    """One binding tree spanning every pass.
+
+    The acceptance tuples are read off ``TransformResult.binding_tree`` via
+    ``tuples_for_scope``. Returning only the first pass's tree would hide every
+    later pass's iterations from that check -- for a DR-302 decomposition, the
+    skeleton's bindings would be all anyone could see, and the component tuples
+    the acceptance matrix is written about would be unreachable.
+
+    Later passes attach as children of the first pass's root. They are not
+    nested under a particular iteration of it, because deciding which iteration
+    a pass "belongs" to would be the host inferring structure; the pass's own
+    subtree already carries its scope and iteration keys, which is what
+    ``tuples_for_scope`` reads.
+    """
+    if not passes:
+        return None
+    trees = [binding_tree_of(p) for p in passes]
+    root = trees[0]
+    if root is None:
+        return next((t for t in trees if t is not None), None)
+    extra = tuple(t for t in trees[1:] if t is not None)
+    return replace(root, children=root.children + extra) if extra else root
 
 
 def materialize(

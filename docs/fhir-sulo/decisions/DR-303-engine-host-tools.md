@@ -197,3 +197,33 @@ untraced quad on its own, before the contract is ever constructed.
 The fix is to delete three words. It is not made here because the four
 interfaces are frozen and changing one is the integration lead's call
 (plan §6 rule 1). When it is made, that test class should be deleted with it.
+
+## Post-review corrections
+
+Seven defects found and fixed while reviewing the first implementation. Five of
+them were **false negatives** — the tool would have passed something bad — which
+is the only failure direction that matters for a gate whose job is to catch
+silent faults. Recorded because each one is a trap the next person could set
+again.
+
+| Where | Defect | Why it mattered |
+| --- | --- | --- |
+| `shexj.walk_paths` | repetition counted as a boolean per arc, so `(:x .*)*` and two nested repeating groups both scored 1 | DR-302 violations would have linted clean; now `repeat_depth` counts group nesting plus the constraint's own |
+| `shexj.Cycle` | `through_repetition` indexed `steps` by a *stack* length — arithmetic over two different sequences | unused, and wrong; removed rather than left for someone to trust |
+| `shexj.walk_paths` | no breadth bound; shape references form a DAG, so paths are exponential in shape count | a build gate that hangs, or worse analyses a prefix and passes; now `SchemaTooLarge` → SP008 |
+| `mapcode` | Python `$` matches before a trailing newline, JavaScript's does not | `" v:name \n"` would lint as a valid variable while the engine prunes the branch; now `\Z` |
+| `mapcode` | `<>` yielded no variable and no problem | binds the empty name, never binds, shape deleted in silence |
+| `rdfterms` | control characters emitted raw | invalid N-Triples: a corrupt graph rather than a rejected one, and clinical free text really does carry them |
+| `driver` | `union_passes` kept only the first pass's binding tree | a decomposed map's acceptance tuples were unreachable from `TransformResult.binding_tree` — the check would have inspected the skeleton only |
+
+Two further places now refuse instead of guessing: sibling binding-tree frames
+that disagree about a variable, and a declared key variable an iteration does
+not bind (which would key every iteration as `('',)` and undo the reason
+`RepetitionScope` demands key variables at all).
+
+`mapcode` also now explains the trap rather than only reporting it: a code like
+`regex(/(?<v:a>x)/)` with no space in its argument matches the engine's
+*variable* pattern first and never reaches the function dispatcher. Flagging it
+is agreement with the engine, not strictness — but "prefix `regex(/(?<v` is not
+declared" is not a message anyone can act on, so the finding now says what
+actually happened.

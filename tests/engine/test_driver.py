@@ -599,3 +599,34 @@ class TestFrozenContractGap(unittest.TestCase):
             source_canonical_url=OBS1, source_version_id="1")
         self.assertEqual(len(transform.lineage), len(transform.target_quads))
         self.assertTrue(transform.target_quads)
+
+
+class TestCombinedBindingTree(unittest.TestCase):
+    """A decomposed map's acceptance tuples must be reachable from the one
+    binding tree the contract carries, or the check silently inspects only the
+    skeleton."""
+
+    def three_passes(self):
+        return [
+            interpret_pass(_spec("a", "urn:g:p-1#subject"), load_response("decomp-pass-a")),
+            interpret_pass(_spec("b1", OBS1, scope="component",
+                                 keys=(VAR + "componentValue",)),
+                           load_response("decomp-pass-b1")),
+            interpret_pass(_spec("b2", OBS2, scope="component",
+                                 keys=(VAR + "componentValue",)),
+                           load_response("decomp-pass-b2")),
+        ]
+
+    def test_every_pass_contributes_its_iterations(self):
+        tree = union_passes(self.three_passes()).binding_tree
+        tuples = tree.tuples_for_scope("component", [VAR + "componentValue"])
+        # bp-1 is {120, 80} and bp-2 is {105, 70}: all four, from both passes
+        self.assertEqual(sorted(t[0] for t in tuples), ["105", "120", "70", "80"])
+
+    def test_a_single_pass_tree_is_unchanged(self):
+        tree = union_passes([bp_pass()]).binding_tree
+        self.assertEqual(len(tree.children), 2)
+
+    def test_the_first_pass_root_is_still_the_root(self):
+        tree = union_passes(self.three_passes()).binding_tree
+        self.assertEqual(tree.focus, "urn:g:p-1#subject")
