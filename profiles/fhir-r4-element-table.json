@@ -1,0 +1,306 @@
+{
+  "table_id": "fhir-sulo/profiles/r4-element-table",
+  "table_version": "0.1.0",
+  "fhir_release": "4.0.1",
+  "description": "The FHIR R4 element -> RDF predicate table for the pinned profile subset. Hand-authored from https://hl7.org/fhir/R4/rdf.html and verified against HL7's own published Turtle examples (observation-example-bloodpressure.ttl, observation-example-f205-egfr.ttl, encounter-example.ttl). The renderer REFUSES any element not listed here rather than dropping it, so 'no source modification is lost' is enforced by construction, not by inspection.",
+  "predicate_naming_rule": "fhir:<TypeThatDefinesTheElement>.<elementName>. Elements inherited from Resource/DomainResource use the defining base type (fhir:Resource.id, fhir:DomainResource.text). BackboneElement children use the full path from the resource (fhir:Observation.component.valueQuantity).",
+
+  "primitive_xsd": {
+    "boolean": "http://www.w3.org/2001/XMLSchema#boolean",
+    "integer": "http://www.w3.org/2001/XMLSchema#integer",
+    "positiveInt": "http://www.w3.org/2001/XMLSchema#integer",
+    "unsignedInt": "http://www.w3.org/2001/XMLSchema#integer",
+    "decimal": "http://www.w3.org/2001/XMLSchema#decimal",
+    "date": "#temporal",
+    "dateTime": "#temporal",
+    "instant": "#temporal",
+    "time": "http://www.w3.org/2001/XMLSchema#time",
+    "string": null,
+    "code": null,
+    "uri": null,
+    "url": null,
+    "canonical": null,
+    "id": null,
+    "oid": null,
+    "uuid": null,
+    "markdown": null,
+    "base64Binary": null,
+    "xhtml": null
+  },
+  "primitive_xsd_note": "null means a plain (untyped) literal, which is what HL7's published Turtle emits for string/code/uri. '#temporal' means the datatype is chosen from the lexical form; see temporal_precision_policy in fhir-r4-pilot.json.",
+
+  "link_bearing_types": ["Reference"],
+  "raw_literal_elements": ["Narrative.div"],
+  "raw_literal_note": "Narrative.div is emitted as a direct string literal object, not wrapped under fhir:value. Verified against HL7's published Turtle.",
+
+  "types": {
+    "Observation": {
+      "kind": "resource",
+      "elements": {
+        "id":                {"predicate": "Resource.id", "type": "id"},
+        "meta":              {"predicate": "Resource.meta", "type": "Meta"},
+        "implicitRules":     {"predicate": "Resource.implicitRules", "type": "uri"},
+        "language":          {"predicate": "Resource.language", "type": "code"},
+        "text":              {"predicate": "DomainResource.text", "type": "Narrative"},
+        "contained":         {"predicate": "DomainResource.contained", "type": "#resource", "repeats": true},
+        "extension":         {"predicate": "DomainResource.extension", "type": "Extension", "repeats": true},
+        "modifierExtension": {"predicate": "DomainResource.modifierExtension", "type": "Extension", "repeats": true, "modifier": true},
+        "identifier":        {"predicate": "Observation.identifier", "type": "Identifier", "repeats": true},
+        "basedOn":           {"predicate": "Observation.basedOn", "type": "Reference", "repeats": true},
+        "partOf":            {"predicate": "Observation.partOf", "type": "Reference", "repeats": true},
+        "hasMember":         {"predicate": "Observation.hasMember", "type": "Reference", "repeats": true},
+        "derivedFrom":       {"predicate": "Observation.derivedFrom", "type": "Reference", "repeats": true},
+        "status":            {"predicate": "Observation.status", "type": "code"},
+        "category":          {"predicate": "Observation.category", "type": "CodeableConcept", "repeats": true},
+        "code":              {"predicate": "Observation.code", "type": "CodeableConcept"},
+        "subject":           {"predicate": "Observation.subject", "type": "Reference"},
+        "encounter":         {"predicate": "Observation.encounter", "type": "Reference"},
+        "effectiveDateTime": {"predicate": "Observation.effectiveDateTime", "type": "dateTime", "choice": "effective[x]"},
+        "effectivePeriod":   {"predicate": "Observation.effectivePeriod", "type": "Period", "choice": "effective[x]"},
+        "effectiveInstant":  {"predicate": "Observation.effectiveInstant", "type": "instant", "choice": "effective[x]"},
+        "issued":            {"predicate": "Observation.issued", "type": "instant"},
+        "performer":         {"predicate": "Observation.performer", "type": "Reference", "repeats": true},
+        "valueQuantity":     {"predicate": "Observation.valueQuantity", "type": "Quantity", "choice": "value[x]"},
+        "valueString":       {"predicate": "Observation.valueString", "type": "string", "choice": "value[x]"},
+        "valueCodeableConcept": {"predicate": "Observation.valueCodeableConcept", "type": "CodeableConcept", "choice": "value[x]"},
+        "dataAbsentReason":  {"predicate": "Observation.dataAbsentReason", "type": "CodeableConcept"},
+        "interpretation":    {"predicate": "Observation.interpretation", "type": "CodeableConcept", "repeats": true},
+        "note":              {"predicate": "Observation.note", "type": "Annotation", "repeats": true},
+        "bodySite":          {"predicate": "Observation.bodySite", "type": "CodeableConcept"},
+        "method":            {"predicate": "Observation.method", "type": "CodeableConcept"},
+        "specimen":          {"predicate": "Observation.specimen", "type": "Reference"},
+        "device":            {"predicate": "Observation.device", "type": "Reference"},
+        "referenceRange":    {"predicate": "Observation.referenceRange", "type": "Observation.referenceRange", "repeats": true},
+        "component":         {"predicate": "Observation.component", "type": "Observation.component", "repeats": true}
+      }
+    },
+
+    "Observation.referenceRange": {
+      "kind": "backbone",
+      "note": "Observation.component.referenceRange is a FHIR contentReference to this backbone, so its children keep the Observation.referenceRange.* predicates even when nested under a component. Verified against observation-example-f205-egfr.ttl.",
+      "elements": {
+        "id":                {"predicate": "Element.id", "type": "string"},
+        "extension":         {"predicate": "Element.extension", "type": "Extension", "repeats": true},
+        "modifierExtension": {"predicate": "BackboneElement.modifierExtension", "type": "Extension", "repeats": true, "modifier": true},
+        "low":               {"predicate": "Observation.referenceRange.low", "type": "Quantity"},
+        "high":              {"predicate": "Observation.referenceRange.high", "type": "Quantity"},
+        "type":              {"predicate": "Observation.referenceRange.type", "type": "CodeableConcept"},
+        "appliesTo":         {"predicate": "Observation.referenceRange.appliesTo", "type": "CodeableConcept", "repeats": true},
+        "age":               {"predicate": "Observation.referenceRange.age", "type": "Range"},
+        "text":              {"predicate": "Observation.referenceRange.text", "type": "string"}
+      }
+    },
+
+    "Range": {
+      "kind": "datatype",
+      "elements": {
+        "id":   {"predicate": "Element.id", "type": "string"},
+        "low":  {"predicate": "Range.low", "type": "Quantity"},
+        "high": {"predicate": "Range.high", "type": "Quantity"}
+      }
+    },
+
+    "Observation.component": {
+      "kind": "backbone",
+      "elements": {
+        "id":                {"predicate": "Element.id", "type": "string"},
+        "extension":         {"predicate": "Element.extension", "type": "Extension", "repeats": true},
+        "modifierExtension": {"predicate": "BackboneElement.modifierExtension", "type": "Extension", "repeats": true, "modifier": true},
+        "code":              {"predicate": "Observation.component.code", "type": "CodeableConcept"},
+        "valueQuantity":     {"predicate": "Observation.component.valueQuantity", "type": "Quantity", "choice": "value[x]"},
+        "valueString":       {"predicate": "Observation.component.valueString", "type": "string", "choice": "value[x]"},
+        "valueCodeableConcept": {"predicate": "Observation.component.valueCodeableConcept", "type": "CodeableConcept", "choice": "value[x]"},
+        "dataAbsentReason":  {"predicate": "Observation.component.dataAbsentReason", "type": "CodeableConcept"},
+        "interpretation":    {"predicate": "Observation.component.interpretation", "type": "CodeableConcept", "repeats": true},
+        "referenceRange":    {"predicate": "Observation.component.referenceRange", "type": "Observation.referenceRange", "repeats": true}
+      }
+    },
+
+    "Encounter": {
+      "kind": "resource",
+      "elements": {
+        "id":                {"predicate": "Resource.id", "type": "id"},
+        "meta":              {"predicate": "Resource.meta", "type": "Meta"},
+        "implicitRules":     {"predicate": "Resource.implicitRules", "type": "uri"},
+        "language":          {"predicate": "Resource.language", "type": "code"},
+        "text":              {"predicate": "DomainResource.text", "type": "Narrative"},
+        "contained":         {"predicate": "DomainResource.contained", "type": "#resource", "repeats": true},
+        "extension":         {"predicate": "DomainResource.extension", "type": "Extension", "repeats": true},
+        "modifierExtension": {"predicate": "DomainResource.modifierExtension", "type": "Extension", "repeats": true, "modifier": true},
+        "identifier":        {"predicate": "Encounter.identifier", "type": "Identifier", "repeats": true},
+        "status":            {"predicate": "Encounter.status", "type": "code"},
+        "class":             {"predicate": "Encounter.class", "type": "Coding"},
+        "type":              {"predicate": "Encounter.type", "type": "CodeableConcept", "repeats": true},
+        "subject":           {"predicate": "Encounter.subject", "type": "Reference"},
+        "participant":       {"predicate": "Encounter.participant", "type": "Encounter.participant", "repeats": true},
+        "period":            {"predicate": "Encounter.period", "type": "Period"},
+        "serviceProvider":   {"predicate": "Encounter.serviceProvider", "type": "Reference"}
+      }
+    },
+
+    "Encounter.participant": {
+      "kind": "backbone",
+      "elements": {
+        "id":                {"predicate": "Element.id", "type": "string"},
+        "extension":         {"predicate": "Element.extension", "type": "Extension", "repeats": true},
+        "modifierExtension": {"predicate": "BackboneElement.modifierExtension", "type": "Extension", "repeats": true, "modifier": true},
+        "type":              {"predicate": "Encounter.participant.type", "type": "CodeableConcept", "repeats": true},
+        "period":            {"predicate": "Encounter.participant.period", "type": "Period"},
+        "individual":        {"predicate": "Encounter.participant.individual", "type": "Reference"}
+      }
+    },
+
+    "Patient": {
+      "kind": "resource",
+      "elements": {
+        "id":         {"predicate": "Resource.id", "type": "id"},
+        "meta":       {"predicate": "Resource.meta", "type": "Meta"},
+        "text":       {"predicate": "DomainResource.text", "type": "Narrative"},
+        "identifier": {"predicate": "Patient.identifier", "type": "Identifier", "repeats": true},
+        "active":     {"predicate": "Patient.active", "type": "boolean"},
+        "name":       {"predicate": "Patient.name", "type": "HumanName", "repeats": true},
+        "gender":     {"predicate": "Patient.gender", "type": "code"},
+        "birthDate":  {"predicate": "Patient.birthDate", "type": "date"}
+      }
+    },
+
+    "Practitioner": {
+      "kind": "resource",
+      "elements": {
+        "id":         {"predicate": "Resource.id", "type": "id"},
+        "meta":       {"predicate": "Resource.meta", "type": "Meta"},
+        "text":       {"predicate": "DomainResource.text", "type": "Narrative"},
+        "identifier": {"predicate": "Practitioner.identifier", "type": "Identifier", "repeats": true},
+        "active":     {"predicate": "Practitioner.active", "type": "boolean"},
+        "name":       {"predicate": "Practitioner.name", "type": "HumanName", "repeats": true}
+      }
+    },
+
+    "Meta": {
+      "kind": "datatype",
+      "elements": {
+        "id":          {"predicate": "Element.id", "type": "string"},
+        "versionId":   {"predicate": "Meta.versionId", "type": "id"},
+        "lastUpdated": {"predicate": "Meta.lastUpdated", "type": "instant"},
+        "source":      {"predicate": "Meta.source", "type": "uri"},
+        "profile":     {"predicate": "Meta.profile", "type": "canonical", "repeats": true, "link": true},
+        "security":    {"predicate": "Meta.security", "type": "Coding", "repeats": true},
+        "tag":         {"predicate": "Meta.tag", "type": "Coding", "repeats": true}
+      }
+    },
+
+    "Narrative": {
+      "kind": "datatype",
+      "elements": {
+        "id":     {"predicate": "Element.id", "type": "string"},
+        "status": {"predicate": "Narrative.status", "type": "code"},
+        "div":    {"predicate": "Narrative.div", "type": "xhtml", "raw_literal": true}
+      }
+    },
+
+    "CodeableConcept": {
+      "kind": "datatype",
+      "elements": {
+        "id":     {"predicate": "Element.id", "type": "string"},
+        "coding": {"predicate": "CodeableConcept.coding", "type": "Coding", "repeats": true},
+        "text":   {"predicate": "CodeableConcept.text", "type": "string"}
+      }
+    },
+
+    "Coding": {
+      "kind": "datatype",
+      "elements": {
+        "id":           {"predicate": "Element.id", "type": "string"},
+        "system":       {"predicate": "Coding.system", "type": "uri"},
+        "version":      {"predicate": "Coding.version", "type": "string"},
+        "code":         {"predicate": "Coding.code", "type": "code"},
+        "display":      {"predicate": "Coding.display", "type": "string"},
+        "userSelected": {"predicate": "Coding.userSelected", "type": "boolean"}
+      }
+    },
+
+    "Quantity": {
+      "kind": "datatype",
+      "elements": {
+        "id":         {"predicate": "Element.id", "type": "string"},
+        "value":      {"predicate": "Quantity.value", "type": "decimal"},
+        "comparator": {"predicate": "Quantity.comparator", "type": "code"},
+        "unit":       {"predicate": "Quantity.unit", "type": "string"},
+        "system":     {"predicate": "Quantity.system", "type": "uri"},
+        "code":       {"predicate": "Quantity.code", "type": "code"}
+      }
+    },
+
+    "Reference": {
+      "kind": "datatype",
+      "elements": {
+        "id":         {"predicate": "Element.id", "type": "string"},
+        "reference":  {"predicate": "Reference.reference", "type": "string"},
+        "type":       {"predicate": "Reference.type", "type": "uri"},
+        "identifier": {"predicate": "Reference.identifier", "type": "Identifier"},
+        "display":    {"predicate": "Reference.display", "type": "string"}
+      }
+    },
+
+    "Identifier": {
+      "kind": "datatype",
+      "elements": {
+        "id":       {"predicate": "Element.id", "type": "string"},
+        "use":      {"predicate": "Identifier.use", "type": "code"},
+        "type":     {"predicate": "Identifier.type", "type": "CodeableConcept"},
+        "system":   {"predicate": "Identifier.system", "type": "uri"},
+        "value":    {"predicate": "Identifier.value", "type": "string"},
+        "period":   {"predicate": "Identifier.period", "type": "Period"},
+        "assigner": {"predicate": "Identifier.assigner", "type": "Reference"}
+      }
+    },
+
+    "Period": {
+      "kind": "datatype",
+      "elements": {
+        "id":    {"predicate": "Element.id", "type": "string"},
+        "start": {"predicate": "Period.start", "type": "dateTime"},
+        "end":   {"predicate": "Period.end", "type": "dateTime"}
+      }
+    },
+
+    "Annotation": {
+      "kind": "datatype",
+      "elements": {
+        "id":              {"predicate": "Element.id", "type": "string"},
+        "authorReference": {"predicate": "Annotation.authorReference", "type": "Reference", "choice": "author[x]"},
+        "authorString":    {"predicate": "Annotation.authorString", "type": "string", "choice": "author[x]"},
+        "time":            {"predicate": "Annotation.time", "type": "dateTime"},
+        "text":            {"predicate": "Annotation.text", "type": "markdown"}
+      }
+    },
+
+    "HumanName": {
+      "kind": "datatype",
+      "elements": {
+        "id":     {"predicate": "Element.id", "type": "string"},
+        "use":    {"predicate": "HumanName.use", "type": "code"},
+        "text":   {"predicate": "HumanName.text", "type": "string"},
+        "family": {"predicate": "HumanName.family", "type": "string"},
+        "given":  {"predicate": "HumanName.given", "type": "string", "repeats": true}
+      }
+    },
+
+    "Extension": {
+      "kind": "datatype",
+      "elements": {
+        "id":            {"predicate": "Element.id", "type": "string"},
+        "url":           {"predicate": "Extension.url", "type": "uri"},
+        "extension":     {"predicate": "Extension.extension", "type": "Extension", "repeats": true},
+        "valueString":   {"predicate": "Extension.valueString", "type": "string", "choice": "value[x]"},
+        "valueBoolean":  {"predicate": "Extension.valueBoolean", "type": "boolean", "choice": "value[x]"},
+        "valueCode":     {"predicate": "Extension.valueCode", "type": "code", "choice": "value[x]"},
+        "valueDateTime": {"predicate": "Extension.valueDateTime", "type": "dateTime", "choice": "value[x]"},
+        "valueDecimal":  {"predicate": "Extension.valueDecimal", "type": "decimal", "choice": "value[x]"},
+        "valueCoding":   {"predicate": "Extension.valueCoding", "type": "Coding", "choice": "value[x]"},
+        "valueCodeableConcept": {"predicate": "Extension.valueCodeableConcept", "type": "CodeableConcept", "choice": "value[x]"},
+        "valueReference": {"predicate": "Extension.valueReference", "type": "Reference", "choice": "value[x]"}
+      }
+    }
+  }
+}
