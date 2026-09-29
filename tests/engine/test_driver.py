@@ -21,7 +21,7 @@ import unittest
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from support import load_response  # noqa: E402
+from .support import load_response  # noqa: E402
 
 from fhir_sulo.contracts import TransformStatus  # noqa: E402
 from fhir_sulo.engine.driver import (  # noqa: E402

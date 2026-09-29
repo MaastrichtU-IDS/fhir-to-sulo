@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import unittest
 
-from support import QUADS_V1, fake_engine_payload, mapped_pair, run_inputs  # noqa: F401
+from .support import QUADS_V1, fake_engine_payload, mapped_pair, run_inputs  # noqa: F401
 
 from fhir_sulo.contracts import TransformResult, TransformStatus
 from fhir_sulo.provenance import (
@@ -139,7 +139,7 @@ class TransformResultRefusesUntracedOutput(unittest.TestCase):
                 target_quads=QUADS_V1,
                 lineage=full[:1],
             )
-        self.assertIn("without lineage", str(caught.exception))
+        self.assertIn("no lineage", str(caught.exception))
 
     def test_build_transform_result_refuses_a_mapped_result_with_no_payload(self):
         with self.assertRaises(ValueError) as caught:

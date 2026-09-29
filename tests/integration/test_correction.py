@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import unittest
 
-from support import (  # noqa: F401  (sets sys.path)
+from .support import (  # noqa: F401  (sets sys.path)
     QUADS_V1,
     QUADS_V2,
     mapped_pair,

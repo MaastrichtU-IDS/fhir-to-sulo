@@ -14,7 +14,7 @@
     "status entered-in-error: no clinical assertions": 241
   },
   "passed": true,
-  "peak_memory_bytes": 2009415680,
+  "peak_memory_bytes": 1439694848,
   "resources": 10000,
   "stages": [
     {
@@ -29,25 +29,25 @@
       "failure": "",
       "items": 10000,
       "name": "generate",
-      "peak_memory_bytes": 62758912,
+      "peak_memory_bytes": 62443520,
       "peak_memory_source": "cgroup",
-      "seconds": 0.097,
-      "throughput_per_second": 103589.49
+      "seconds": 0.109,
+      "throughput_per_second": 92130.47
     },
     {
       "detail": {
         "current graphs": 9513,
         "current triples": 220015,
-        "state digest": "98300a15ad8ebac9"
+        "state digest": "811a19d076b15549"
       },
       "failed": false,
       "failure": "",
       "items": 10000,
       "name": "keying+lineage+store",
-      "peak_memory_bytes": 201744384,
+      "peak_memory_bytes": 201650176,
       "peak_memory_source": "cgroup",
-      "seconds": 1.529,
-      "throughput_per_second": 6542.25
+      "seconds": 1.694,
+      "throughput_per_second": 5904.87
     },
     {
       "detail": {
@@ -57,10 +57,10 @@
       "failure": "",
       "items": 10000,
       "name": "provenance",
-      "peak_memory_bytes": 296837120,
+      "peak_memory_bytes": 296816640,
       "peak_memory_source": "cgroup",
-      "seconds": 0.614,
-      "throughput_per_second": 16286.79
+      "seconds": 0.629,
+      "throughput_per_second": 15902.1
     },
     {
       "detail": {
@@ -73,19 +73,19 @@
       "failure": "",
       "items": 220015,
       "name": "shacl validation",
-      "peak_memory_bytes": 710676480,
+      "peak_memory_bytes": 718434304,
       "peak_memory_source": "cgroup",
-      "seconds": 84.945,
-      "throughput_per_second": 2590.1
+      "seconds": 82.639,
+      "throughput_per_second": 2662.35
     },
     {
       "detail": {
-        "batch size": 100,
-        "batches": 20,
+        "batch size": 50,
+        "batches": 40,
         "encounters in run": 1959,
         "encounters measured": 1959,
         "exclude tautologies": "structural",
-        "inferred triples": 140635,
+        "inferred triples": 144959,
         "reasoner": "HermiT",
         "reasoner backend": "local robot on PATH"
       },
@@ -93,13 +93,13 @@
       "failure": "",
       "items": 1959,
       "name": "owl reasoning (HermiT)",
-      "peak_memory_bytes": 2009415680,
+      "peak_memory_bytes": 1439694848,
       "peak_memory_source": "cgroup",
-      "seconds": 92.067,
-      "throughput_per_second": 21.28
+      "seconds": 83.51,
+      "throughput_per_second": 23.46
     }
   ],
-  "total_seconds": 179.251,
+  "total_seconds": 168.58,
   "within_memory_budget": true,
   "within_time_budget": true
 }

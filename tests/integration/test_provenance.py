@@ -9,7 +9,9 @@ from __future__ import annotations
 
 import unittest
 
-from support import (  # noqa: F401  (sets sys.path)
+from fhir_sulo.contracts import CONTRACT_VERSION
+
+from .support import (  # noqa: F401  (sets sys.path)
     QUADS_V1,
     QUADS_V2,
     mapped_pair,
@@ -96,7 +98,7 @@ class DerivedGraphLinksToItsSource(unittest.TestCase):
             (FSP + "policyVersion", "unresolved:R2"),
             (FSP + "domainOntologyVersion", "unresolved:R1"),
             (FSP + "engineBuild", "shex@1.0.0-alpha.33"),
-            (FSP + "contractVersion", "0.1.0"),
+            (FSP + "contractVersion", CONTRACT_VERSION),
         ):
             with self.subTest(term=term):
                 self.assertTrue(has(self.quads, "", term, value), term)

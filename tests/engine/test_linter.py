@@ -16,7 +16,7 @@ import unittest
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from support import error_codes, load_pair  # noqa: E402
+from .support import error_codes, load_pair  # noqa: E402
 
 from fhir_sulo.contracts import (  # noqa: E402
     MapContract, PivotVariable, RepetitionScope, VariableType,

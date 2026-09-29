@@ -17,8 +17,8 @@ from __future__ import annotations
 import hashlib
 import unittest
 
-import support  # noqa: F401  (sets sys.path)
-from support import graph_text
+from . import support  # noqa: F401  (sets sys.path)
+from .support import graph_text
 
 from fhir_sulo.validation import reasoning
 

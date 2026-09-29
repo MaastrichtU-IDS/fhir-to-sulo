@@ -92,6 +92,7 @@ class RunInputs:
     terminology_snapshot: str
     policy_version: str
     engine_build: str
+    renderer_id: str
     contract_version: str = CONTRACT_VERSION
 
     def key_inputs(self) -> GraphKeyInputs:
@@ -107,6 +108,7 @@ class RunInputs:
             terminology_snapshot=self.terminology_snapshot,
             policy_version=self.policy_version,
             engine_build=self.engine_build,
+            renderer_id=self.renderer_id,
             contract_version=self.contract_version,
         )
 
@@ -141,6 +143,7 @@ def build_run_record(
         domain_ontology_version=inputs.domain_ontology_version,
         terminology_snapshot=inputs.terminology_snapshot,
         engine_build=inputs.engine_build,
+        renderer_id=inputs.renderer_id,
         policy_version=inputs.policy_version,
         contract_version=inputs.contract_version,
         output_graph_key=key,

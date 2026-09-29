@@ -377,6 +377,102 @@ def check_fhir_rdf_proven():
     return PASS, f"{drift_msg}; oracle {oracle_msg}; {len(cases)} cases declare reference evidence"
 
 
+_PYTEST_CACHE = {}
+
+
+def _pytest_node(nodeid, label=None):
+    """Run one pytest node id and report PASS/FAIL from its exit status.
+
+    Cached per node id so a gate with several conditions backed by the same
+    class does not re-run it. If pytest is unavailable the condition reports
+    MANUAL rather than PASS -- an unrunnable check must never read as a pass.
+    """
+    label = label or nodeid.split("::")[-1]
+    if nodeid in _PYTEST_CACHE:
+        return _PYTEST_CACHE[nodeid]
+    venv_py = os.path.join(ROOT, ".venv", "bin", "python")
+    if not os.path.exists(venv_py):
+        out = (MANUAL, f"cannot run {label}: no .venv (run 'make venv')")
+    else:
+        target = nodeid.split("::")[0]
+        if not os.path.exists(os.path.join(ROOT, target)):
+            out = (FAIL, f"{target} does not exist")
+        else:
+            env = dict(os.environ, PYTHONPATH=os.path.join(ROOT, "src"))
+            r = subprocess.run([venv_py, "-m", "pytest", nodeid, "-q", "--tb=no"],
+                               cwd=ROOT, env=env, capture_output=True, text=True)
+            lines = [l for l in (r.stdout or "").strip().splitlines() if l.strip()]
+            summary = lines[-1] if lines else "no output"
+            if r.returncode == 0 and "passed" in summary:
+                out = (PASS, f"{label}: {summary}")
+            elif r.returncode == 0:
+                out = (FAIL, f"{label} selected no tests ({summary})")
+            else:
+                out = (FAIL, f"{label}: {summary}")
+    _PYTEST_CACHE[nodeid] = out
+    return out
+
+
+def check_pro_entailment():
+    return _pytest_node(
+        "tests/integration/test_reasoning_pro.py::EncounterEntailmentAndConsistency",
+        "PRO entailment (HermiT, with ELK negative control)")
+
+
+def check_no_has_patient():
+    a = _pytest_node("tests/integration/test_competency_queries.py", "competency queries")
+    if a[0] != PASS:
+        return a
+    hits = []
+    for d in ("maps", "fixtures/expected", "src"):
+        for rel in _glob_any(d, r"\.(shex|ttl|nt|py)$"):
+            if "hasPatient" in open(os.path.join(ROOT, rel), encoding="utf-8",
+                                    errors="ignore").read():
+                hits.append(rel)
+    hits = [h for h in hits if "test" not in h.lower()]
+    if hits:
+        return FAIL, f"hasPatient appears in {', '.join(hits[:4])}"
+    return PASS, f"{a[1]}; no hasPatient in maps, expected graphs or src"
+
+
+def check_unchanged_reprocessing():
+    return _pytest_node("tests/integration/test_correction.py::UnchangedReprocessing",
+                        "unchanged reprocessing")
+
+
+def check_v1_to_v2():
+    return _pytest_node("tests/integration/test_correction.py::VersionOneToVersionTwo",
+                        "v1 to v2 supersession")
+
+
+def check_entered_in_error():
+    return _pytest_node("tests/integration/test_correction.py::EnteredInError",
+                        "entered-in-error retraction")
+
+
+def check_clean_deployment_hashes():
+    return _pytest_node(
+        "tests/integration/test_correction.py::StoreIntegrity"
+        "::test_state_digest_is_reproducible_from_a_clean_store",
+        "clean-store digest reproducibility")
+
+
+def check_benchmark():
+    import json
+    p = os.path.join(ROOT, "benchmarks", "last-report.json")
+    if not os.path.exists(p):
+        return FAIL, "no benchmarks/last-report.json"
+    try:
+        d = json.load(open(p, encoding="utf-8"))
+    except Exception as exc:
+        return FAIL, f"benchmark report does not parse: {exc}"
+    if not d.get("passed"):
+        return FAIL, f"benchmark did not pass: {d.get('total_seconds')}s"
+    secs = d.get("total_seconds")
+    n = d.get("resources")
+    return PASS, f"{n} resources in {secs}s (targets: 15 min, 6 GB)"
+
+
 CONDITIONS: List[Condition] = [
     # ---- Gate 0 -----------------------------------------------------------
     Condition(0, "DR-001 / plan §1", "Implementation repository chosen and recorded", check_repository_decision),
@@ -403,15 +499,15 @@ CONDITIONS: List[Condition] = [
     Condition(2, "plan Gate 2", "No orphan quantity/unit nodes"),
     # ---- Gate 3 -----------------------------------------------------------
     Condition(3, "plan Gate 3", "BP tuple multiset exact in baseline and all permutations", check_bp_tuple_test),
-    Condition(3, "plan Gate 3", "PRO-aware reasoner infers patient and clinician as participants"),
-    Condition(3, "plan Gate 3", "Graph contains no hasPatient"),
+    Condition(3, "plan Gate 3", "PRO-aware reasoner infers patient and clinician as participants", check_pro_entailment),
+    Condition(3, "plan Gate 3", "Graph contains no hasPatient", check_no_has_patient),
     Condition(3, "plan Gate 3", "Inverse map recovers all shared bindings per scope"),
     # ---- Gate 4 -----------------------------------------------------------
-    Condition(4, "plan Gate 4", "Unchanged reprocessing changes no triples"),
-    Condition(4, "plan Gate 4", "Version 2 removes stale version-1 derived assertions, preserving v1 lineage"),
-    Condition(4, "plan Gate 4", "entered-in-error removes clinical assertions"),
-    Condition(4, "plan Gate 4", "Clean deployment produces identical graph hashes for the fixture suite"),
-    Condition(4, "plan Gate 4", "Benchmark: 10,000 resources, 4 vCPU / 8 GB, under 15 min, peak memory under 6 GB"),
+    Condition(4, "plan Gate 4", "Unchanged reprocessing changes no triples", check_unchanged_reprocessing),
+    Condition(4, "plan Gate 4", "Version 2 removes stale version-1 derived assertions, preserving v1 lineage", check_v1_to_v2),
+    Condition(4, "plan Gate 4", "entered-in-error removes clinical assertions", check_entered_in_error),
+    Condition(4, "plan Gate 4", "Clean deployment produces identical graph hashes for the fixture suite", check_clean_deployment_hashes),
+    Condition(4, "plan Gate 4", "Benchmark: 10,000 resources, 4 vCPU / 8 GB, under 15 min, peak memory under 6 GB", check_benchmark),
 ]
 
 

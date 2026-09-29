@@ -10,7 +10,7 @@ from __future__ import annotations
 import importlib.util
 import unittest
 
-from support import graph_text  # noqa: F401  (sets sys.path)
+from .support import graph_text  # noqa: F401  (sets sys.path)
 
 from fhir_sulo.validation import shapes_check, strictness
 

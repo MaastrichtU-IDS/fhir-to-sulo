@@ -121,6 +121,7 @@ CONTENT_FIELDS = (
     "terminology_snapshot",
     "policy_version",
     "engine_build",
+    "renderer_id",     # IR-601: the renderer can change the emitted triples
     "contract_version",
 )
 
@@ -167,6 +168,7 @@ class GraphKeyInputs:
     terminology_snapshot: str
     policy_version: str
     engine_build: str
+    renderer_id: str
     contract_version: str
 
     def __post_init__(self) -> None:

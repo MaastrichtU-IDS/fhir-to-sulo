@@ -55,8 +55,12 @@ __all__ = [
     "RunRecord",
 ]
 
-CONTRACT_VERSION = "0.2.0"
+CONTRACT_VERSION = "0.3.0"
 """Bumped by the integration lead on any breaking interface change.
+
+0.3.0 - RunRecord gains renderer_id, which joins the graph key's content
+fields (IR-601): the renderer can change emitted triples, so a renderer change
+must re-key rather than report "unchanged".
 
 0.2.0 - TransformResult lineage coverage is now keyed on target_quads rather
 than on lineage, closing a hole where a mapped result with quads and no

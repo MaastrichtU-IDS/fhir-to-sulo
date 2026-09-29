@@ -145,16 +145,49 @@ class DeterminismContract(unittest.TestCase):
         self.assertEqual(outputs[1], outputs[2])
         self.assertGreaterEqual(len(json.loads(outputs[0])["identity"]), 9)
 
-    def test_no_salted_hash_or_clock_in_the_keying_path(self):
+    # Two tiers, matching tests/contracts/identity/test_determinism_replay.py.
+    # The original single rglob widened its own scope at integration and began
+    # flagging RunRecord.activity_time (which must be wall-clock, and is
+    # excluded from the graph key by DR-601) and the reasoner's temp-file
+    # uuids. Scope is declared, and its completeness is tested.
+    KEY_PATH_MODULES = (
+        "policy/canonical.py", "policy/record.py",
+        "store/canonical.py", "store/graph_key.py",
+        "identity/service.py", "terminology/service.py",
+    )
+
+    @staticmethod
+    def _hits(path, tokens, skip_hashlib=False):
+        out = []
+        for lineno, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+            stripped = line.split("#", 1)[0]
+            for tok in tokens:
+                if tok == "hash(" and skip_hashlib and "hashlib" in stripped:
+                    continue
+                if tok in stripped:
+                    out.append("%s:%d %s" % (path.name, lineno, tok))
+                    break
+        return out
+
+    def test_the_declared_key_path_exists(self):
+        root = REPO_ROOT / "src" / "fhir_sulo"
+        missing = [m for m in self.KEY_PATH_MODULES if not (root / m).is_file()]
+        self.assertEqual(missing, [], "declared keying path names missing files")
+
+    def test_no_nondeterminism_in_the_keying_path(self):
+        root = REPO_ROOT / "src" / "fhir_sulo"
+        offenders = []
+        for module in self.KEY_PATH_MODULES:
+            path = root / module
+            offenders += self._hits(
+                path, ("time.time(", "datetime.now(", "utcnow(", "uuid", "random."))
+            offenders += self._hits(path, ("hash(",), skip_hashlib=True)
+        self.assertEqual(offenders, [])
+
+    def test_no_builtin_hash_anywhere_in_src(self):
         offenders = []
         for path in sorted((REPO_ROOT / "src" / "fhir_sulo").rglob("*.py")):
-            for lineno, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
-                stripped = line.split("#", 1)[0]
-                if "hash(" in stripped and "hashlib" not in stripped:
-                    offenders.append("%s:%d" % (path.name, lineno))
-                for token in ("time.time(", "datetime.now(", "utcnow(", "uuid", "random."):
-                    if token in stripped:
-                        offenders.append("%s:%d %s" % (path.name, lineno, token))
+            offenders += self._hits(path, ("hash(",), skip_hashlib=True)
         self.assertEqual(offenders, [])
 
     def test_entity_iris_survive_a_policy_version_bump(self):

@@ -14,7 +14,7 @@ import subprocess
 import sys
 import unittest
 
-import support  # noqa: F401  (sets sys.path)
+from . import support  # noqa: F401  (sets sys.path)
 
 from fhir_sulo.store import (
     CONTENT_FIELDS,
@@ -44,6 +44,7 @@ def _inputs(**overrides) -> GraphKeyInputs:
         terminology_snapshot="tx-2026-09-29",
         policy_version="unresolved:R2",
         engine_build="shex@1.0.0-alpha.33",
+        renderer_id="fhir_sulo.ingest.fhir_rdf/0.1.0",
         contract_version="0.1.0",
     )
     base.update(overrides)

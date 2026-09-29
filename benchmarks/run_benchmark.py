@@ -104,6 +104,7 @@ def run_inputs_for(resource: SyntheticResource) -> RunInputs:
         terminology_snapshot="tx-2026-09-29",
         policy_version="unresolved:R2",
         engine_build="shex@1.0.0-alpha.33",
+        renderer_id="fhir_sulo.ingest.fhir_rdf/0.1.0",
     )
 
 

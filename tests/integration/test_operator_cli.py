@@ -18,7 +18,7 @@ import tempfile
 import unittest
 from contextlib import redirect_stdout
 
-import support  # noqa: F401  (sets sys.path)
+from . import support  # noqa: F401  (sets sys.path)
 
 from fhir_sulo.store import NamedGraphStore, cli as store_cli
 from fhir_sulo.store.canonical import canonical_json
@@ -38,6 +38,7 @@ BASE_INPUTS = {
     "terminology_snapshot": "tx-2026-09-29",
     "policy_version": "unresolved:R2",
     "engine_build": "shex@1.0.0-alpha.33",
+    "renderer_id": "fhir_sulo.ingest.fhir_rdf/0.1.0",
     "contract_version": "0.1.0",
 }
 
@@ -241,7 +242,7 @@ class OperatorWorkflow(unittest.TestCase):
 
 class StateRoundTrip(unittest.TestCase):
     def test_a_reloaded_store_is_indistinguishable_from_the_original(self):
-        from support import QUADS_V1, QUADS_V2, mapped_pair, run_inputs
+        from .support import QUADS_V1, QUADS_V2, mapped_pair, run_inputs
 
         store = NamedGraphStore()
         store.load(*mapped_pair(run_inputs(), QUADS_V1, activity_time=ACTIVITY_1))
@@ -261,7 +262,7 @@ class StateRoundTrip(unittest.TestCase):
 
     def test_supersession_survives_a_round_trip(self):
         """Otherwise a reloaded store would forget that version 1 was replaced."""
-        from support import QUADS_V1, QUADS_V2, mapped_pair, run_inputs
+        from .support import QUADS_V1, QUADS_V2, mapped_pair, run_inputs
 
         store = NamedGraphStore()
         _r1, rec1 = mapped_pair(run_inputs(), QUADS_V1, activity_time=ACTIVITY_1)

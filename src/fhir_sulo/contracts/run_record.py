@@ -7,6 +7,13 @@ Plan section 3:
     time, graph key, validation report digest, and output digest. These are
     immutable metadata for the run, even when the current derived graph is
     replaced by a correction.
+
+``renderer_id`` is not in the plan's list but was added at contract 0.3.0
+(IR-601, raised by Agent 6). The FHIR-JSON-to-RDF renderer can change the
+emitted target triples, so leaving it out meant a renderer change was
+invisible to the graph key: reprocessing after one would report ``unchanged``
+while the triples differed. Anything that can change an emitted triple belongs
+in the key.
 """
 
 from __future__ import annotations
@@ -31,6 +38,7 @@ class RunRecord:
     domain_ontology_version: str
     terminology_snapshot: str
     engine_build: str
+    renderer_id: str
     policy_version: str
     contract_version: str
     output_graph_key: str
@@ -48,6 +56,7 @@ class RunRecord:
             "pairing_hash",
             "output_graph_key",
             "engine_build",
+            "renderer_id",
         ):
             if not getattr(self, name):
                 raise ValueError(f"RunRecord.{name} is required and must be non-empty")

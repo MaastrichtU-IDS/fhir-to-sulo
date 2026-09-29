@@ -30,7 +30,7 @@ import unittest
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from support import ROOT, load_pair, load_shexc  # noqa: E402
+from .support import ROOT, load_pair, load_shexc  # noqa: E402
 
 from fhir_sulo.engine.docker import EngineImage, EngineUnavailable  # noqa: E402
 from fhir_sulo.engine.driver import (  # noqa: E402

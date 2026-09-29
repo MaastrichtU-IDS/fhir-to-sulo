@@ -56,77 +56,85 @@ def test_replay_in_process_is_also_stable():
     assert canonical_json(workload()) == canonical_json(workload())
 
 
-def test_no_builtin_hash_in_the_keying_path():
-    """Static guard: hashlib only. ``hash()`` is salted and must never key."""
+# ---------------------------------------------------------------------------
+# Static determinism guard.
+#
+# This was originally a single rglob over src/fhir_sulo. At integration that
+# scope silently widened to cover provenance/ and validation/ and started
+# flagging two legitimate constructs: RunRecord.activity_time is *supposed* to
+# be wall-clock (and is deliberately excluded from the graph key's content
+# fields, DR-601), and the reasoner uses uuid4 for temporary container and file
+# names. A guard whose scope changes when someone adds a package is a guard
+# that will be relaxed the first time it is inconvenient, so the scope is now
+# declared explicitly and its completeness is itself tested.
+#
+# Tier 1 - modules that compute a key. Nothing time-, uuid- or random-derived
+#          may appear, because anything here can reach a persisted identifier.
+# Tier 2 - all of src. Only the builtin hash() is banned; it is salted per
+#          process and must never key anything, anywhere.
+# ---------------------------------------------------------------------------
+
+KEY_PATH_MODULES = (
+    "policy/canonical.py",      # entity + quality keys (Agent 5)
+    "policy/record.py",
+    "store/canonical.py",       # graph key canonicalisation (Agent 6)
+    "store/graph_key.py",       # graph_key / subject_key
+    "identity/service.py",
+    "terminology/service.py",
+)
+
+_NONDETERMINISTIC = ("time.time(", "datetime.now(", "utcnow(", "uuid", "random.")
+
+
+def _offending_lines(path, needles, skip_hashlib=False):
+    out = []
+    for lineno, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+        stripped = line.split("#", 1)[0]
+        for needle in needles:
+            if needle == "hash(" and skip_hashlib and "hashlib" in stripped:
+                continue
+            if needle in stripped:
+                out.append("%s:%d: %s" % (path, lineno, line.strip()))
+                break
+    return out
+
+
+def test_the_declared_key_path_actually_exists():
+    """The scope is only meaningful if it names real files and is not empty.
+
+    Without this, deleting or renaming a module would quietly shrink the
+    guard to nothing while the suite stayed green.
+    """
+    root = REPO_ROOT / "src" / "fhir_sulo"
+    missing = [m for m in KEY_PATH_MODULES if not (root / m).is_file()]
+    assert not missing, (
+        "KEY_PATH_MODULES names files that do not exist: %s. Update the list "
+        "deliberately; do not let the guard silently cover nothing." % missing
+    )
+    assert len(KEY_PATH_MODULES) >= 4
+    # Both canonicalisers must be covered; they are duplicates that must not
+    # drift (IR-602), and drift is exactly a determinism failure.
+    assert any(m.endswith("policy/canonical.py") for m in KEY_PATH_MODULES)
+    assert any(m.endswith("store/canonical.py") for m in KEY_PATH_MODULES)
+
+
+def test_no_nondeterministic_constructs_in_the_keying_path():
+    """Tier 1: clocks, uuids and randomness cannot reach a key."""
+    root = REPO_ROOT / "src" / "fhir_sulo"
     offenders = []
-    for path in sorted((REPO_ROOT / "src" / "fhir_sulo").rglob("*.py")):
-        text = path.read_text(encoding="utf-8")
-        for lineno, line in enumerate(text.splitlines(), 1):
-            stripped = line.split("#", 1)[0]
-            if "hash(" in stripped and "hashlib" not in stripped:
-                offenders.append("%s:%d: %s" % (path, lineno, line.strip()))
-            for forbidden in ("time.time(", "datetime.now(", "utcnow(", "uuid", "random."):
-                if forbidden in stripped:
-                    offenders.append("%s:%d: %s" % (path, lineno, line.strip()))
-    assert not offenders, "nondeterministic constructs in the keying path:\n" + "\n".join(
-        offenders
+    for module in KEY_PATH_MODULES:
+        path = root / module
+        offenders += _offending_lines(path, _NONDETERMINISTIC)
+        offenders += _offending_lines(path, ("hash(",), skip_hashlib=True)
+    assert not offenders, (
+        "nondeterministic constructs in the declared keying path:\n"
+        + "\n".join(offenders)
     )
 
 
-def test_candidate_order_does_not_affect_the_key():
-    from fhir_sulo.identity import IdentityRequest, IdentityService, ReferenceEvidence, SourceScope
-
-    scope = SourceScope("synthea-pilot-r4", "https://fhir.example/")
-    a = ReferenceEvidence("a", "literal-reference", scope, "Patient", "p123")
-    b = ReferenceEvidence("b", "bundle-entry", scope, "Patient", "p123")
-    svc = IdentityService()
-
-    forward = svc.resolve(IdentityRequest("Patient/p123", ("Patient",), (a, b)))
-    reverse = svc.resolve(IdentityRequest("Patient/p123", ("Patient",), (b, a)))
-
-    assert forward.is_resolved and reverse.is_resolved
-    assert forward.identity.entity_iri == reverse.identity.entity_iri
-    assert forward.record.decision_id == reverse.record.decision_id
-
-
-def test_repeated_reference_resolves_to_one_person():
-    """Plan section 2: 'repeated references resolve to one intended person'."""
-    from fhir_sulo.identity import IdentityRequest, IdentityService, ReferenceEvidence, SourceScope
-
-    scope = SourceScope("synthea-pilot-r4", "https://fhir.example/")
-    svc = IdentityService()
-    iris = set()
-    for i in range(25):
-        evidence = ReferenceEvidence(
-            evidence_id="ev-%d" % i,
-            kind="literal-reference" if i % 2 else "bundle-entry",
-            source_scope=scope,
-            resource_type="Patient",
-            resource_id="p123",
-            canonical_url="https://fhir.example/Patient/p123",
-            resource_version_id=str(i),
-            detail={"observed_in": "Observation/obs-%d" % i},
-        )
-        outcome = svc.resolve(IdentityRequest("Patient/p123", ("Patient",), (evidence,)))
-        assert outcome.is_resolved
-        iris.add(outcome.identity.entity_iri)
-    assert len(iris) == 1, iris
-
-
-def test_unicode_equivalent_ids_do_not_split_one_person():
-    """NFC normalisation: two byte-different but equivalent ids are one entity."""
-    from fhir_sulo.identity import IdentityRequest, IdentityService, ReferenceEvidence, SourceScope
-
-    svc = IdentityService()
-    composed = "pat-é"  # e-acute as a single code point
-    decomposed = "pat-é"  # e + combining acute
-    assert composed != decomposed
-
-    iris = set()
-    for resource_id in (composed, decomposed):
-        scope = SourceScope("synthea-pilot-r4", "https://fhir.example/")
-        evidence = ReferenceEvidence("e", "literal-reference", scope, "Patient", resource_id)
-        outcome = svc.resolve(IdentityRequest("Patient/x", ("Patient",), (evidence,)))
-        assert outcome.is_resolved
-        iris.add(outcome.identity.entity_iri)
-    assert len(iris) == 1
+def test_no_builtin_hash_anywhere_in_src():
+    """Tier 2: hash() is salted per process and must never key anything."""
+    offenders = []
+    for path in sorted((REPO_ROOT / "src" / "fhir_sulo").rglob("*.py")):
+        offenders += _offending_lines(path, ("hash(",), skip_hashlib=True)
+    assert not offenders, "builtin hash() found in src:\n" + "\n".join(offenders)

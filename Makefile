@@ -39,10 +39,16 @@ contracts-stdlib: ## Stdlib-only subset (no venv needed)
 	PYTHONPATH=$(SRC) $(PY) -m unittest discover -s tests/contracts -p 'test_*.py' -v
 
 .PHONY: integration
-integration: ## Source-to-target and update tests
-	@if compgen -G "tests/integration/test_*.py" > /dev/null; then \
-	  PYTHONPATH=$(SRC) $(PY) -m unittest discover -s tests/integration -p 'test_*.py' -v; \
-	else echo "no integration tests yet (Gate 2+)"; fi
+integration: ## Source-to-target and update tests (venv: no silent skips)
+	@if ! compgen -G "tests/integration/test_*.py" > /dev/null; then \
+	  echo "no integration tests yet (Gate 2+)"; exit 0; fi; \
+	if [ -x "$(VENV)/bin/python" ]; then \
+	  PYTHONPATH=$(SRC) $(VENV)/bin/python -m pytest tests/integration -q; \
+	else \
+	  echo "WARNING: no venv -- rdflib/pyshacl tests will SKIP. Run 'make venv' for real coverage."; \
+	  PYTHONPATH=$(SRC) $(PY) -m pytest tests/integration -q 2>/dev/null \
+	    || PYTHONPATH=$(SRC) $(PY) -m unittest discover -s tests/integration -p 'test_*.py'; \
+	fi
 
 .PHONY: engine-image
 engine-image: ## Build the pinned ShExMap engine image from the committed lockfile
@@ -86,5 +92,17 @@ test: contracts engine-tests integration ## Everything runnable without Docker
 test-all: test engine-live ## Everything, including the live engine (needs Docker)
 
 .PHONY: clean
-clean: ## Remove build artifacts
+clean: ## Remove build artifacts, including out-of-tree bytecode caches
 	find . -name __pycache__ -type d -prune -exec rm -rf {} + 2>/dev/null || true
+	find . -name '*.pyc' -not -path './.venv/*' -delete 2>/dev/null || true
+	@# On this machine (and any with PYTHONPYCACHEPREFIX or a platform default,
+	@# e.g. macOS sets sys.pycache_prefix to ~/Library/Caches/com.apple.python)
+	@# bytecode lives OUTSIDE the tree, so the find above cannot reach it. A
+	@# stale entry there survived an edit during integration and produced a
+	@# module whose behaviour contradicted its own source. Clear it explicitly.
+	@prefix=$$($(PY) -c 'import sys; print(sys.pycache_prefix or "")'); \
+	if [ -n "$$prefix" ]; then \
+	  target="$$prefix$$(pwd)"; \
+	  if [ -d "$$target" ]; then rm -rf "$$target" && echo "cleared bytecode cache: $$target"; \
+	  else echo "no out-of-tree cache for this directory under $$prefix"; fi; \
+	else echo "no pycache_prefix set; in-tree __pycache__ only"; fi

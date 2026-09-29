@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import unittest
 
-from support import EX, QUADS_V1, graph_text, mapped_pair, run_inputs, source_only_pair
+from .support import EX, QUADS_V1, graph_text, mapped_pair, run_inputs, source_only_pair
 
 from fhir_sulo.provenance import ProvenanceEmitter
 from fhir_sulo.store import NamedGraphStore
