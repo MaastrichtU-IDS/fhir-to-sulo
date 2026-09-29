@@ -1,0 +1,248 @@
+{
+  "format": "fhir-sulo/expected-bindings/0.1.0",
+  "fixture_id": "egfr-unit-missing",
+  "family": "egfr",
+  "concept_note_section": "4",
+  "notes": [],
+  "identity_provided_variables": [
+    "person"
+  ],
+  "identity_note": "egfr:person is the identity service's output for egfr:subjectRef and is supplied as a run binding, never extracted from the FHIR RDF. Concept note section 4.",
+  "binding_tree": {
+    "shape": "EGFRSource",
+    "focus": "observation-set",
+    "bindings": {},
+    "children": [
+      {
+        "shape": "EGFRObservation",
+        "focus": "egfr-456-nounit",
+        "scope": "observation",
+        "iteration_key": [
+          "egfr-456-nounit"
+        ],
+        "bindings": {
+          "obsId": "egfr-456-nounit",
+          "status": "final",
+          "code": "33914-3",
+          "subjectRef": "Patient/p123",
+          "effective": "2026-09-02T14:00:00Z^^http://www.w3.org/2001/XMLSchema#dateTime",
+          "value": "55.0^^http://www.w3.org/2001/XMLSchema#decimal",
+          "unitCode": "",
+          "comparator": "",
+          "absentReason": ""
+        }
+      }
+    ]
+  },
+  "assertions": {
+    "scope_tuples": [
+      {
+        "scope": "observation",
+        "variables": [
+          "obsId",
+          "status",
+          "code",
+          "subjectRef",
+          "effective",
+          "value",
+          "unitCode",
+          "comparator",
+          "absentReason"
+        ],
+        "expected_multiset": [
+          [
+            "egfr-456-nounit",
+            "final",
+            "33914-3",
+            "Patient/p123",
+            "2026-09-02T14:00:00Z^^http://www.w3.org/2001/XMLSchema#dateTime",
+            "55.0^^http://www.w3.org/2001/XMLSchema#decimal",
+            "",
+            "",
+            ""
+          ]
+        ],
+        "must_not_contain": []
+      }
+    ]
+  },
+  "extraction": {
+    "scopes": [
+      {
+        "name": "observation",
+        "iterate": {
+          "kind": "tree_roots",
+          "type": "Observation"
+        },
+        "key_variables": [
+          "obsId"
+        ],
+        "vars": {
+          "obsId": {
+            "steps": [
+              {
+                "p": "Resource.id"
+              },
+              {
+                "p": "value"
+              }
+            ]
+          },
+          "versionId": {
+            "steps": [
+              {
+                "p": "Resource.meta"
+              },
+              {
+                "p": "Meta.versionId"
+              },
+              {
+                "p": "value"
+              }
+            ]
+          },
+          "status": {
+            "steps": [
+              {
+                "p": "Observation.status"
+              },
+              {
+                "p": "value"
+              }
+            ]
+          },
+          "codeSystem": {
+            "steps": [
+              {
+                "p": "Observation.code"
+              },
+              {
+                "p": "CodeableConcept.coding"
+              },
+              {
+                "p": "Coding.system"
+              },
+              {
+                "p": "value"
+              }
+            ]
+          },
+          "code": {
+            "steps": [
+              {
+                "p": "Observation.code"
+              },
+              {
+                "p": "CodeableConcept.coding"
+              },
+              {
+                "p": "Coding.code"
+              },
+              {
+                "p": "value"
+              }
+            ]
+          },
+          "subjectRef": {
+            "steps": [
+              {
+                "p": "Observation.subject"
+              },
+              {
+                "p": "Reference.reference"
+              },
+              {
+                "p": "value"
+              }
+            ]
+          },
+          "effective": {
+            "steps": [
+              {
+                "p": "Observation.effectiveDateTime"
+              },
+              {
+                "p": "value"
+              }
+            ],
+            "datatype": true
+          },
+          "value": {
+            "steps": [
+              {
+                "p": "Observation.valueQuantity"
+              },
+              {
+                "p": "Quantity.value"
+              },
+              {
+                "p": "value"
+              }
+            ],
+            "optional": true,
+            "datatype": true
+          },
+          "unitSystem": {
+            "steps": [
+              {
+                "p": "Observation.valueQuantity"
+              },
+              {
+                "p": "Quantity.system"
+              },
+              {
+                "p": "value"
+              }
+            ],
+            "optional": true
+          },
+          "unitCode": {
+            "steps": [
+              {
+                "p": "Observation.valueQuantity"
+              },
+              {
+                "p": "Quantity.code"
+              },
+              {
+                "p": "value"
+              }
+            ],
+            "optional": true
+          },
+          "comparator": {
+            "steps": [
+              {
+                "p": "Observation.valueQuantity"
+              },
+              {
+                "p": "Quantity.comparator"
+              },
+              {
+                "p": "value"
+              }
+            ],
+            "optional": true
+          },
+          "absentReason": {
+            "steps": [
+              {
+                "p": "Observation.dataAbsentReason"
+              },
+              {
+                "p": "CodeableConcept.coding"
+              },
+              {
+                "p": "Coding.code"
+              },
+              {
+                "p": "value"
+              }
+            ],
+            "optional": true
+          }
+        }
+      }
+    ]
+  }
+}

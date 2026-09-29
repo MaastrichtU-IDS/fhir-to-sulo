@@ -1,0 +1,26 @@
+{
+  "fixture_id": "enc-baseline",
+  "family": "encounter",
+  "concept_note_section": "6",
+  "synthetic": true,
+  "description": "Concept note section 6 verbatim: enc-9, finished, subject Patient/p123, participant.individual Practitioner/c7, period 14:00 to 14:30 UTC.",
+  "sources": [
+    "enc-9.json"
+  ],
+  "expected": {
+    "eligibility": "eligible",
+    "eligibility_reason_contains": [],
+    "references": {
+      "Encounter.subject": {
+        "kind": "literal-relative",
+        "resolved_target": "https://fhir.example/Patient/p123",
+        "entity_iri_established": true
+      },
+      "Encounter.participant[0].individual": {
+        "kind": "literal-relative",
+        "resolved_target": "https://fhir.example/Practitioner/c7",
+        "entity_iri_established": true
+      }
+    }
+  }
+}

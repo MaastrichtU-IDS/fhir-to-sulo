@@ -1,0 +1,16 @@
+{
+  "fixture_id": "bp-other-patient",
+  "family": "bp",
+  "concept_note_section": "5",
+  "synthetic": true,
+  "description": "bp-5 belongs to Patient/p999. Distinct people must remain distinct: no value from bp-5 may appear under p123.",
+  "sources": [
+    "bp-1.json",
+    "bp-5.json"
+  ],
+  "expected": {
+    "eligibility": "eligible",
+    "eligibility_reason_contains": [],
+    "references": {}
+  }
+}

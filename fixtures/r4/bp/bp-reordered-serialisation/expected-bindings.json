@@ -1,0 +1,317 @@
+{
+  "format": "fhir-sulo/expected-bindings/0.1.0",
+  "fixture_id": "bp-reordered-serialisation",
+  "family": "bp",
+  "concept_note_section": "5",
+  "notes": [
+    "Expected tuples are identical to bp-two-panels under all three RDF files in this directory. A binder that depended on line order fails the first variant; one that keyed components by fhir:index fails the second."
+  ],
+  "identity_provided_variables": [
+    "person"
+  ],
+  "identity_note": "The person behind subjectRef is the identity service's output, not a binding extracted from the FHIR RDF.",
+  "binding_tree": {
+    "shape": "BPPanelSet",
+    "focus": "bp-panels",
+    "bindings": {},
+    "children": [
+      {
+        "shape": "BPPanel",
+        "focus": "bp-1",
+        "scope": "panel",
+        "iteration_key": [
+          "bp-1"
+        ],
+        "bindings": {
+          "panel": "bp-1",
+          "subjectRef": "Patient/p123",
+          "effective": "2026-09-02T09:00:00Z",
+          "sys": "120",
+          "dia": "80",
+          "sysUnit": "mm[Hg]",
+          "diaUnit": "mm[Hg]"
+        }
+      },
+      {
+        "shape": "BPPanel",
+        "focus": "bp-2",
+        "scope": "panel",
+        "iteration_key": [
+          "bp-2"
+        ],
+        "bindings": {
+          "panel": "bp-2",
+          "subjectRef": "Patient/p123",
+          "effective": "2026-09-02T10:00:00Z",
+          "sys": "105",
+          "dia": "70",
+          "sysUnit": "mm[Hg]",
+          "diaUnit": "mm[Hg]"
+        }
+      }
+    ]
+  },
+  "assertions": {
+    "scope_tuples": [
+      {
+        "scope": "panel",
+        "variables": [
+          "panel",
+          "sys",
+          "dia"
+        ],
+        "expected_multiset": [
+          [
+            "bp-1",
+            "120",
+            "80"
+          ],
+          [
+            "bp-2",
+            "105",
+            "70"
+          ]
+        ],
+        "must_not_contain": [
+          [
+            "bp-1",
+            "120",
+            "70"
+          ],
+          [
+            "bp-2",
+            "105",
+            "80"
+          ]
+        ],
+        "note": "This is the concept note section 5 requirement. The multiset comparison, not a membership check, is what detects a cross-join."
+      },
+      {
+        "scope": "panel",
+        "variables": [
+          "panel",
+          "subjectRef",
+          "effective",
+          "sys",
+          "dia",
+          "sysUnit",
+          "diaUnit"
+        ],
+        "expected_multiset": [
+          [
+            "bp-1",
+            "Patient/p123",
+            "2026-09-02T09:00:00Z",
+            "120",
+            "80",
+            "mm[Hg]",
+            "mm[Hg]"
+          ],
+          [
+            "bp-2",
+            "Patient/p123",
+            "2026-09-02T10:00:00Z",
+            "105",
+            "70",
+            "mm[Hg]",
+            "mm[Hg]"
+          ]
+        ],
+        "must_not_contain": []
+      }
+    ]
+  },
+  "extraction": {
+    "scopes": [
+      {
+        "name": "panel",
+        "iterate": {
+          "kind": "tree_roots",
+          "type": "Observation"
+        },
+        "key_variables": [
+          "panel"
+        ],
+        "vars": {
+          "panel": {
+            "steps": [
+              {
+                "p": "Resource.id"
+              },
+              {
+                "p": "value"
+              }
+            ]
+          },
+          "subjectRef": {
+            "steps": [
+              {
+                "p": "Observation.subject"
+              },
+              {
+                "p": "Reference.reference"
+              },
+              {
+                "p": "value"
+              }
+            ]
+          },
+          "effective": {
+            "steps": [
+              {
+                "p": "Observation.effectiveDateTime"
+              },
+              {
+                "p": "value"
+              }
+            ]
+          },
+          "sys": {
+            "steps": [
+              {
+                "p": "Observation.component"
+              },
+              {
+                "filter": {
+                  "steps": [
+                    {
+                      "p": "Observation.component.code"
+                    },
+                    {
+                      "p": "CodeableConcept.coding"
+                    },
+                    {
+                      "p": "Coding.code"
+                    },
+                    {
+                      "p": "value"
+                    }
+                  ],
+                  "equals": "8480-6"
+                }
+              },
+              {
+                "p": "Observation.component.valueQuantity"
+              },
+              {
+                "p": "Quantity.value"
+              },
+              {
+                "p": "value"
+              }
+            ],
+            "optional": true
+          },
+          "dia": {
+            "steps": [
+              {
+                "p": "Observation.component"
+              },
+              {
+                "filter": {
+                  "steps": [
+                    {
+                      "p": "Observation.component.code"
+                    },
+                    {
+                      "p": "CodeableConcept.coding"
+                    },
+                    {
+                      "p": "Coding.code"
+                    },
+                    {
+                      "p": "value"
+                    }
+                  ],
+                  "equals": "8462-4"
+                }
+              },
+              {
+                "p": "Observation.component.valueQuantity"
+              },
+              {
+                "p": "Quantity.value"
+              },
+              {
+                "p": "value"
+              }
+            ],
+            "optional": true
+          },
+          "sysUnit": {
+            "steps": [
+              {
+                "p": "Observation.component"
+              },
+              {
+                "filter": {
+                  "steps": [
+                    {
+                      "p": "Observation.component.code"
+                    },
+                    {
+                      "p": "CodeableConcept.coding"
+                    },
+                    {
+                      "p": "Coding.code"
+                    },
+                    {
+                      "p": "value"
+                    }
+                  ],
+                  "equals": "8480-6"
+                }
+              },
+              {
+                "p": "Observation.component.valueQuantity"
+              },
+              {
+                "p": "Quantity.code"
+              },
+              {
+                "p": "value"
+              }
+            ],
+            "optional": true
+          },
+          "diaUnit": {
+            "steps": [
+              {
+                "p": "Observation.component"
+              },
+              {
+                "filter": {
+                  "steps": [
+                    {
+                      "p": "Observation.component.code"
+                    },
+                    {
+                      "p": "CodeableConcept.coding"
+                    },
+                    {
+                      "p": "Coding.code"
+                    },
+                    {
+                      "p": "value"
+                    }
+                  ],
+                  "equals": "8462-4"
+                }
+              },
+              {
+                "p": "Observation.component.valueQuantity"
+              },
+              {
+                "p": "Quantity.code"
+              },
+              {
+                "p": "value"
+              }
+            ],
+            "optional": true
+          }
+        }
+      }
+    ]
+  }
+}

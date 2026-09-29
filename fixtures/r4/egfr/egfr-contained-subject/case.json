@@ -1,0 +1,21 @@
+{
+  "fixture_id": "egfr-contained-subject",
+  "family": "egfr",
+  "concept_note_section": "4",
+  "synthetic": true,
+  "description": "subject resolves to a contained Patient. Resolution succeeds and yields evidence of kind 'contained'; it is still not a person claim.",
+  "sources": [
+    "egfr-456-contained.json"
+  ],
+  "expected": {
+    "eligibility": "eligible",
+    "eligibility_reason_contains": [],
+    "references": {
+      "Observation.subject": {
+        "kind": "contained",
+        "resolved_target": "#p-inline",
+        "entity_iri_established": true
+      }
+    }
+  }
+}

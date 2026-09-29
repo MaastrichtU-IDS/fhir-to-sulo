@@ -1,0 +1,27 @@
+{
+  "resourceType": "Observation",
+  "id": "egfr-456-comparator",
+  "meta": {
+    "versionId": "1"
+  },
+  "status": "final",
+  "code": {
+    "coding": [
+      {
+        "system": "http://loinc.org",
+        "code": "33914-3"
+      }
+    ]
+  },
+  "subject": {
+    "reference": "Patient/p123"
+  },
+  "effectiveDateTime": "2026-09-02T14:00:00Z",
+  "valueQuantity": {
+    "value": 55.0,
+    "unit": "mL/min/1.73 m2",
+    "system": "http://unitsofmeasure.org",
+    "code": "mL/min/{1.73_m2}",
+    "comparator": "<"
+  }
+}

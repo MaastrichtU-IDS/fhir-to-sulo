@@ -1,0 +1,37 @@
+{
+  "resourceType": "Encounter",
+  "id": "enc-11",
+  "meta": {
+    "versionId": "1"
+  },
+  "status": "in-progress",
+  "class": {
+    "system": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
+    "code": "AMB",
+    "display": "ambulatory"
+  },
+  "subject": {
+    "reference": "Patient/p123"
+  },
+  "participant": [
+    {
+      "type": [
+        {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/v3-ParticipationType",
+              "code": "PPRF",
+              "display": "primary performer"
+            }
+          ]
+        }
+      ],
+      "individual": {
+        "reference": "Practitioner/c7"
+      }
+    }
+  ],
+  "period": {
+    "start": "2026-09-02T14:00:00Z"
+  }
+}

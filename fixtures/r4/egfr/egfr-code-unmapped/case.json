@@ -1,0 +1,23 @@
+{
+  "fixture_id": "egfr-code-unmapped",
+  "family": "egfr",
+  "concept_note_section": "4",
+  "synthetic": true,
+  "description": "LOINC 48642-3 is a real eGFR-family code but is not pinned. Concept note section 2: a code-to-class interpretation needs a reviewed terminology rule.",
+  "sources": [
+    "egfr-456-wrongcode.json"
+  ],
+  "expected": {
+    "eligibility": "rejected",
+    "eligibility_reason_contains": [
+      "no pinned code"
+    ],
+    "references": {
+      "Observation.subject": {
+        "kind": "literal-relative",
+        "resolved_target": "https://fhir.example/Patient/p123",
+        "entity_iri_established": true
+      }
+    }
+  }
+}

@@ -1,9 +1,24 @@
-# Python test dependencies for the host services (Agent 5 scope so far).
-# Exact pins; the services themselves are stdlib-only.
+# Development-only dependencies. NOTHING in src/ imports these.
 #
-#   python3 -m venv .venv
-#   .venv/bin/pip install -r requirements-dev.txt
-#   .venv/bin/python -m pytest tests/contracts -q
+# Every host service -- the renderer, the inverse renderer, the N-Triples
+# reader/writer, reference resolution, the binding extractor, identity,
+# terminology and policy canonicalisation -- is standard library only. That is
+# deliberate: it lets `make contracts-stdlib` run the whole suite with no
+# install step, so a zero-dependency checkout still exercises the invariants.
 #
-# Verified on the pilot host: CPython 3.9.6 (system python3 on macOS 25.4).
-pytest==7.4.4
+#   make venv          # creates .venv and installs these
+#   make contracts     # pytest, authoritative
+#   make contracts-stdlib   # no venv needed; must also stay green
+#
+# Verified on the pinned interpreter: CPython 3.9.6 (system python3, darwin/arm64).
+
+# Authoritative test runner. unittest discover does not descend into
+# non-package subdirectories, so the per-service suites under
+# tests/contracts/*/ are invisible to it (see DR-005 section 3).
+pytest==8.3.5
+
+# Used by tests/contracts/ingest/test_oracle_conformance.py ONLY, to check
+# graph isomorphism of our renderer output against HL7's published R4 Turtle
+# (DR-101). Without it those tests skip; every test that could hide a fidelity
+# loss still runs stdlib-only.
+rdflib==7.1.4

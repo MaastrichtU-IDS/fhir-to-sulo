@@ -1,0 +1,21 @@
+{
+  "fixture_id": "egfr-baseline",
+  "family": "egfr",
+  "concept_note_section": "4",
+  "synthetic": true,
+  "description": "Concept note section 4 verbatim: final eGFR, LOINC 33914-3, 55.0 mL/min/{1.73_m2}, subject Patient/p123, effective 2026-09-02T14:00:00Z.",
+  "sources": [
+    "egfr-456.json"
+  ],
+  "expected": {
+    "eligibility": "eligible",
+    "eligibility_reason_contains": [],
+    "references": {
+      "Observation.subject": {
+        "kind": "literal-relative",
+        "resolved_target": "https://fhir.example/Patient/p123",
+        "entity_iri_established": true
+      }
+    }
+  }
+}

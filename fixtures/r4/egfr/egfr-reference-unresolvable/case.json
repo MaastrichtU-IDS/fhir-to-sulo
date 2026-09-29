@@ -1,0 +1,23 @@
+{
+  "fixture_id": "egfr-reference-unresolvable",
+  "family": "egfr",
+  "concept_note_section": "4",
+  "synthetic": true,
+  "description": "subject points at a contained resource that does not exist.",
+  "sources": [
+    "egfr-456-badref.json"
+  ],
+  "expected": {
+    "eligibility": "rejected",
+    "eligibility_reason_contains": [
+      "unresolvable reference"
+    ],
+    "references": {
+      "Observation.subject": {
+        "kind": "unresolvable",
+        "resolved_target": null,
+        "entity_iri_established": false
+      }
+    }
+  }
+}
