@@ -1,0 +1,230 @@
+# SULO target shape contract - base module.
+#
+# Validated against the ASSERTED graph, before any OWL reasoning. That split is
+# deliberate: SULO says Unit is a subclass of Quantity and Time is a subclass of
+# Quantity, so on a reasoned graph `sh:targetClass sulo:Quantity` would also
+# select every unit and every timestamp and the constraints below would be
+# meaningless. Entailments are checked separately, by the reasoner and the
+# entailment queries, which is the layer that can express them.
+#
+# Every constraint here traces to the concept note's worked example graphs or
+# to a SULO 0.2.12 axiom recorded in DR-002. Constraints that depend on the
+# open review item R5 are NOT here; they live in the strict-*.ttl modules and
+# are merged only when the R5 switch is flipped.
+
+@prefix sh:   <http://www.w3.org/ns/shacl#> .
+@prefix sulo: <https://w3id.org/sulo/> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix fs:   <urn:fhir-sulo:shapes#> .
+
+fs:QuantityShape a sh:NodeShape ;
+    sh:targetClass sulo:Quantity ;
+    rdfs:comment "A materialized result quantity. Concept note section 4 (SOLID)." ;
+
+    # DR-002 axiom 1: sulo:hasValue is owl:FunctionalProperty. The acceptance
+    # matrix row "SOLID" requires "one sulo:Quantity has one numeric hasValue";
+    # this is that requirement, machine-enforced.
+    sh:property [
+        sh:path sulo:hasValue ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:Literal ;
+        sh:or ( [ sh:datatype xsd:decimal ]
+                [ sh:datatype xsd:integer ]
+                [ sh:datatype xsd:double ] ) ;
+        sh:message "a sulo:Quantity must carry exactly one numeric sulo:hasValue (DR-002 axiom 1)" ;
+    ] ;
+
+    # DR-002 axiom 2: Quantity is a subclass of (hasPart some Unit). The unit is
+    # never optional; concept note section 4 rejects "a missing or unrecognized
+    # UCUM unit" against this target shape.
+    sh:property [
+        sh:path sulo:hasPart ;
+        sh:qualifiedValueShape [ sh:class sulo:Unit ] ;
+        sh:qualifiedMinCount 1 ;
+        sh:message "a sulo:Quantity must have at least one sulo:Unit part (DR-002 axiom 2)" ;
+    ] ;
+
+    # SOLID: the quantity refersTo the quality it is about. Exactly one, so a
+    # result cannot be about two qualities at once.
+    sh:property [
+        sh:path sulo:refersTo ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:BlankNodeOrIRI ;
+        sh:message "a sulo:Quantity must sulo:refersTo exactly one quality (concept note section 4)" ;
+    ] ;
+
+    sh:property [
+        sh:path sulo:atTime ;
+        sh:maxCount 1 ;
+        sh:message "a sulo:Quantity may carry at most one sulo:atTime" ;
+    ] .
+
+
+fs:UnitShape a sh:NodeShape ;
+    sh:targetClass sulo:Unit ;
+    rdfs:comment "The UCUM code is the normalized unit binding; display text stays in the source." ;
+    sh:property [
+        sh:path sulo:hasValue ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:minLength 1 ;
+        sh:message "a sulo:Unit must carry exactly one non-empty xsd:string sulo:hasValue (the UCUM code)" ;
+    ] .
+
+
+fs:TimeInstantShape a sh:NodeShape ;
+    sh:targetClass sulo:TimeInstant ;
+    rdfs:comment "Clinically relevant time. Concept note section 2 requires precision to be preserved." ;
+    sh:property [
+        sh:path sulo:hasValue ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:or ( [ sh:datatype xsd:dateTimeStamp ]
+                [ sh:datatype xsd:dateTime ]
+                [ sh:datatype xsd:date ]
+                [ sh:datatype xsd:gYearMonth ]
+                [ sh:datatype xsd:gYear ] ) ;
+        sh:message "a sulo:TimeInstant must carry exactly one temporal sulo:hasValue; the datatype records the precision, so it may not be widened to a plain string" ;
+    ] .
+
+
+fs:TimeIntervalShape a sh:NodeShape ;
+    sh:targetClass sulo:TimeInterval ;
+    rdfs:comment "Concept note section 6: a bounded encounter period." ;
+    sh:property [
+        sh:path sulo:hasPart ;
+        sh:qualifiedValueShape [ sh:class sulo:StartTime ] ;
+        sh:qualifiedMinCount 1 ;
+        sh:qualifiedMaxCount 1 ;
+        sh:message "a sulo:TimeInterval must have exactly one sulo:StartTime part" ;
+    ] ;
+    sh:property [
+        sh:path sulo:hasPart ;
+        sh:qualifiedValueShape [ sh:class sulo:EndTime ] ;
+        sh:qualifiedMaxCount 1 ;
+        sh:message "a sulo:TimeInterval may have at most one sulo:EndTime part; an open-ended period is review item R3, not two end times" ;
+    ] .
+
+
+fs:RoleShape a sh:NodeShape ;
+    sh:targetClass sulo:Role ;
+    rdfs:comment "PRO: a role is a feature of exactly one holder. Concept note section 6." ;
+    sh:property [
+        sh:path sulo:isFeatureOf ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:message "a sulo:Role must sulo:isFeatureOf exactly one holder; a role shared between two holders is the cross-patient failure this pilot must not produce" ;
+    ] .
+
+
+fs:ProcessShape a sh:NodeShape ;
+    sh:targetClass sulo:Process ;
+    rdfs:comment "PRO: a process has typed role participants. Concept note section 6." ;
+    sh:property [
+        sh:path sulo:hasParticipant ;
+        sh:minCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:message "a sulo:Process must have at least one sulo:hasParticipant" ;
+    ] ;
+    sh:property [
+        sh:path sulo:atTime ;
+        sh:maxCount 1 ;
+        sh:message "a sulo:Process may carry at most one sulo:atTime" ;
+    ] .
+
+
+# SULO 0.2.12: Feature owl:disjointUnionOf (Capability, InformationObject,
+# Quality, Role), and Feature owl:disjointWith SpatialObject. A node in two
+# branches at once makes the graph inconsistent, which the reasoner would catch
+# - but only after it has been loaded. Catching it in the shape check means it
+# never enters the store.
+fs:FeatureBranchDisjointnessShape a sh:NodeShape ;
+    sh:targetClass sulo:Role ;
+    sh:not [ sh:class sulo:Quality ] ;
+    sh:not [ sh:class sulo:InformationObject ] ;
+    sh:not [ sh:class sulo:SpatialObject ] ;
+    sh:message "a sulo:Role may not also be a Quality, an InformationObject or a SpatialObject: SULO makes the Feature branches disjoint (DR-002 axiom 6)" .
+
+fs:QualityBranchDisjointnessShape a sh:NodeShape ;
+    sh:targetClass sulo:Quality ;
+    sh:not [ sh:class sulo:Role ] ;
+    sh:not [ sh:class sulo:SpatialObject ] ;
+    sh:message "a sulo:Quality may not also be a Role or a SpatialObject (DR-002 axiom 6)" .
+
+
+# "No orphan quantity/unit nodes" - Gate 2 pass condition.
+#
+# An orphan is a materialized node that nothing points at: it can never be
+# reached from a record, so it is dead weight in the graph and usually the
+# symptom of a lost binding association. Encoded as a SPARQL constraint because
+# SHACL's core has no "is the object of some triple" test.
+fs:NoOrphanNodeShape a sh:NodeShape ;
+    sh:targetClass sulo:Quantity, sulo:Unit, sulo:TimeInstant, sulo:TimeInterval ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "orphan node: {$this} is typed as a materialized SULO node but is the object of no triple, so nothing can reach it (Gate 2: no orphan quantity/unit nodes)" ;
+        sh:prefixes fs: ;
+        sh:select """
+            SELECT $this
+            WHERE {
+                FILTER NOT EXISTS { ?anySubject ?anyPredicate $this }
+            }
+        """ ;
+    ] .
+
+
+# "No cross-patient results" - acceptance matrix negative query.
+#
+# Walk quantity -> refersTo -> quality -> isFeatureOf -> holder. If a single
+# quantity reaches two different holders, two patients' data have been joined.
+fs:NoCrossPatientResultShape a sh:NodeShape ;
+    sh:targetClass sulo:Quantity ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "cross-patient result: {$this} reaches two different feature holders through refersTo/isFeatureOf" ;
+        sh:prefixes fs: ;
+        sh:select """
+            SELECT $this
+            WHERE {
+                $this <https://w3id.org/sulo/refersTo> ?qualityA , ?qualityB .
+                ?qualityA <https://w3id.org/sulo/isFeatureOf> ?holderA .
+                ?qualityB <https://w3id.org/sulo/isFeatureOf> ?holderB .
+                FILTER (?holderA != ?holderB)
+            }
+        """ ;
+    ] .
+
+
+# Concept note section 2: "Do not introduce hasPatient or resource-specific
+# shortcuts." Checked on local name, in any namespace, because the prohibition
+# is on the modelling shortcut and not on one particular IRI.
+fs:NoResourceSpecificShortcutShape a sh:NodeShape ;
+    sh:targetClass sulo:Process ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "resource-specific shortcut predicate on {$this}: the PRO pattern uses hasParticipant to a typed role, never hasPatient or hasSubject (concept note section 2)" ;
+        sh:prefixes fs: ;
+        sh:select """
+            SELECT $this ?value
+            WHERE {
+                $this ?p ?value .
+                FILTER (STRENDS(STR(?p), "hasPatient")
+                     || STRENDS(STR(?p), "hasSubject")
+                     || STRENDS(STR(?p), "hasClinician"))
+            }
+        """ ;
+    ] .
+
+fs: sh:declare [
+        sh:prefix "sulo" ;
+        sh:namespace "https://w3id.org/sulo/"^^xsd:anyURI ;
+    ] , [
+        sh:prefix "fs" ;
+        sh:namespace "urn:fhir-sulo:shapes#"^^xsd:anyURI ;
+    ] .

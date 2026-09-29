@@ -1,0 +1,52 @@
+#!/bin/sh
+# run.sh -- the Gate 4 benchmark, on the documented runner.
+#
+#   benchmarks/run.sh                 10,000 resources, default settings
+#   benchmarks/run.sh -n 1000         a smaller trial
+#   benchmarks/run.sh --skip-reasoning
+#
+# The constraints are NOT optional and are not a flag: a "4-vCPU/8-GB runner"
+# that is actually a 14-core laptop measures the laptop. --cpus=4 --memory=8g
+# are applied here, and the report reads them back out of the cgroup so the
+# printed number states the envelope it was produced in.
+#
+# Colima shares only the VM owner's home directory, so bind mounts into a
+# scratchpad do not work on the pilot host (DR-301 operational note). The tree
+# is shipped in with `docker cp`, the same pattern tools/engine/run.sh uses.
+set -e
+
+HERE=$(cd "$(dirname "$0")" && pwd)
+ROOT=$(cd "$HERE/.." && pwd)
+IMAGE=fhir-sulo-bench:1
+CONTAINER=fhir-sulo-bench
+
+CPUS=${BENCH_CPUS:-4}
+MEMORY=${BENCH_MEMORY:-8g}
+
+echo "== building the benchmark image (pinned ROBOT jar + pinned Python deps) =="
+cp "$ROOT/requirements-runtime.txt" "$HERE/requirements-runtime.txt"
+docker build -q -t "$IMAGE" -f "$HERE/Dockerfile" "$HERE" > /dev/null
+rm -f "$HERE/requirements-runtime.txt"
+
+echo "== starting the runner: --cpus=$CPUS --memory=$MEMORY =="
+docker rm -f "$CONTAINER" >/dev/null 2>&1 || true
+docker run -d --name "$CONTAINER" \
+  --cpus="$CPUS" --memory="$MEMORY" --memory-swap="$MEMORY" \
+  -w /w "$IMAGE" sleep infinity > /dev/null
+
+docker exec "$CONTAINER" mkdir -p /w/src /w/benchmarks
+docker cp "$ROOT/src" "$CONTAINER":/w/ > /dev/null
+docker cp "$ROOT/benchmarks" "$CONTAINER":/w/ > /dev/null
+
+echo "== running =="
+set +e
+docker exec "$CONTAINER" python3 /w/benchmarks/run_benchmark.py \
+  --json /w/benchmark-report.json "$@"
+STATUS=$?
+set -e
+
+docker cp "$CONTAINER":/w/benchmark-report.json "$HERE/last-report.json" 2>/dev/null \
+  && echo "" && echo "JSON report: benchmarks/last-report.json"
+
+docker rm -f "$CONTAINER" > /dev/null
+exit $STATUS
