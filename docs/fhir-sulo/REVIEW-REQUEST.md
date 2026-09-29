@@ -54,8 +54,18 @@ from the concept note's examples and are *not* a reviewed commitment —
 equivalents for `8480-6` / `8462-4`. Approve or correct them. Note the quality classes interact
 with **R4**: they presumably need to be `sulo:Quality`, not bare `sulo:Feature`.
 
+**R1d — what class is the *Encounter record*?** §4 names `ex:ObservationRecord`; §6 names
+nothing for the Encounter equivalent. `ex:EncounterRecord` is emitted as a placeholder.
+
+**Sequencing consequence, established since:** answering R1 **re-keys every quality IRI**, not
+only R2, because the quality class IRI is one of the quality key's inputs. A test asserts this
+and also proves nothing else moves. So R1 and R2 are best answered together, and both are
+graph migrations rather than configuration changes.
+
 **Meanwhile:** target shapes are authored against SULO upper-level terms only, with domain
-typing emitted through a single indirection point so the vocabulary can be swapped.
+typing emitted through a single indirection point. This is verified, not asserted: a test
+hard-codes a domain IRI into a schema and requires the build to fail, and another swaps the
+whole vocabulary and requires no schema to change.
 
 ---
 
@@ -303,6 +313,38 @@ but every outcome reports `clinical_signoff: False` and a test fails the moment 
 
 **Recommendation from engineering (not a decision):** A, because the distinction that matters —
 that no output is clinically signed off — is enforced mechanically rather than by convention.
+
+---
+
+## R11 — How does a BP panel record relate to its component results?
+
+**Blocks:** Gate 3 BP target graph.
+
+Concept note §5 says only that "the BP panel record relates to both component results". Two
+readings give different graphs:
+
+- **A. `sulo:refersTo`** (currently emitted) — mirrors §4's record→result relation, and treats
+  the panel record as an information object *about* the two results.
+- **B. `sulo:hasPart`** — treats the panel as a composite whose parts are the two results.
+
+Both are valid SULO. A is emitted because it is consistent with §4; that consistency is a guess
+about intent, not a decision.
+
+---
+
+## R12 — Should the FHIR participation type map to a role class?
+
+**Blocks:** Gate 3 Encounter roles, and any later resource with typed participation.
+
+`Encounter.participant.type` carries codes such as `PPRF` (primary performer), `SBJ`, `ATND`.
+Currently `PPRF` is **bound and guarded but types nothing** — the clinician role class comes
+from the domain vocabulary (R1) instead, so the FHIR code is retained without being promoted to
+an OWL class assertion, per §2.
+
+**Options** — **A.** keep it source-only (current); **B.** add a reviewed participation-type
+table mapping `PPRF`/`SBJ`/`ATND`/… to role classes.
+
+If B, the table itself needs review, in the same way the code interpretation table does.
 
 ---
 

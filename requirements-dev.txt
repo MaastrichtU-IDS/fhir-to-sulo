@@ -22,3 +22,6 @@ pytest==8.3.5
 # (DR-101). Without it those tests skip; every test that could hide a fidelity
 # loss still runs stdlib-only.
 rdflib==7.1.4
+
+# YAML parsing for the CI workflow structural test
+pyyaml==6.0.2

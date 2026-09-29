@@ -420,19 +420,39 @@ def check_pro_entailment():
 
 
 def check_no_has_patient():
-    a = _pytest_node("tests/integration/test_competency_queries.py", "competency queries")
-    if a[0] != PASS:
-        return a
-    hits = []
-    for d in ("maps", "fixtures/expected", "src"):
-        for rel in _glob_any(d, r"\.(shex|ttl|nt|py)$"):
-            if "hasPatient" in open(os.path.join(ROOT, rel), encoding="utf-8",
-                                    errors="ignore").read():
-                hits.append(rel)
-    hits = [h for h in hits if "test" not in h.lower()]
-    if hits:
-        return FAIL, f"hasPatient appears in {', '.join(hits[:4])}"
-    return PASS, f"{a[1]}; no hasPatient in maps, expected graphs or src"
+    """Gate 3: the emitted graph contains no hasPatient shortcut.
+
+    A text grep over the tree is the wrong instrument: every legitimate
+    mention is a comment, a design note, or the negative SPARQL query that
+    exists precisely to hunt for the predicate. So check the two things that
+    actually matter -- emitted graph artifacts, and the assertions that run
+    against live output.
+    """
+    # 1. Emitted RDF artifacts only, ignoring comment lines.
+    offenders = []
+    for rel in _glob_any("fixtures/expected", r"\.(nt|ttl)$"):
+        for lineno, line in enumerate(
+                open(os.path.join(ROOT, rel), encoding="utf-8",
+                     errors="ignore").read().splitlines(), 1):
+            if line.lstrip().startswith("#"):
+                continue
+            if "hasPatient" in line:
+                offenders.append(f"{rel}:{lineno}")
+    if offenders:
+        return FAIL, f"hasPatient emitted in {', '.join(offenders[:5])}"
+
+    # 2. The live assertions: Agent 3's map-level test and the NQ4 negative query.
+    for nodeid, label in (
+        ("tests/contracts/maps/test_encounter_gate3.py", "Encounter PRO/no-shortcut"),
+        ("tests/integration/test_competency_queries.py", "competency + negative queries"),
+    ):
+        status, detail = _pytest_node(nodeid, label)
+        if status != PASS:
+            return status, detail
+
+    n = len(_glob_any("fixtures/expected", r"\.(nt|ttl)$"))
+    return PASS, (f"no hasPatient in {n} emitted graph artifacts; "
+                  "asserted live by the Encounter map tests and negative query NQ4")
 
 
 def check_unchanged_reprocessing():
@@ -473,6 +493,57 @@ def check_benchmark():
     return PASS, f"{n} resources in {secs}s (targets: 15 min, 6 GB)"
 
 
+def check_egfr_one_association():
+    return _pytest_node("tests/contracts/maps/test_egfr_gate2.py::EGFRGate2",
+                        "eGFR value/unit/quality/patient")
+
+
+def check_negative_fixtures_take_their_path():
+    return _pytest_node("tests/contracts/maps/test_expected_graphs.py",
+                        "expected graphs and negative outcomes")
+
+
+def check_inverse_recovers_pivots():
+    return _pytest_node("tests/contracts/maps/test_inverse_pivot.py",
+                        "inverse pivot recovery")
+
+
+def check_no_orphan_nodes():
+    """Across all three families, not just eGFR."""
+    nodes = (
+        ("tests/contracts/maps/test_egfr_gate2.py::EGFRGate2"
+         "::test_no_orphan_quantity_or_unit_nodes", "eGFR"),
+        ("tests/contracts/maps/test_bp_gate3.py::BPGraphShape::test_no_orphan_nodes", "BP"),
+        ("tests/contracts/maps/test_encounter_gate3.py::EncounterBaseline"
+         "::test_no_orphan_nodes_and_no_blank_nodes", "Encounter"),
+    )
+    details = []
+    for nodeid, label in nodes:
+        status, detail = _pytest_node(nodeid, f"orphans/{label}")
+        if status != PASS:
+            return status, detail
+        details.append(label)
+    return PASS, "no orphan or blank nodes in " + ", ".join(details)
+
+
+def check_no_source_modification_lost():
+    """Gate 2: no source modification is lost.
+
+    Mechanised via Agent 2's mutation suite, which corrupts the committed
+    canonical RDF in 19 targeted ways (decimal precision, datatype, timezone,
+    code system, comparator removal, dropped component, fhir:index) and
+    requires every one to be detected, with controls asserting a no-op
+    mutation fails the harness.
+    """
+    return _pytest_node("tests/contracts/ingest/test_roundtrip_mutations.py",
+                        "round-trip mutation detection")
+
+
+def check_bp_multiset_live():
+    return _pytest_node("tests/contracts/maps/test_bp_gate3.py::BPTupleMultiset",
+                        "BP multiset against the live engine")
+
+
 CONDITIONS: List[Condition] = [
     # ---- Gate 0 -----------------------------------------------------------
     Condition(0, "DR-001 / plan §1", "Implementation repository chosen and recorded", check_repository_decision),
@@ -492,16 +563,16 @@ CONDITIONS: List[Condition] = [
     Condition(1, "plan Gate 1", "Unsupported engine behaviour documented as a blocking issue, not hidden in a postprocessor", check_engine_gaps_documented),
     Condition(1, "plan Gate 1", "Deterministic mock terminology/identity service available", check_mock_services),
     # ---- Gate 2 -----------------------------------------------------------
-    Condition(2, "plan Gate 2", "Normal eGFR fixture yields exactly one value/unit/quality/patient association"),
-    Condition(2, "plan Gate 2", "Every negative fixture takes its specified source-only or rejected path"),
-    Condition(2, "plan Gate 2", "No source modification is lost"),
-    Condition(2, "plan Gate 2", "Inverse validation recovers the shared pivot variables"),
-    Condition(2, "plan Gate 2", "No orphan quantity/unit nodes"),
+    Condition(2, "plan Gate 2", "Normal eGFR fixture yields exactly one value/unit/quality/patient association", check_egfr_one_association),
+    Condition(2, "plan Gate 2", "Every negative fixture takes its specified source-only or rejected path", check_negative_fixtures_take_their_path),
+    Condition(2, "plan Gate 2", "No source modification is lost", check_no_source_modification_lost),
+    Condition(2, "plan Gate 2", "Inverse validation recovers the shared pivot variables", check_inverse_recovers_pivots),
+    Condition(2, "plan Gate 2", "No orphan quantity/unit nodes", check_no_orphan_nodes),
     # ---- Gate 3 -----------------------------------------------------------
     Condition(3, "plan Gate 3", "BP tuple multiset exact in baseline and all permutations", check_bp_tuple_test),
     Condition(3, "plan Gate 3", "PRO-aware reasoner infers patient and clinician as participants", check_pro_entailment),
     Condition(3, "plan Gate 3", "Graph contains no hasPatient", check_no_has_patient),
-    Condition(3, "plan Gate 3", "Inverse map recovers all shared bindings per scope"),
+    Condition(3, "plan Gate 3", "Inverse map recovers all shared bindings per scope", check_inverse_recovers_pivots),
     # ---- Gate 4 -----------------------------------------------------------
     Condition(4, "plan Gate 4", "Unchanged reprocessing changes no triples", check_unchanged_reprocessing),
     Condition(4, "plan Gate 4", "Version 2 removes stale version-1 derived assertions, preserving v1 lineage", check_v1_to_v2),
