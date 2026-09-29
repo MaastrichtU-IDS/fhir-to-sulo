@@ -121,8 +121,9 @@ The rest are genuinely open.
 | `status = preliminary` | **open** | not specified |
 | `status = amended` / `corrected` | **open** — treat as a new version, or as current? | not specified |
 | `status = registered` | **open** | not specified |
-| Encounter `status = in-progress` | note §6: "may receive a separate, explicitly defined policy; it is not treated as a finished interval" — **what policy?** | open |
-| Encounter period with no end | **open** — open-ended interval, or source-only? | not specified |
+| Encounter `status = in-progress` | **open** — §6 says only what it is *not* ("not treated as a finished interval"). Pinned conservatively as `source-only` pending your answer. A policy here touches R5, because a `StartTime` with no `EndTime` is exactly the closed-world case. | note §6 says nothing positive |
+| Encounter `period` with no end | **open** — §2 requires preserving unknown endpoints, which argues for *representable* rather than rejected. Currently paired only with `in-progress`. Interacts with R5. | not specified |
+| `finished` Encounter *with* an open-ended period | **open** — valid FHIR, clinically incoherent. No fixture fabricates this; say whether it should be rejected or represented. | not specified |
 
 **What we need from you:** an outcome for every **open** row, and confirmation of the proposed
 ones. The comparator row additionally needs a modelling answer, not just an outcome.
@@ -243,9 +244,26 @@ Interacts with **R1** and **R6**.
 
 ---
 
-## R9 — Should the BP panel code type the panel record node?
+## R9 — Blood pressure profile conformance and panel coding
 
-**Blocks:** Gate 3 BP target shape.
+**Blocks:** Gate 3 BP target shape and the pinned profile manifest.
+
+Three connected sub-questions, all currently pinned conservatively.
+
+### R9a — Do we claim `vitalsigns` / `bp` profile conformance?
+
+Both are real R4 profiles (`bp` derives from `vitalsigns`, both 4.0.1). Currently the manifest
+pins **base `Observation` only**, with the other two recorded as `role: "candidate"`.
+
+Claiming `bp` conformance is not free — it **forces** `Observation.category = vital-signs`,
+**requires** panel code `85354-9`, and **forbids** `Observation.value[x]` on the parent. None of
+that is specified in concept note §5, so claiming it would be us inventing clinical
+conformance requirements rather than implementing the note.
+
+**Options** — **A.** stay on base `Observation`; **B.** claim `vitalsigns`; **C.** claim `bp`
+and accept its three constraints.
+
+### R9b — Does the panel code type the panel record node?
 
 LOINC `85354-9` (blood pressure panel) is present on the parent `Observation`. Concept note §5
 describes "the BP panel record" relating to both component results, but does not say whether the
@@ -256,6 +274,13 @@ untyped `ex:ObservationRecord` and the code is retained only in the source layer
 
 Currently **B** (the entry is marked `proposed` and types nothing), consistent with concept
 note §2: "a FHIR code literal alone is not an OWL class assertion".
+
+### R9c — The BP parent `Observation.code` is currently a placeholder
+
+With no reviewed panel code, the parent `Observation.code` in the fixtures is `8480-6` — which
+is really the *systolic* code. That is visibly wrong and is a placeholder, subsumed by R9a: if
+you answer A or B above, tell us what the parent code should be; if C, it becomes `85354-9`
+by profile.
 
 ---
 
