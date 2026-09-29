@@ -3,7 +3,10 @@
 This is the *host* side of concept note section 3: it selects a map, calls the
 identity and terminology services, chooses root nodes, and unions the passes.
 It constructs no target triple -- every triple in the output comes from a
-schema in ``maps/r4/``.  ``test_host_emits_no_triples.py`` asserts that.
+schema in ``maps/r4/``.  Asserted by
+``test_expected_graphs.py::ExpectedGraphContents::test_every_emitted_predicate_is_written_in_a_target_schema``,
+which checks every predicate of every expected graph against the target
+schema that produced it.
 """
 
 from __future__ import annotations

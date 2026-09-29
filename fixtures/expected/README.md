@@ -35,11 +35,20 @@ The acceptance conditions are hand-written invariants in `tests/contracts/maps/`
 | File | Asserts |
 | --- | --- |
 | `test_egfr_gate2.py` | one value / unit / quality / patient association, no orphan nodes, the SULO axioms, the R1 swap |
-| `test_bp_gate3.py` | the `{(bp-1,120,80),(bp-2,105,70)}` multiset on every fixture and both RDF variants, no `hasPatient`, and four fault injections |
+| `test_bp_gate3.py` | the `{(bp-1,120,80),(bp-2,105,70)}` multiset **read out of the emitted graph** on every fixture and both RDF variants, no `hasPatient`, and the fault injections |
 | `test_encounter_gate3.py` | the PRO entailment holds *and* is not asserted directly |
-| `test_inverse_pivot.py` | target-to-source pivot recovery |
+| `test_inverse_pivot.py` | target-to-source pivot recovery, against a freshly materialized graph |
 
-None of them reads this directory, so a wrong graph regenerated here still fails them.
+None of them reads this directory.
+
+An earlier version of this file claimed "a wrong graph regenerated here still
+fails them". **That was false**, and the integration lead's review proved it: a
+one-token change to `bp-target.v1.shex` made the diastolic node emit the
+systolic value, and every multiset test stayed green, because they were
+asserted over the *source* bindings rather than over the emitted graph. The
+claim is true now -- `graph.bp_panel_tuples` walks the target graph and reads no
+source binding, and the same injection fails five tests -- but it was a real
+defect and is recorded rather than quietly corrected. DR-202 has the detail.
 
 ## `outcome.json`
 

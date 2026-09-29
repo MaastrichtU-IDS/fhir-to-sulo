@@ -4,6 +4,7 @@
 **Date:** 2026-09-29
 **Gate:** 2 / 3
 **Owner:** Agent 3 — ShExMap mapping author
+**Amended by:** DR-203 (the Gate 3 acceptance check was on the wrong artifact)
 **Depends on:** DR-301 (engine pin and capability verdict), DR-302 (one repetition per path),
 CD-1 (no `id()`), DR-002 (SULO 0.2.12 axioms), DR-102 (fixture and binding-tuple format)
 **Implements:** concept note §2, §4, §5, §6, §7

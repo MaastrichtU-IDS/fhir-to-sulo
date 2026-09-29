@@ -26,11 +26,19 @@ ENC_SH = "https://w3id.org/fhir-sulo/map/encounter/shape#"
 ENC_V = "https://w3id.org/fhir-sulo/map/encounter/var#"
 
 
-def reverse(target_schema_rel: str, graph_nt_rel: str, focus: str, shape: str, var_ns: str):
-    """Validate one materialized node against the target schema and rebind."""
+def reverse(target_schema_rel: str, nquads: str, focus: str, shape: str, var_ns: str):
+    """Validate one node of a FRESHLY MATERIALIZED graph against the target
+    schema and read the Map bindings back out.
+
+    `nquads` is the graph text, not a committed path, deliberately: reverse
+    validation against `fixtures/expected/.../target.nt` would read a golden
+    that a broken map has not yet been allowed to update, which makes the test
+    blind to the drift it exists to catch.
+    """
     result = engine.run_job({
         "sourceSchema": engine.cpath(target_schema_rel),
-        "data": engine.cpath(graph_nt_rel),
+        "data": None,
+        "dataInline": nquads,
         "focus": focus,
         "startShape": shape,
         "passes": [],
@@ -43,7 +51,6 @@ def reverse(target_schema_rel: str, graph_nt_rel: str, focus: str, shape: str, v
 
 
 class EGFRInverse(engine.EngineTestCase):
-    GRAPH = "fixtures/expected/egfr/egfr-baseline/target.nt"
     SCHEMA = "maps/r4/egfr/egfr-target.v1.shex"
 
     @classmethod
@@ -51,6 +58,7 @@ class EGFRInverse(engine.EngineTestCase):
         super().setUpClass()
         cls.forward = egfr_case.run("egfr-baseline")
         cls.v = cls.forward["_hostValues"]
+        cls.GRAPH = cls.forward["nquads"]
 
     def rev(self, shape, root):
         return reverse(self.SCHEMA, self.GRAPH, root, EGFR_SH + shape, EGFR_V)
@@ -110,12 +118,12 @@ class BPInverse(engine.EngineTestCase):
     """Gate 3: the inverse map recovers all shared bindings per scope."""
 
     SCHEMA = "maps/r4/bp/bp-target.v1.shex"
-    GRAPH = "fixtures/expected/bp/bp-two-panels/target.nt"
 
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
         cls.results = {o: bp_case.run("bp-two-panels", o) for o in ("bp-1", "bp-2")}
+        cls.GRAPH = "\n".join(r["nquads"] for r in cls.results.values())
 
     def test_each_panel_recovers_its_own_tuple_and_no_other(self):
         """The whole point: the reverse direction must not cross-join either.
@@ -166,8 +174,9 @@ class BPInverse(engine.EngineTestCase):
                     BP_SH + "BPPanelRecordNode", BP_V)
 
     def test_a_panel_without_a_diastolic_component_uses_the_other_alternative(self):
-        v = bp_case.run("bp-component-omitted", "bp-1")["_hostValues"]
-        back = reverse(self.SCHEMA, "fixtures/expected/bp/bp-component-omitted/target.nt",
+        omitted = bp_case.run("bp-component-omitted", "bp-1")
+        v = omitted["_hostValues"]
+        back = reverse(self.SCHEMA, omitted["nquads"],
                        v["panelRecord"], BP_SH + "BPPanelRecordNode", BP_V)
         self.assertEqual(back["sysResult"], v["sysResult"])
 
@@ -184,12 +193,13 @@ class BPInverse(engine.EngineTestCase):
 
 class EncounterInverse(engine.EngineTestCase):
     SCHEMA = "maps/r4/encounter/encounter-target.v1.shex"
-    GRAPH = "fixtures/expected/encounter/enc-baseline/target.nt"
 
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.v = encounter_case.run("enc-baseline")["_hostValues"]
+        forward = encounter_case.run("enc-baseline")
+        cls.v = forward["_hostValues"]
+        cls.GRAPH = forward["nquads"]
 
     def test_the_endpoints_and_the_roles_come_back(self):
         start = reverse(self.SCHEMA, self.GRAPH, self.v["startTime"],

@@ -43,6 +43,37 @@ class EncounterBaseline(engine.EngineTestCase):
         self.assertEqual(graph.objects_of(self.triples, process, "<%satTime>" % SULO),
                          ["<%s>" % self.values["interval"]])
 
+    def test_the_emitted_endpoints_are_the_ones_the_source_bound(self):
+        """Target-side content, cross-checked against the source bindings, and
+        asserted per endpoint so a start/end swap cannot pass."""
+        src = self.result["_sourceBindings"]
+        for node, var in (("startTime", "start"), ("endTime", "end")):
+            with self.subTest(node=node):
+                self.assertEqual(
+                    graph.objects_of(self.triples, "<%s>" % self.values[node],
+                                     "<%shasValue>" % SULO),
+                    ['"%s"^^<%s>' % (src[var]["value"], src[var]["type"])])
+        self.assertNotEqual(src["start"]["value"], src["end"]["value"],
+                            "the fixture must have distinct endpoints or the swap "
+                            "check above proves nothing")
+
+    def test_the_patient_role_is_held_by_the_subject_and_not_the_practitioner(self):
+        """A cross-wired target schema -- patientRole isFeatureOf the clinician --
+        must fail.  The two holders come from two different FHIR references, so
+        comparing the emitted arcs to the resolved entities catches a swap."""
+        self.assertNotEqual(self.values["person"], self.values["clinician"])
+        self.assertEqual(
+            graph.objects_of(self.triples, "<%s>" % self.values["patientRole"], IS_FEATURE_OF),
+            ["<%s>" % self.values["person"]])
+        self.assertEqual(
+            graph.objects_of(self.triples, "<%s>" % self.values["clinicianRole"], IS_FEATURE_OF),
+            ["<%s>" % self.values["clinician"]])
+        entailed = graph.entailed_participants(self.triples)
+        process = "<%s>" % self.values["process"]
+        self.assertEqual(
+            sorted(h for p, h in entailed if p == process),
+            sorted(["<%s>" % self.values["person"], "<%s>" % self.values["clinician"]]))
+
     def test_the_two_roles_are_typed_and_held(self):
         for role, cls, holder in (("patientRole", "PatientRole", "person"),
                                   ("clinicianRole", "ClinicianRole", "clinician")):
