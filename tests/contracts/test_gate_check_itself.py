@@ -132,6 +132,18 @@ class GateCheckIsWellFormed(unittest.TestCase):
         integration and four conditions went red for this reason alone.
         Collect-only is cheap; check the ids resolve.
         """
+        # The stdlib fallback (`make contracts-stdlib`) runs the system
+        # interpreter, which deliberately has no pytest -- so every citation
+        # would report "collected 0" and this test would fail for a reason
+        # that says nothing about the node ids. Skip there; `make contracts`
+        # is the authoritative runner and does check them.
+        probe = subprocess.run([sys.executable, "-c", "import pytest"],
+                               capture_output=True)
+        if probe.returncode != 0:
+            self.skipTest(
+                "this interpreter has no pytest; node-id resolution is checked "
+                "by `make contracts` (pytest), which is authoritative")
+
         src = _source()
         node_ids = sorted({
             m for m in re.findall(r'"(tests/[^"]*::[^"]*)"', src)

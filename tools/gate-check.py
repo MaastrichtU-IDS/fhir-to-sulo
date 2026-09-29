@@ -643,6 +643,18 @@ def _own_conditions_pass(gate: int):
     return results, nfail == 0 and nman == 0
 
 
+def gate_has_mechanical_failure(gate: int) -> bool:
+    """True if a condition FAILED, as opposed to awaiting a human.
+
+    A MANUAL condition means nobody has answered yet; a FAIL means something
+    is broken. CI needs to tell those apart, or the gate job stays red from
+    the day it is added until the reviewer signs off, and everyone learns to
+    ignore it.
+    """
+    results, _ = _own_conditions_pass(gate)
+    return any(status == FAIL for _, status, _ in results)
+
+
 def run_gate(gate: int, verbose=True, _cache={}):
     """Evaluate one gate. A gate is only PASSED if every prior gate is too.
 
@@ -686,16 +698,34 @@ def main():
     ap.add_argument("gate", nargs="?", type=int)
     ap.add_argument("--all", action="store_true")
     ap.add_argument("--report", action="store_true")
+    ap.add_argument(
+        "--fail-on", choices=("any", "mechanical"), default="any",
+        help="'any' (default): exit non-zero unless every gate passes, "
+             "including the human sign-off. 'mechanical': exit non-zero only "
+             "on a FAILED condition, so an unanswered review does not hold CI "
+             "red forever. Use 'mechanical' in CI and 'any' to ask whether the "
+             "pilot is actually done.")
     a = ap.parse_args()
     if a.all:
-        oks = [run_gate(g) for g in sorted({c.gate for c in CONDITIONS})]
+        gates = sorted({c.gate for c in CONDITIONS})
+        oks = [run_gate(g) for g in gates]
+        broken = [g for g in gates if gate_has_mechanical_failure(g)]
         print("\nGates passing:", sum(oks), "of", len(oks))
+        if broken:
+            print("Gates with a FAILED condition:", ", ".join(map(str, broken)))
+        else:
+            print("No gate has a failed condition; what remains is human review.")
         # --report formerly forced exit 0, which meant the CI gate job could
         # never fail. It selects verbosity, not leniency.
+        if a.fail_on == "mechanical":
+            return 1 if broken else 0
         return 0 if all(oks) else 1
     if a.gate is None:
         ap.error("give a gate number or --all")
-    return 0 if run_gate(a.gate) else 1
+    ok = run_gate(a.gate)
+    if a.fail_on == "mechanical":
+        return 1 if gate_has_mechanical_failure(a.gate) else 0
+    return 0 if ok else 1
 
 
 if __name__ == "__main__":

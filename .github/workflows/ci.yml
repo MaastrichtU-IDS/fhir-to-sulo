@@ -72,4 +72,8 @@ jobs:
         env:
           FHIR_SULO_REQUIRE_ENGINE: '1'
           FHIR_SULO_ENGINE_TESTS: '1'
-        run: python3 tools/gate-check.py --all --report
+        # --fail-on mechanical: red when a condition FAILED, green when the
+        # only thing outstanding is the human sign-off. Without this the job
+        # is red from the day it is added until the reviewer answers, and a
+        # permanently red check is one nobody reads.
+        run: python3 tools/gate-check.py --all --report --fail-on mechanical

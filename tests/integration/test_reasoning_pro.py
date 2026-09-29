@@ -30,6 +30,18 @@ except ImportError:  # pragma: no cover
 
 HAVE_REASONER = reasoning.reasoner_available()
 SKIP_ENV = "needs rdflib: .venv/bin/pip install -r requirements-runtime.txt"
+
+try:  # pyshacl is a runtime dependency; one test below needs it
+    import pyshacl as _pyshacl  # noqa: F401
+    HAVE_SHACL = True
+except Exception:  # pragma: no cover - depends on the environment
+    HAVE_SHACL = False
+SKIP_SHACL = (
+    "needs pyshacl: .venv/bin/pip install -r requirements-runtime.txt. "
+    "Every other test in this module skips without it; this one used to "
+    "raise MissingDependencyError instead, which reads as a defect rather "
+    "than a missing dependency."
+)
 SKIP_REASONER = (
     "needs an OWL reasoner: `robot` on PATH, or docker and the pinned image %s "
     "(there is no java on the pilot host)" % reasoning.ROBOT_IMAGE_TAG
@@ -339,6 +351,7 @@ class R6EvidenceThePersonClassChoiceHasConsequences(unittest.TestCase):
         self.assertTrue(self._consistent("sulo:Object , sulo:Quality"))
         self.assertTrue(self._consistent("sulo:Object , sulo:Role"))
 
+    @unittest.skipUnless(HAVE_SHACL, SKIP_SHACL)
     def test_the_shapes_catch_it_even_though_the_reasoner_does_not(self):
         """Not a disaster, but the guard is in SHACL, not in OWL.
 
