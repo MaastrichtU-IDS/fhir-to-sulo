@@ -7,18 +7,21 @@ contract tests must still run on the bare system interpreter.
 
 from __future__ import annotations
 
+import importlib.util
 import unittest
 
 from support import graph_text  # noqa: F401  (sets sys.path)
 
-from fhir_sulo.validation import strictness
+from fhir_sulo.validation import shapes_check, strictness
 
-try:
-    from fhir_sulo.validation import shapes_check  # noqa: F401
-
-    HAVE_SHACL = True
-except ImportError:  # pragma: no cover - environment guard
-    HAVE_SHACL = False
+# Probed with find_spec, not with a bare `import`: shapes_check imports rdflib
+# and pyshacl lazily, so importing it proves nothing about whether they are
+# installed, and a linter that removes an "unused" import would silently turn
+# these skips into failures on a bare interpreter. That is exactly what
+# happened once.
+HAVE_SHACL = all(
+    importlib.util.find_spec(name) is not None for name in ("rdflib", "pyshacl")
+)
 
 SKIP = "needs the pinned environment: .venv/bin/pip install -r requirements-runtime.txt"
 
