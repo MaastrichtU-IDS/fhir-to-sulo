@@ -4,50 +4,85 @@
     "cgroup_memory_max": "8.6 GB",
     "cpu_count": 6,
     "java": "openjdk version \"17.0.20.1\" 2026-08-18",
+    "mode": "real pipeline (render + materialize)",
     "platform": "Linux-6.8.0-117-generic-aarch64-with-glibc2.36",
     "python": "3.11.16",
+    "quality_mode": "per-observation",
     "seed": 20260929,
     "strictness": "concept-note-literal"
   },
   "failure_categories": {
-    "dataAbsentReason present: no numeric hasValue": 246,
-    "status entered-in-error: no clinical assertions": 241
+    "Observation.dataAbsentReason present: Concept note section 4: dataAbsentReason produces no numeric hasValue.": 262,
+    "Observation.status 'entered-in-error' is source-only under the pinned status policy": 228
   },
-  "passed": true,
-  "peak_memory_bytes": 2138607616,
+  "passed": false,
+  "peak_memory_bytes": 5680783360,
   "resources": 10000,
   "stages": [
     {
       "detail": {
-        "bp": 3535,
-        "egfr": 4019,
-        "encounter": 1959,
-        "ineligible": 487,
-        "target triples": 220015
+        "bp": 3510,
+        "egfr": 4013,
+        "encounter": 1987,
+        "ineligible": 490
       },
       "failed": false,
       "failure": "",
       "items": 10000,
       "name": "generate",
-      "peak_memory_bytes": 62660608,
+      "peak_memory_bytes": 36814848,
       "peak_memory_source": "cgroup",
-      "seconds": 0.105,
-      "throughput_per_second": 94968.7
+      "seconds": 0.039,
+      "throughput_per_second": 258518.42
     },
     {
       "detail": {
-        "current graphs": 9513,
-        "current triples": 220015,
-        "state digest": "2981309df04a097d"
+        "eligible": 9510,
+        "ineligible": 490,
+        "render failures": 0,
+        "rendered": 10000
+      },
+      "failed": false,
+      "failure": "",
+      "items": 10000,
+      "name": "render",
+      "peak_memory_bytes": 156700672,
+      "peak_memory_source": "cgroup",
+      "seconds": 2.324,
+      "throughput_per_second": 4302.85
+    },
+    {
+      "detail": {
+        "engine build": "fhir-sulo/shexmap:1.0.0-alpha.33-c5fc8dc8b610@sha256:0b5175fcdab5ca15410fb8dd53c36b2675e4aced07bea0cc672b037ed08be70f",
+        "families": "bp, egfr, encounter",
+        "mapped": 9510,
+        "not mapped": 490,
+        "quality mode": "per-observation",
+        "target triples": 261236
+      },
+      "failed": false,
+      "failure": "",
+      "items": 10000,
+      "name": "materialize",
+      "peak_memory_bytes": 3265900544,
+      "peak_memory_source": "cgroup",
+      "seconds": 4491.469,
+      "throughput_per_second": 2.23
+    },
+    {
+      "detail": {
+        "current graphs": 9510,
+        "current triples": 261236,
+        "state digest": "9a23ebcea5e19ba6"
       },
       "failed": false,
       "failure": "",
       "items": 10000,
       "name": "keying+lineage+store",
-      "peak_memory_bytes": 202170368,
+      "peak_memory_bytes": 3297394688,
       "peak_memory_source": "cgroup",
-      "seconds": 1.739,
-      "throughput_per_second": 5751.06
+      "seconds": 1.003,
+      "throughput_per_second": 9968.45
     },
     {
       "detail": {
@@ -57,50 +92,50 @@
       "failure": "",
       "items": 10000,
       "name": "provenance",
-      "peak_memory_bytes": 297451520,
+      "peak_memory_bytes": 3372720128,
       "peak_memory_source": "cgroup",
-      "seconds": 0.639,
-      "throughput_per_second": 15641.46
+      "seconds": 0.654,
+      "throughput_per_second": 15283.9
     },
     {
       "detail": {
         "conforms": true,
-        "graph digest": "12953f289bd1199d",
-        "report digest": "c8c9568102d168eb",
+        "graph digest": "1772a5959ab1ca0e",
+        "report digest": "f7d369712516501e",
         "strictness": "concept-note-literal",
         "violations": 0
       },
       "failed": false,
       "failure": "",
-      "items": 220015,
+      "items": 261236,
       "name": "shacl validation",
-      "peak_memory_bytes": 713277440,
+      "peak_memory_bytes": 4049256448,
       "peak_memory_source": "cgroup",
-      "seconds": 93.233,
-      "throughput_per_second": 2359.83
+      "seconds": 85.432,
+      "throughput_per_second": 3057.84
     },
     {
       "detail": {
         "batch size": 100,
         "batches": 20,
-        "encounters in run": 1959,
-        "encounters measured": 1959,
+        "encounters in run": 1987,
+        "encounters measured": 1987,
         "exclude tautologies": "structural",
-        "inferred triples": 140635,
+        "inferred triples": 163233,
         "reasoner": "HermiT",
         "reasoner backend": "local robot on PATH"
       },
       "failed": false,
       "failure": "",
-      "items": 1959,
+      "items": 1987,
       "name": "owl reasoning (HermiT)",
-      "peak_memory_bytes": 2138607616,
+      "peak_memory_bytes": 5680783360,
       "peak_memory_source": "cgroup",
-      "seconds": 98.585,
-      "throughput_per_second": 19.87
+      "seconds": 104.194,
+      "throughput_per_second": 19.07
     }
   ],
-  "total_seconds": 194.302,
+  "total_seconds": 4685.115,
   "within_memory_budget": true,
-  "within_time_budget": true
+  "within_time_budget": false
 }

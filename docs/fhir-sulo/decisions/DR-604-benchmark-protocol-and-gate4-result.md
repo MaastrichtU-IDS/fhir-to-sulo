@@ -5,6 +5,15 @@
 **Gate:** 4
 **Depends on:** DR-301 B2 (the engine's quadratic scaling), DR-302, DR-602
 **Amended by:** [DR-605 §5](DR-605-r5-unset-rejects-and-validation-on-map-output.md)
+**Superseded as the Gate 4 scale result by:**
+[DR-606](DR-606-gate4-scale-measured-on-the-real-pipeline.md)
+
+> **Read DR-606 instead for the Gate 4 scale row.** Every number in this record was measured on
+> a path with **no mapping in it**: the corpus generator emitted SULO target triples directly.
+> Once Agent 4's composed pipeline landed, the benchmark was rebuilt to run real ingest,
+> rendering, the reviewed maps and the pinned engine, and the row is **MISSED**. This record
+> stays because its *protocol* decisions - the containerised runner, cgroup peak memory, the
+> engine's quadratic term being out of reach under DR-302 - are unchanged and still hold.
 
 > **Amendment, 2026-09-29.** An independent review found that `gate-check.check_benchmark` read
 > only `passed: true` and verified neither the resource count, the memory figure, nor which
