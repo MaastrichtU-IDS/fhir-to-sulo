@@ -4,17 +4,25 @@
 **Date:** 2026-09-29
 **Gate:** 4
 **Depends on:** DR-301 B2 (the engine's quadratic scaling), DR-302, DR-602
+**Amended by:** [DR-605 §5](DR-605-r5-unset-rejects-and-validation-on-map-output.md)
+
+> **Amendment, 2026-09-29.** An independent review found that `gate-check.check_benchmark` read
+> only `passed: true` and verified neither the resource count, the memory figure, nor which
+> stages ran — so the honest "lower bound" caveat below was documented but not enforced. The
+> Gate 4 scale row should be read as **not satisfied** until rendering and real materialization
+> are in the measured path. That work is blocked on Agent 4's composed pipeline; the plan is in
+> DR-605 §5. Numbers below re-measured after the R5 change: **194.30 s, peak 2.14 GB**.
 
 ## Result
 
 | Gate 4 target | Measured |
 | --- | --- |
-| 10,000 synthetic resources ≤ 15 min | **179.25 s (3.0 min)** |
-| peak memory < 6 GB | **2.01 GB** |
+| 10,000 synthetic resources ≤ 15 min | **194.30 s (3.2 min)** |
+| peak memory < 6 GB | **2.14 GB** |
 | failure categories and throughput reported | yes — 55.8 resources/s, 487 ineligible by design |
 | ShExMap engine over 10,000 resources | **0.30 s** |
 
-**The target is met.** The brief flagged it as at risk on the strength of Agent 4's quadratic
+**The target is met on the stages measured, which exclude the transformation.** The brief flagged it as at risk on the strength of Agent 4's quadratic
 measurement. §3 explains why the quadratic term does not reach us, and under what change it
 would.
 

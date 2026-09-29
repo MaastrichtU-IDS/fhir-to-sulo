@@ -1,0 +1,53 @@
+{
+  "policy_id": "target-shape-strictness",
+  "version": "1.0.0",
+  "status": "draft-awaiting-reviewer",
+  "owner": "Agent 6 (provenance, QA and operations)",
+  "review_item": "R5",
+  "notes": [
+    "Machine-readable record of the R5 answer. Loaded by",
+    "src/fhir_sulo/validation/strictness.py.",
+    "Modelled deliberately on the quality_identity block of",
+    "policies/identity-policy.v1.json (review item R2): mode null,",
+    "unset_behaviour reject, both options implemented, no guessed default.",
+    "Lives under src/fhir_sulo/validation/ rather than policies/ because",
+    "PolicyBundle.policy_version composes exactly three Agent 5 tables and",
+    "adding a fourth would change that string. Proposed for relocation into",
+    "policies/ at integration -- see DR-605."
+  ],
+
+  "affects_emitted_triples": false,
+  "affects_emitted_triples_note": "R5 decides how strictly a delivered graph is CHECKED, not what is emitted. It is therefore deliberately NOT one of graph_key.CONTENT_FIELDS: answering R5 must not re-key every graph. It does change validation_report_digest, which is correct -- a report has to say which strictness produced it.",
+
+  "mode": null,
+  "mode_status": "UNSET - RESERVED FOR THE CLINICAL/ONTOLOGY REVIEWER",
+  "unset_behaviour": "reject",
+  "unset_behaviour_note": "While mode is null, every strictness resolution that does not name a mode explicitly raises R5PolicyUnset. Nothing can validate under a guessed answer, and no gate artefact can inherit one.",
+
+  "allowed_modes": {
+    "concept-note-literal": {
+      "r5_option": "B",
+      "description": "Shapes check only what the maps promise. A sulo:Quantity needs no explicit sulo:isFeatureOf and a sulo:TimeInstant needs no explicit time Unit; the OWL reasoner satisfies both existentials with an anonymous witness.",
+      "require_quantity_is_feature_of": false,
+      "require_time_unit": false,
+      "implication": "Matches the concept note's literal example graphs in sections 4 and 6, which omit both.",
+      "risk": "The Gate 2 criterion 'no orphan quantity/unit nodes' is weaker: a quantity with no bearer is accepted by the shapes and only the reasoner's anonymous witness stands behind it."
+    },
+    "closed-world-complete": {
+      "r5_option": "A",
+      "description": "The graph materializes what the SULO existentials imply, so the shapes can be strict.",
+      "require_quantity_is_feature_of": true,
+      "require_time_unit": true,
+      "implication": "DR-002 axioms 4 and 5 become checkable closed-world rather than delegated to the reasoner.",
+      "risk": "More triples, and each extra assertion must itself be justified: naming a bearer for every quantity is a modelling claim, not a formality."
+    }
+  },
+
+  "split_allowed": true,
+  "split_note": "R5 option C is a per-axiom split. Expressed as Strictness(require_quantity_is_feature_of=..., require_time_unit=..., rationale='...'), which requires a stated rationale so a split is never silently adopted.",
+
+  "reviewer_question": "SULO states existential restrictions that an OWL reasoner satisfies silently but a closed-world shape check reads as a missing triple (DR-002 axioms 4 and 5). Should the pipeline (A) materialize sulo:isFeatureOf on quantities and an explicit unit on time instants so the shapes can be strict, (B) relax the shapes and let the reasoner cover it, or (C) split per axiom? Both A and B are implemented and tested; the default is deliberately unset and rejects.",
+  "reviewer_decision": null,
+  "reviewer": null,
+  "reviewed_on": null
+}

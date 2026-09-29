@@ -10,19 +10,27 @@ when it is actually used.
 from __future__ import annotations
 
 from .strictness import (
+    CLOSED_WORLD_COMPLETE,
     CONCEPT_NOTE_LITERAL,
     R5_OPTION_A,
     R5_OPTION_B,
-    R5_RESOLVED,
+    R5PolicyUnset,
     Strictness,
+    allowed_modes,
+    recorded_mode,
+    resolve,
 )
 
 __all__ = [
+    "CLOSED_WORLD_COMPLETE",
     "CONCEPT_NOTE_LITERAL",
     "R5_OPTION_A",
     "R5_OPTION_B",
-    "R5_RESOLVED",
+    "R5PolicyUnset",
     "Strictness",
+    "allowed_modes",
+    "recorded_mode",
+    "resolve",
     "validate_graph",
     "load_shapes_graph",
     "ShapeReport",

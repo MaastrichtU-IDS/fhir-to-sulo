@@ -24,11 +24,10 @@ from typing import List, Optional
 from . import queries as queries_mod
 from . import reasoning, shapes_check, strictness
 
-STRICTNESS = {
-    "literal": strictness.CONCEPT_NOTE_LITERAL,
-    "r5-a": strictness.R5_OPTION_A,
-    "r5-b": strictness.R5_OPTION_B,
-}
+STRICTNESS_CHOICES = tuple(sorted(strictness.allowed_modes())) + ("from-policy",)
+"""Mode names come from r5-strictness-policy.json, so the CLI cannot offer an
+option the policy does not define. ``from-policy`` uses the reviewer's
+recorded answer and fails while it is null."""
 
 
 def _load(path: str):
@@ -64,10 +63,17 @@ def cmd_reasoner_check(args) -> int:
 
 
 def cmd_shapes(args) -> int:
-    report = shapes_check.validate_graph(_load(args.graph), STRICTNESS[args.strictness])
+    try:
+        chosen = strictness.resolve(args.strictness)
+    except strictness.R5PolicyUnset as exc:
+        print("R5 UNANSWERED: %s" % exc, file=sys.stderr)
+        return 2
+    report = shapes_check.validate_graph(_load(args.graph), chosen)
     print("strictness   %s" % report.strictness_label)
     print("modules      %s" % ", ".join(report.shape_modules))
     print("result       %s" % report.summary())
+    print("graph        %d triples, %d focus nodes, digest %s"
+          % (report.triples_validated, report.focus_nodes, report.data_digest[:16]))
     print("digest       %s" % report.digest)
     if not report.conforms:
         print("")
@@ -144,8 +150,16 @@ def build_parser() -> argparse.ArgumentParser:
 
     shapes = subparsers.add_parser("shapes", help="SHACL target shape validation")
     shapes.add_argument("--graph", required=True)
-    shapes.add_argument("--strictness", default="literal", choices=sorted(STRICTNESS),
-                        help="R5 switch; 'literal' is the default and R5 is OPEN")
+    shapes.add_argument(
+        "--strictness",
+        required=True,
+        choices=STRICTNESS_CHOICES,
+        help=(
+            "REQUIRED. Review item R5 is open and has no default: a run must "
+            "name the strictness it ran under. 'from-policy' uses the "
+            "reviewer's recorded answer and fails while it is unset."
+        ),
+    )
     shapes.set_defaults(func=cmd_shapes)
 
     reason = subparsers.add_parser(

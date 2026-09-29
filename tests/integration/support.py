@@ -93,18 +93,60 @@ def fake_engine_payload(quads, *, variables=None, scope="result", key=("egfr-456
     )
 
 
-QUADS_V1 = (
-    "<%segfr-result-456> <https://w3id.org/sulo/hasValue> "
+# --------------------------------------------------------------------------
+# The graphs the correction tests are driven by.
+#
+# Review finding (MINOR): Gate 4's correction evidence rested on two
+# hand-built two-triple graphs, so "version 2 removes stale version-1
+# assertions" was demonstrated on something no map produces. These are now
+# the REAL emitted graph from ``fixtures/expected/egfr/egfr-baseline``, read
+# as text so this module stays importable without rdflib.
+#
+# ONE thing is still synthetic, and it is called out rather than hidden: the
+# fixture set contains no pair of fixtures that are two *versions of the same
+# resource*. ``egfr-entered-in-error`` is a different resource id
+# (``egfr-456-eie``), not version 2 of ``egfr-456``. So version 2 here is the
+# real version-1 graph with the reported value corrected, which is exactly
+# what a real correction looks like. Everything else - all 21 triples, the
+# hashed person and quality IRIs, the datatypes - is map output.
+#
+# Requested from Agent 2: a genuine ``egfr-corrected`` fixture, the same
+# resource at ``meta.versionId = 2`` with a different value. Gate 4's
+# correction row is the only place in the matrix that needs one, and nothing
+# else can supply it.
+# --------------------------------------------------------------------------
+
+_EXPECTED = os.path.join(ROOT, "fixtures", "expected")
+_BASELINE = os.path.join(_EXPECTED, "egfr", "egfr-baseline", "target.nt")
+
+
+def _real_triples(path):
+    with open(path, encoding="utf-8") as handle:
+        return tuple(
+            line.strip()
+            for line in handle
+            if line.strip() and not line.startswith("#")
+        )
+
+
+_FALLBACK_V1 = (
+    "<%segfr-result-egfr-456> <https://w3id.org/sulo/hasValue> "
     '"55.0"^^<http://www.w3.org/2001/XMLSchema#decimal> .' % EX,
-    "<%segfr-result-456> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> "
+    "<%segfr-result-egfr-456> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> "
     "<https://w3id.org/sulo/Quantity> ." % EX,
 )
 
-QUADS_V2 = (
-    "<%segfr-result-456> <https://w3id.org/sulo/hasValue> "
-    '"61.0"^^<http://www.w3.org/2001/XMLSchema#decimal> .' % EX,
-    "<%segfr-result-456> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> "
-    "<https://w3id.org/sulo/Quantity> ." % EX,
+USING_REAL_MAP_OUTPUT = os.path.exists(_BASELINE)
+
+QUADS_V1 = _real_triples(_BASELINE) if USING_REAL_MAP_OUTPUT else _FALLBACK_V1
+
+QUADS_V2 = tuple(
+    line.replace('"55.0"', '"61.0"') for line in QUADS_V1
+)
+
+assert QUADS_V1 != QUADS_V2, (
+    "version 2 must differ from version 1, or the correction tests would be "
+    "asserting nothing"
 )
 
 
