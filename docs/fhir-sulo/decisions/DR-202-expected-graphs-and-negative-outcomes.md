@@ -67,9 +67,13 @@ literal entity and quality IRIs.
 
 The acceptance conditions are hand-written invariants in `test_egfr_gate2.py`,
 `test_bp_gate3.py`, `test_encounter_gate3.py` and `test_inverse_pivot.py`, none of which read
-`fixtures/expected/`. A wrong graph regenerated into `target.nt` still fails them. Six
-fault-injections were run to verify that; all six were caught, and each by the specific guard
-meant for it (DR-201 and the Gate 2/3 report).
+`fixtures/expected/`.
+
+**This claim was false when first written, and the correction is the substance of
+[DR-203](DR-203-the-acceptance-check-was-on-the-wrong-artifact.md).** The Gate 3 multiset was
+asserted over the *source* bindings, so a target schema that bound the right values and emitted
+the wrong ones passed. It is now asserted over the emitted graph, and the injection that
+exposed it fails five tests.
 
 ## Run parameters the graphs depend on
 

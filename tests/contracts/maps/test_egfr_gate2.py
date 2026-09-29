@@ -69,6 +69,39 @@ class EGFRGate2(engine.EngineTestCase):
             ['"mL/min/{1.73_m2}"'],
         )
 
+    def test_the_emitted_value_and_unit_are_the_ones_the_source_bound(self):
+        """Target-side content, cross-checked against the source bindings.
+
+        The two are separate artifacts: a map can bind the right things and
+        emit the wrong ones.  Asserting only the source bindings is what let a
+        cross-wired blood-pressure target schema through review, so the eGFR
+        map states the correspondence explicitly.
+        """
+        src = self.result["_sourceBindings"]
+        result = "<%s>" % self.values["result"]
+        [emitted] = graph.objects_of(self.triples, result, "<%shasValue>" % SULO)
+        self.assertEqual(emitted,
+                         '"%s"^^<%s>' % (src["value"]["value"], src["value"]["type"]))
+        [unit] = graph.objects_of(self.triples, result, "<%shasPart>" % SULO)
+        self.assertEqual(graph.objects_of(self.triples, unit, "<%shasValue>" % SULO),
+                         ['"%s"' % src["unitCode"]["value"]])
+        [time] = graph.objects_of(self.triples, result, "<%satTime>" % SULO)
+        self.assertEqual(graph.objects_of(self.triples, time, "<%shasValue>" % SULO),
+                         ['"%s"^^<%s>' % (src["effective"]["value"], src["effective"]["type"])])
+
+    def test_the_result_is_typed_by_the_reviewed_class_for_the_source_code(self):
+        """The domain type is the code table's entry for the code the source
+        bound -- not a class the schema happens to name."""
+        import json
+        codes = json.loads((engine.REPO / "policies/code-interpretation.v1.json").read_text())
+        entry = next(e for e in codes["entries"]
+                     if e["code"] == self.result["_sourceBindings"]["code"]["value"])
+        self.assertIn("<%s>" % entry["result_class"],
+                      graph.types_of(self.triples, "<%s>" % self.values["result"]))
+        [quality] = graph.objects_of(self.triples, "<%s>" % self.values["result"],
+                                     "<%srefersTo>" % SULO)
+        self.assertIn("<%s>" % entry["quality_class"], graph.types_of(self.triples, quality))
+
     def test_exactly_one_quality(self):
         result = "<%s>" % self.values["result"]
         refs = graph.objects_of(self.triples, result, "<%srefersTo>" % SULO)

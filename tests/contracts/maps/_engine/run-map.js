@@ -15,6 +15,7 @@
  *     items and exits 0 on fatal and on partial output (DR-301 B2/B3).
  *
  * Usage:  node run-map.js <job.json>
+ *         node run-map.js -          (job JSON on stdin)
  */
 "use strict";
 
@@ -51,7 +52,14 @@ function termToNT(t) {
 }
 
 function main() {
-  const job = JSON.parse(FS.readFileSync(process.argv[2], "utf8"));
+  // The job comes in on stdin when the argument is "-".  It used to be
+  // docker cp'd to a fixed /w/job.json, which raced: `docker cp` returns once
+  // the daemon has accepted the archive, so a later `docker exec` could read
+  // the PREVIOUS call's job.  That produced graphs from the wrong fixture and
+  // made the BP suite non-deterministic.  stdin has no such window.
+  const job = JSON.parse(process.argv[2] === "-"
+    ? FS.readFileSync(0, "utf8")
+    : FS.readFileSync(process.argv[2], "utf8"));
   const out = {
     ok: false, stage: "validate", validation: null, bindings: null,
     passes: [], nquads: "", engine: {
@@ -63,8 +71,17 @@ function main() {
   };
 
   // ---- stage 1: bind (CLI validator; exits 1 on nonconformance) -----------
+  // `dataInline` lets a caller validate a graph it just produced rather than one
+  // committed on disk.  The inverse/pivot tests use it so they revalidate FRESH
+  // output: reading the committed golden would make them blind to exactly the
+  // drift they exist to catch.
+  let dataPath = job.data;
+  if (job.dataInline !== undefined) {
+    dataPath = "/tmp/run-map-inline-" + process.pid + ".nt";
+    FS.writeFileSync(dataPath, job.dataInline);
+  }
   const shapeMap = "<" + job.focus + ">@" + (job.startShape ? "<" + job.startShape + ">" : "START");
-  const args = ["-x", job.sourceSchema, "-d", job.data, "-m", shapeMap,
+  const args = ["-x", job.sourceSchema, "-d", dataPath, "-m", shapeMap,
                 "--extension", "@shexjs/extension-map"];
   const proc = CP.spawnSync(VALIDATE, args, { encoding: "utf8", maxBuffer: 1 << 28 });
   if (proc.status !== 0) {

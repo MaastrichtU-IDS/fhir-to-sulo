@@ -54,6 +54,21 @@ from and which review item governs it:
 `tests/contracts/maps/test_map_contracts.py` asserts the manifests mirror the policy tables
 rather than holding a second opinion, and that no schema names the placeholder namespace.
 
+## Acceptance conditions are asserted on the emitted graph
+
+Not on the source bindings. The target graph is what reaches a clinical store,
+and a map can bind the right values and emit the wrong ones — which is exactly
+what happened, and is why
+[DR-203](../../docs/fhir-sulo/decisions/DR-203-the-acceptance-check-was-on-the-wrong-artifact.md)
+exists. `tests/contracts/maps/_engine/graph.py::bp_panel_tuples` recovers the
+blood-pressure multiset by walking the emitted graph and reads no binding at
+all; it takes N-Triples as a **string**, so the producer is swappable between
+this harness, Agent 4's driver and a file on disk.
+
+Source-side comparisons against Agent 2's `expected-bindings.json` are kept as
+named corroboration (`BPSourceBindingMultiset`): they localise a fault to the
+extraction half, which a target-side check alone would misattribute.
+
 ## Running them
 
 The maps are driven through `ThreadedMaterializer`, never the shipped CLI (CD-2). Until Agent
