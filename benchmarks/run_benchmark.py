@@ -43,7 +43,7 @@ import json
 import sys
 from typing import Dict
 
-from generator import SyntheticFhir, SyntheticResource, generate, generate_fhir
+from generator import SyntheticResource, generate, generate_fhir
 from harness import BenchmarkReport, Timer, describe_environment
 
 from fhir_sulo.contracts import TransformStatus
