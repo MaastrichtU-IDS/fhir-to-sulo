@@ -122,5 +122,47 @@ class GateCheckIsWellFormed(unittest.TestCase):
         self.assertIn("not signed off", detail)
 
 
+
+    def test_every_pytest_node_id_it_cites_actually_resolves(self):
+        """A renamed test class must not quietly hollow out a gate.
+
+        `_pytest_node` reports FAIL on "no tests ran", so a stale id turns a
+        gate red rather than green -- safe, but it costs a debugging cycle
+        and hides the real state. Two agents renamed classes during
+        integration and four conditions went red for this reason alone.
+        Collect-only is cheap; check the ids resolve.
+        """
+        src = _source()
+        node_ids = sorted({
+            m for m in re.findall(r'"(tests/[^"]*::[^"]*)"', src)
+        })
+        self.assertTrue(node_ids, "expected gate-check to cite pytest node ids")
+
+        # Some ids are split across adjacent string literals in the source.
+        joined = re.findall(r'"(tests/[^"]*)"\s*\n\s*"(::[^"]*)"', src)
+        node_ids += [a + b for a, b in joined]
+
+        unresolved = []
+        for nid in sorted(set(node_ids)):
+            proc = subprocess.run(
+                [sys.executable, "-m", "pytest", nid, "--collect-only", "-q"],
+                cwd=ROOT, capture_output=True, text=True,
+                env=dict(os.environ, PYTHONPATH=os.path.join(ROOT, "src")),
+            )
+            out = proc.stdout or ""
+            # Parse the collected count rather than scanning for words: a
+            # successful collect-only prints "N tests collected", and an
+            # unrelated "error" substring elsewhere in the output is not a
+            # failure of this node id.
+            m = re.search(r"(\d+)\s+tests?\s+collected", out)
+            collected = int(m.group(1)) if m else 0
+            if proc.returncode != 0 or collected < 1:
+                tail = out.strip().splitlines()[-1] if out.strip() else "no output"
+                unresolved.append(f"{nid}: collected {collected}, rc={proc.returncode} ({tail})")
+        self.assertEqual(unresolved, [],
+                         "gate-check cites node ids that do not resolve:\n  "
+                         + "\n  ".join(unresolved))
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

@@ -235,7 +235,7 @@ def check_bp_tuple_test():
         "::test_the_clean_pair_really_is_clean", "engine one-level pairing")
     if engine[0] != PASS:
         return engine
-    return _pytest_node("tests/contracts/maps/test_bp_gate3.py::BPTupleMultiset",
+    return _pytest_node("tests/contracts/maps/test_bp_gate3.py::BPTargetGraphMultiset",
                         "BP multiset on the emitted graph")
 
 
@@ -454,7 +454,7 @@ def _pytest_node(nodeid, label=None):
 
 def check_pro_entailment():
     return _pytest_node(
-        "tests/integration/test_reasoning_pro.py::EncounterEntailmentAndConsistency",
+        "tests/integration/test_reasoning_pro.py::EncounterEntailmentOnRealMapOutput",
         "PRO entailment (HermiT, with ELK negative control)")
 
 
