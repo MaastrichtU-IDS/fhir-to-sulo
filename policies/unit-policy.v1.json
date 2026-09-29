@@ -1,0 +1,98 @@
+{
+  "policy_id": "unit-policy",
+  "version": "1.0.0",
+  "status": "draft-awaiting-reviewer",
+  "owner": "Agent 5 (identity and terminology)",
+  "notes": [
+    "Concept note section 4: missing or unrecognized UCUM units fail the numeric target shape.",
+    "Concept note section 2: never drop a unit code/system while claiming an unqualified numeric result.",
+    "The unit's display text stays in the FHIR source layer; the UCUM code is the normalised binding."
+  ],
+
+  "ucum_snapshot": {
+    "snapshot_id": "pilot-pinned-subset-2026-09-29",
+    "system": "http://unitsofmeasure.org",
+    "acquisition": "offline. Hand-pinned from the concept note's worked examples (sections 4 and 5).",
+    "live_lookup_at_runtime": false,
+    "ucum_expression_parsing": false,
+    "ucum_expression_parsing_note": "This resolver does NOT parse arbitrary UCUM expressions. It matches pinned literal codes. Anything else is an explicit outcome, never a guess."
+  },
+
+  "defaults": {
+    "unknown_unit_code": "rejected",
+    "unknown_unit_system": "rejected",
+    "dimension_mismatch": "rejected",
+    "missing_unit_code": "rejected",
+    "conversion": "disabled",
+    "silent_normalisation": false
+  },
+  "defaults_rationale": {
+    "unknown_unit_code": "Concept note section 4 failure variants: 'missing or unrecognized UCUM units fail this numeric target shape'. Rejected, not source-only, because a numeric quantity without a known unit is exactly the unqualified numeric assertion the contract forbids.",
+    "unknown_unit_system": "A non-UCUM unit system is not a UCUM code. Rejected rather than reinterpreted.",
+    "conversion": "No unit conversion in the pilot. A convertible-but-different unit (for example kPa where mm[Hg] is expected) is rejected, not silently normalised."
+  },
+
+  "review_status_values": {
+    "approved": "Reviewer signed off. clinical_signoff true.",
+    "pilot-provisional": "Engineering default from the concept note. Interpretable, clinical_signoff FALSE.",
+    "proposed": "Not usable; yields rejected under this policy because a numeric target needs a usable unit.",
+    "rejected": "Explicitly must not be used."
+  },
+  "interpretable_statuses": ["approved", "pilot-provisional"],
+  "clinically_signed_off_statuses": ["approved"],
+
+  "dimensions": {
+    "egfr-rate": {
+      "description": "Volume rate normalised to body surface area, as used for estimated glomerular filtration rate.",
+      "canonical_ucum_code": "mL/min/{1.73_m2}"
+    },
+    "pressure": {
+      "description": "Pressure, as used for blood pressure.",
+      "canonical_ucum_code": "mm[Hg]"
+    }
+  },
+
+  "units": [
+    {
+      "unit_id": "UCUM-mL-min-1_73_m2",
+      "system": "http://unitsofmeasure.org",
+      "code": "mL/min/{1.73_m2}",
+      "dimension": "egfr-rate",
+      "display_hint_source": "mL/min/1.73 m2",
+      "unit_iri": "https://example.org/fhir-sulo/ucum-mL-min-1_73_m2",
+      "review_status": "pilot-provisional",
+      "reviewer": null,
+      "reviewed_on": null,
+      "provenance": "Concept note section 4 worked example A; the unit IRI local name matches its schematic target graph."
+    },
+    {
+      "unit_id": "UCUM-mm_Hg",
+      "system": "http://unitsofmeasure.org",
+      "code": "mm[Hg]",
+      "dimension": "pressure",
+      "display_hint_source": "mmHg",
+      "unit_iri": "https://example.org/fhir-sulo/ucum-mm_Hg",
+      "review_status": "pilot-provisional",
+      "reviewer": null,
+      "reviewed_on": null,
+      "provenance": "Concept note section 5 worked example B."
+    },
+    {
+      "unit_id": "UCUM-kPa",
+      "system": "http://unitsofmeasure.org",
+      "code": "kPa",
+      "dimension": "pressure",
+      "display_hint_source": "kPa",
+      "unit_iri": "https://example.org/fhir-sulo/ucum-kPa",
+      "review_status": "proposed",
+      "reviewer": null,
+      "reviewed_on": null,
+      "provenance": "Present so that a dimension-compatible but non-approved unit has a recorded outcome rather than falling through the unknown-code branch. Yields rejected while status is proposed; conversion to mm[Hg] is disabled."
+    }
+  ],
+
+  "reviewer_questions": [
+    "U1: should an unrecognised UCUM code be rejected (current default, following concept note section 4) or retained as source-only with no numeric quantity, the way dataAbsentReason is handled?",
+    "U2: should the pilot ever convert units (for example kPa to mm[Hg]), or stay conversion-disabled so the source unit is the only unit asserted? Current default: disabled."
+  ]
+}
