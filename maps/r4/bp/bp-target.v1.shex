@@ -1,0 +1,153 @@
+# Blood-pressure target schema -- SULO 0.2.12 SOLID quantities, concept note
+# section 5.
+#
+# ONE INDIRECTION POINT FOR DOMAIN VOCABULARY (REVIEW ITEM R1).
+# No domain class IRI and no node IRI is written in this file.  Every one
+# arrives as a ThreadedMaterializer `staticVars` run binding declared in
+# `maps/r4/bp/bp-bindings.v1.json`.  Only SULO 0.2.12 terms and prov: appear
+# literally.
+#
+# NO `hasPatient` AND NO RESOURCE-SPECIFIC SHORTCUT (concept note section 2).
+# The person is reached only through the PRO pattern: a quantity refersTo a
+# quality, and the quality isFeatureOf the person.  `test_bp_gate3.py` asserts
+# the emitted graph contains no predicate whose local name is `hasPatient` and
+# no predicate outside the SULO/prov/rdf allow-list.
+#
+# EVERY TRIPLE CONSTRAINT BELOW IS REQUIRED.  Optionality -- the omitted
+# diastolic component of `bp-component-omitted` -- is expressed by which passes
+# the run-binding manifest declares conditional on a source binding, never by
+# an optional target constraint.  The consequence is a strong invariant the
+# tests rely on: a non-empty `lastReport.unboundVariables` is ALWAYS an error,
+# so DR-301's blocker 8c (an unbindable target variable silently yielding a
+# partial graph, exit 0, clean stderr) cannot pass unnoticed here.
+#
+# DR-301 4b/4c: the engine has no id() and only the root node of a
+# materialization has a controllable IRI, so each IRI-identified node is the
+# root of its own pass.  This is the DR-302 decomposition.
+
+PREFIX sulo: <https://w3id.org/sulo/>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX xsd:  <http://www.w3.org/2001/XMLSchema#>
+PREFIX Map:  <http://shex.io/extensions/Map/#>
+PREFIX v:    <https://w3id.org/fhir-sulo/map/bp/var#>
+PREFIX sh:   <https://w3id.org/fhir-sulo/map/bp/shape#>
+
+start = @sh:BPPanelRecordNode
+
+# --- the panel record ------------------------------------------------------
+# R9 is open: the LOINC panel code does NOT type this node.  Concept note
+# section 2: "a FHIR code literal alone is not an OWL class assertion", and the
+# 85354-9 entry in the code table is `proposed`, which yields source-only.
+# Answering R9 option A adds one `rdf:type IRI %Map:{ v:panelClass %}`
+# constraint to both shapes below and one manifest entry.
+#
+# TWO ALTERNATIVE ENTRY SHAPES, one with a diastolic member and one without,
+# chosen by the run-binding manifest's `requires_source_binding` /
+# `forbids_source_binding` on the `diaValue` variable.  Declared in
+# MapContract.allowed_alternative_shapes.
+#
+# Why not one shape with an optional diastolic member: MEASURED.  An optional
+# target constraint whose variable is unbound emits the right graph, but the
+# engine reports it in `lastReport.unboundVariables` regardless, so it becomes
+# impossible to tell a legitimately absent component from DR-301 blocker 8c --
+# a target variable the data never bound, silently pruning the branches that
+# needed it and yielding a partial graph with exit 0 and a clean stderr.  With
+# every constraint required, `unboundVariables != []` is ALWAYS an error, which
+# is the invariant the tests rely on.
+#
+# Why not one shape plus a separate member pass: also measured.  The panel node
+# would then carry two sulo:refersTo arcs while its entry shape declares one,
+# so the target schema could not validate its own output and pivot recovery
+# (concept note section 5) failed with an ExcessTripleViolation.  `EXTRA
+# sulo:refersTo` does not help: shex@1.0.0-alpha.33 excuses only an arc that
+# FAILS the constraint, not a surplus arc that satisfies it.
+sh:BPPanelRecordNode {
+  rdf:type [sulo:InformationObject] ;
+  rdf:type IRI %Map:{ v:recordClass %} ;
+  sulo:atTime IRI %Map:{ v:timeInstant %} ;
+  sulo:refersTo IRI %Map:{ v:sysResult %} ;
+  prov:wasDerivedFrom IRI %Map:{ v:sourceVersionIri %}
+}
+
+sh:BPPanelRecordNodeWithDiastolic {
+  rdf:type [sulo:InformationObject] ;
+  rdf:type IRI %Map:{ v:recordClass %} ;
+  sulo:atTime IRI %Map:{ v:timeInstant %} ;
+  sulo:refersTo IRI %Map:{ v:sysResult %} ;
+  sulo:refersTo IRI %Map:{ v:diaResult %} ;
+  prov:wasDerivedFrom IRI %Map:{ v:sourceVersionIri %}
+}
+
+# --- the two component quantities ------------------------------------------
+# sulo:hasValue is functional with domain sulo:InformationObject (DR-002
+# axiom 1) and sulo:Quantity requires a unit part (axiom 2).
+sh:BPSystolicQuantityNode {
+  rdf:type [sulo:Quantity] ;
+  rdf:type IRI %Map:{ v:sysResultClass %} ;
+  sulo:hasValue xsd:decimal %Map:{ v:sysValue %} ;
+  sulo:hasPart  IRI %Map:{ v:unitIri %} ;
+  sulo:refersTo IRI %Map:{ v:sysQuality %} ;
+  sulo:atTime   IRI %Map:{ v:timeInstant %} ;
+  prov:wasDerivedFrom IRI %Map:{ v:sourceVersionIri %}
+}
+
+sh:BPDiastolicQuantityNode {
+  rdf:type [sulo:Quantity] ;
+  rdf:type IRI %Map:{ v:diaResultClass %} ;
+  sulo:hasValue xsd:decimal %Map:{ v:diaValue %} ;
+  sulo:hasPart  IRI %Map:{ v:unitIri %} ;
+  sulo:refersTo IRI %Map:{ v:diaQuality %} ;
+  sulo:atTime   IRI %Map:{ v:timeInstant %} ;
+  prov:wasDerivedFrom IRI %Map:{ v:sourceVersionIri %}
+}
+
+# --- the two qualities -----------------------------------------------------
+# R4: v:qualityBranch defaults to sulo:Quality rather than bare sulo:Feature,
+# because Feature is a disjoint union of four branches (DR-002 axiom 6).
+sh:BPSystolicQualityNode {
+  rdf:type IRI %Map:{ v:qualityBranch %} ;
+  rdf:type IRI %Map:{ v:sysQualityClass %} ;
+  sulo:isFeatureOf IRI %Map:{ v:person %}
+}
+
+sh:BPDiastolicQualityNode {
+  rdf:type IRI %Map:{ v:qualityBranch %} ;
+  rdf:type IRI %Map:{ v:diaQualityClass %} ;
+  sulo:isFeatureOf IRI %Map:{ v:person %}
+}
+
+# --- the person ------------------------------------------------------------
+# Two alternative entry shapes, for the same reason as the panel record.
+# sulo:isFeatureOf owl:inverseOf sulo:hasFeature, so these are the inverses the
+# concept note's section 4 example graph states explicitly.
+sh:BPPersonNode {
+  rdf:type IRI %Map:{ v:personSuloClass %} ;
+  rdf:type IRI %Map:{ v:personClass %} ;
+  sulo:hasFeature IRI %Map:{ v:sysQuality %}
+}
+
+sh:BPPersonNodeWithDiastolic {
+  rdf:type IRI %Map:{ v:personSuloClass %} ;
+  rdf:type IRI %Map:{ v:personClass %} ;
+  sulo:hasFeature IRI %Map:{ v:sysQuality %} ;
+  sulo:hasFeature IRI %Map:{ v:diaQuality %}
+}
+
+# --- the shared UCUM unit --------------------------------------------------
+# Both components are pinned to mm[Hg] by the source schema, so one unit node
+# serves both.  If they ever differed the source shape would reject the
+# resource rather than silently emit one unit for two dimensions.
+sh:BPUnitNode {
+  rdf:type [sulo:Unit] ;
+  sulo:hasValue xsd:string %Map:{ v:sysUnit %}
+}
+
+# --- the clinically relevant time ------------------------------------------
+# Observation.effective[x] -- not `issued`, not `meta.lastUpdated`
+# (concept note section 2).  R5/Q2: no explicit sulo:Unit, matching the
+# concept note's example graphs.
+sh:BPTimeNode {
+  rdf:type [sulo:TimeInstant] ;
+  sulo:hasValue xsd:dateTime %Map:{ v:effective %}
+}

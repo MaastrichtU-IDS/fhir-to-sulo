@@ -1,0 +1,289 @@
+{
+  "format": "fhir-sulo/map-contract/0.1.0",
+  "map_id": "fhir-r4-bp-panel-solid",
+  "semantic_version": "1.0.0",
+  "pairing_files": [
+    "maps/r4/bp/bp-source.v1.shex",
+    "maps/r4/bp/bp-target.v1.shex",
+    "maps/r4/bp/bp-bindings.v1.json"
+  ],
+  "pairing_hash": "ed3d572dc839d61ad271dc5d3c12d12dab5986c3c638206b0f226686d1b8372e",
+  "pairing_hash_note": "Recomputed and checked by tests/contracts/maps/test_map_contracts.py; written by `python3 maps/r4/rehash.py`.",
+  "source_release": "R4",
+  "source_profiles": [
+    "http://hl7.org/fhir/StructureDefinition/Observation"
+  ],
+  "source_profiles_note": "Base Observation only. Q-A2-1 is open: whether the BP family claims http://hl7.org/fhir/StructureDefinition/vitalsigns and .../bp conformance. Claiming them would require Observation.category and the 85354-9 panel code, which the concept note does not specify. The source shape accepts 8480-6 or 85354-9 as the parent code so either answer is a value-set edit.",
+  "source_shape_label": "https://w3id.org/fhir-sulo/map/bp/shape#BPObservation",
+  "target_shape_label": "https://w3id.org/fhir-sulo/map/bp/shape#BPPanelRecordNode",
+  "sulo_version": "0.2.12",
+  "pivot_variables": [
+    {
+      "name": "panel",
+      "var_type": "string",
+      "required": true,
+      "source_element": "Observation.id",
+      "target_role": "node key input; the repetition key",
+      "scope": "panel",
+      "inverse_covered": false,
+      "notes": [
+        "This is the repetition key the concept note section 5 requirement is written against: the tuple multiset is keyed on it."
+      ]
+    },
+    {
+      "name": "versionId",
+      "var_type": "string",
+      "required": true,
+      "source_element": "Observation.meta.versionId",
+      "target_role": "prov:wasDerivedFrom path segment",
+      "scope": "panel",
+      "inverse_covered": true
+    },
+    {
+      "name": "status",
+      "var_type": "code",
+      "required": true,
+      "source_element": "Observation.status",
+      "target_role": "eligibility guard only",
+      "scope": "panel",
+      "inverse_covered": false
+    },
+    {
+      "name": "panelCodeSystem",
+      "var_type": "string",
+      "required": true,
+      "source_element": "Observation.code.coding.system",
+      "target_role": "guard only",
+      "scope": "panel",
+      "inverse_covered": false
+    },
+    {
+      "name": "panelCode",
+      "var_type": "code",
+      "required": true,
+      "source_element": "Observation.code.coding.code",
+      "target_role": "source layer only [R9]",
+      "scope": "panel",
+      "inverse_covered": false,
+      "notes": [
+        "R9 option B: the panel code does NOT type the panel record node. LOINC 85354-9 is `proposed` in the code table and therefore yields source-only. Bound so it cannot be dropped silently."
+      ]
+    },
+    {
+      "name": "subjectRef",
+      "var_type": "string",
+      "required": true,
+      "source_element": "Observation.subject.reference",
+      "target_role": "identity service input",
+      "scope": "panel",
+      "inverse_covered": false,
+      "notes": [
+        "bp-other-patient has two panels with two different subjects, so this is resolved per resource."
+      ]
+    },
+    {
+      "name": "effective",
+      "var_type": "datetime",
+      "required": true,
+      "source_element": "Observation.effectiveDateTime",
+      "target_role": "sulo:hasValue on the sulo:TimeInstant",
+      "scope": "panel",
+      "inverse_covered": true
+    },
+    {
+      "name": "sysCode",
+      "var_type": "code",
+      "required": true,
+      "source_element": "Observation.component[systolic].code.coding.code",
+      "target_role": "component discriminator -> sysResultClass, sysQualityClass",
+      "scope": "panel",
+      "inverse_covered": false,
+      "notes": [
+        "Guarded to LOINC 8480-6. THIS is what keeps (bp-1,120,80) from becoming (bp-1,80,120): the systolic value is bound by the constraint whose code is 8480-6, not by position and not by fhir:index."
+      ]
+    },
+    {
+      "name": "sysValue",
+      "var_type": "decimal",
+      "required": true,
+      "source_element": "Observation.component[8480-6].valueQuantity.value",
+      "target_role": "sulo:hasValue on the systolic sulo:Quantity",
+      "scope": "panel",
+      "inverse_covered": true
+    },
+    {
+      "name": "sysUnit",
+      "var_type": "string",
+      "required": true,
+      "source_element": "Observation.component[8480-6].valueQuantity.code",
+      "target_role": "sulo:hasValue on the shared sulo:Unit",
+      "scope": "panel",
+      "inverse_covered": true
+    },
+    {
+      "name": "sysUnitText",
+      "var_type": "string",
+      "required": false,
+      "source_element": "Observation.component[8480-6].valueQuantity.unit",
+      "target_role": "source layer only",
+      "scope": "panel",
+      "inverse_covered": false
+    },
+    {
+      "name": "diaCode",
+      "var_type": "code",
+      "required": false,
+      "source_element": "Observation.component[diastolic].code.coding.code",
+      "target_role": "component discriminator -> diaResultClass, diaQualityClass",
+      "scope": "panel",
+      "inverse_covered": false,
+      "notes": [
+        "Guarded to LOINC 8462-4. Optional: bp-component-omitted has no diastolic component."
+      ]
+    },
+    {
+      "name": "diaValue",
+      "var_type": "decimal",
+      "required": false,
+      "source_element": "Observation.component[8462-4].valueQuantity.value",
+      "target_role": "sulo:hasValue on the diastolic sulo:Quantity",
+      "scope": "panel",
+      "inverse_covered": true,
+      "notes": [
+        "Also the `requires_source_binding` gate for the four diastolic passes. When it is unbound, no diastolic node exists at all; the slot is empty, never borrowed."
+      ]
+    },
+    {
+      "name": "diaUnit",
+      "var_type": "string",
+      "required": false,
+      "source_element": "Observation.component[8462-4].valueQuantity.code",
+      "target_role": "guard only (must equal sysUnit)",
+      "scope": "panel",
+      "inverse_covered": false,
+      "notes": [
+        "Both components are pinned to mm[Hg], so one shared sulo:Unit node serves both. A component in a different unit fails the source shape rather than silently sharing a unit node across dimensions."
+      ]
+    },
+    {
+      "name": "diaUnitText",
+      "var_type": "string",
+      "required": false,
+      "source_element": "Observation.component[8462-4].valueQuantity.unit",
+      "target_role": "source layer only",
+      "scope": "panel",
+      "inverse_covered": false
+    }
+  ],
+  "repetition_scopes": [
+    {
+      "name": "panel",
+      "key_variables": [
+        "panel"
+      ],
+      "member_variables": [
+        "subjectRef",
+        "effective",
+        "sysValue",
+        "diaValue",
+        "sysUnit",
+        "diaUnit",
+        "versionId",
+        "status",
+        "panelCode",
+        "panelCodeSystem",
+        "sysCode",
+        "diaCode",
+        "sysUnitText",
+        "diaUnitText"
+      ],
+      "min_occurs": 1,
+      "max_occurs": 1,
+      "note": "ONE iteration per map run. Concept note section 5's two panels are two Observation resources and therefore two runs (DR-302), which is why the two panels can never share a binding context. Within a run there is no repeating triple constraint at all: the two components are two max-1 constraints discriminated by LOINC code, not a `component*`. The acceptance multiset is assembled across runs and compared as a sorted list."
+    }
+  ],
+  "node_key_rules": {
+    "panelRecord": "{domain_namespace}bp-panel-{panel}",
+    "sysResult": "{domain_namespace}bp-systolic-result-{panel}",
+    "diaResult": "{domain_namespace}bp-diastolic-result-{panel}",
+    "timeInstant": "{domain_namespace}time-{panel}",
+    "sourceVersionIri": "{Observation canonical url}/_history/{versionId}",
+    "person": "IdentityService.resolve(Observation.subject).entity_iri",
+    "sysQuality": "IdentityService.resolve_quality(person, SystolicBloodPressureQuality, 8480-6, ...) [R2]",
+    "diaQuality": "IdentityService.resolve_quality(person, DiastolicBloodPressureQuality, 8462-4, ...) [R2]",
+    "unitIri": "TerminologyService.resolve_unit(UCUM mm[Hg]).unit_iri",
+    "_why": "CD-1: no id() in the pinned engine; node identity is declared here, not computed by the engine."
+  },
+  "terminology_dependencies": [
+    "policies/code-interpretation.v1.json :: CODE-LOINC-8480-6, CODE-LOINC-8462-4 -- pilot-provisional, clinical_signoff false",
+    "policies/code-interpretation.v1.json :: CODE-LOINC-85354-9 -- `proposed`, yields source-only, NOT used to type anything [R9]",
+    "policies/unit-policy.v1.json :: UCUM-mm_Hg -- pilot-provisional, clinical_signoff false",
+    "policies/identity-policy.v1.json :: entity_iri, quality_identity [R2 unanswered]"
+  ],
+  "status_eligibility": [
+    "final"
+  ],
+  "expected_failures": [
+    "Observation.status != 'final'",
+    "a systolic component absent -- the systolic constraint is required",
+    "a component code outside {8480-6, 8462-4}",
+    "a component unit other than mm[Hg], including kPa (unit conversion is disabled by policy)",
+    "a component valueQuantity carrying a comparator -- the CLOSED Quantity shapes reject it",
+    "two systolic components in one Observation -- rejected, because it would hide which value is the systolic one",
+    "a parent Observation.code outside {8480-6, 85354-9}",
+    "any Observation element outside the CLOSED shape, including modifierExtension"
+  ],
+  "expected_nonmapped_fields": [
+    "Observation.status",
+    "Observation.code (the panel code) [R9]",
+    "Observation.component[*].code.coding.system",
+    "Observation.component[*].code.coding.code",
+    "Observation.component[*].valueQuantity.unit",
+    "Observation.component[*].valueQuantity.system",
+    "Observation.component[*].code.coding.display",
+    "Observation.subject.reference",
+    "Observation.subject.link",
+    "fhir:index on every repeated element"
+  ],
+  "allowed_alternative_shapes": [
+    "sh:BPPanelRecordNode / sh:BPPanelRecordNodeWithDiastolic -- two entry shapes for the panel record, selected by whether the source bound a diastolic component. Both have every constraint required, so lastReport.unboundVariables != [] stays an unconditional error (DR-301 blocker 8c) and both revalidate against the graph they produce.",
+    "sh:BPPersonNode / sh:BPPersonNodeWithDiastolic -- the same pair for the person node.",
+    "bp-component-omitted selects the first of each pair; the graph then carries no diastolic quantity, no diastolic quality and no diastolic member triple."
+  ],
+  "static_variables": {
+    "sysResultClass": "bp-bindings.v1.json :: vocabulary.sysResultClass",
+    "diaResultClass": "bp-bindings.v1.json :: vocabulary.diaResultClass",
+    "sysQualityClass": "bp-bindings.v1.json :: vocabulary.sysQualityClass",
+    "diaQualityClass": "bp-bindings.v1.json :: vocabulary.diaQualityClass",
+    "qualityBranch": "bp-bindings.v1.json :: vocabulary.qualityBranch [R4]",
+    "personClass": "bp-bindings.v1.json :: vocabulary.personClass [R1]",
+    "personSuloClass": "bp-bindings.v1.json :: vocabulary.personSuloClass [R6]",
+    "recordClass": "bp-bindings.v1.json :: vocabulary.recordClass [R1]",
+    "person": "identity service run binding",
+    "sysQuality": "identity service run binding [R2]",
+    "diaQuality": "identity service run binding [R2]",
+    "unitIri": "terminology service run binding",
+    "panelRecord": "node_key_rules.panelRecord",
+    "sysResult": "node_key_rules.sysResult",
+    "diaResult": "node_key_rules.diaResult",
+    "timeInstant": "node_key_rules.timeInstant",
+    "sourceVersionIri": "node_key_rules.sourceVersionIri"
+  },
+  "static_analysis_passed": false,
+  "static_analysis_note": [
+    "CD-1: no static checker ships and Agent 4's linter has not landed, so this stays false.",
+    "The three obligations are asserted at run time on all five BP fixtures plus both RDF variants by tests/contracts/maps/test_bp_gate3.py.",
+    "An optional target constraint was measured and rejected: with `sulo:refersTo IRI ? %Map:{ v:diaResult %}` and diaResult unsupplied, the engine emits the correct graph but still lists diaResult in lastReport.unboundVariables, which would make the blocker-8c check unusable. Hence the alternative shapes."
+  ],
+  "inverse_coverage_note": [
+    "tests/contracts/maps/test_inverse_pivot.py revalidates each materialized node against this target schema and asserts the recovered bindings.",
+    "Same FINDING as the eGFR map: sh:BPSystolicQualityNode, sh:BPDiastolicQualityNode, sh:BPPersonSystolicNode and sh:BPPersonDiastolicNode each carry two variable-bound rdf:type constraints, so the inverse recovers the correct SET of classes with an arbitrary variable assignment. The quantity nodes are unaffected, because their second rdf:type is the constant [sulo:Quantity]."
+  ],
+  "fixture_references": [
+    "fixtures/r4/bp/bp-two-panels",
+    "fixtures/r4/bp/bp-component-omitted",
+    "fixtures/r4/bp/bp-reordered-serialisation",
+    "fixtures/r4/bp/bp-duplicate-values",
+    "fixtures/r4/bp/bp-other-patient"
+  ]
+}
