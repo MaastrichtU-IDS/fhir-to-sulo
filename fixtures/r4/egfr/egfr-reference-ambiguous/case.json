@@ -1,0 +1,24 @@
+{
+  "fixture_id": "egfr-reference-ambiguous",
+  "family": "egfr",
+  "concept_note_section": "4",
+  "synthetic": true,
+  "description": "Two contained Patients share id 'p'. Acceptance matrix row Identity: ambiguous identity never silently merges.",
+  "sources": [
+    "egfr-456-ambigref.json"
+  ],
+  "expected": {
+    "eligibility": "rejected",
+    "eligibility_reason_contains": [
+      "ambiguous reference"
+    ],
+    "references": {
+      "Observation.subject": {
+        "kind": "ambiguous",
+        "resolved_target": null,
+        "entity_iri_established": false,
+        "ambiguous": true
+      }
+    }
+  }
+}

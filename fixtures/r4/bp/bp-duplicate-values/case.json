@@ -1,0 +1,16 @@
+{
+  "fixture_id": "bp-duplicate-values",
+  "family": "bp",
+  "concept_note_section": "5",
+  "synthetic": true,
+  "description": "Two panels with identical values at different times. The multiset must have two members; coalescing them to one is the failure.",
+  "sources": [
+    "bp-3.json",
+    "bp-4.json"
+  ],
+  "expected": {
+    "eligibility": "eligible",
+    "eligibility_reason_contains": [],
+    "references": {}
+  }
+}

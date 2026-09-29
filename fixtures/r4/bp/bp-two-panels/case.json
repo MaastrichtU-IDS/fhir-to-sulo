@@ -1,0 +1,16 @@
+{
+  "fixture_id": "bp-two-panels",
+  "family": "bp",
+  "concept_note_section": "5",
+  "synthetic": true,
+  "description": "Concept note section 5 baseline. Two panels for one synthetic patient. The required answer is the multiset {(bp-1,120,80),(bp-2,105,70)}.",
+  "sources": [
+    "bp-1.json",
+    "bp-2.json"
+  ],
+  "expected": {
+    "eligibility": "eligible",
+    "eligibility_reason_contains": [],
+    "references": {}
+  }
+}

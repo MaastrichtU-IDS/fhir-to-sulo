@@ -1,0 +1,23 @@
+{
+  "fixture_id": "egfr-comparator",
+  "family": "egfr",
+  "concept_note_section": "4",
+  "synthetic": true,
+  "description": "valueQuantity.comparator '<'. Concept note section 4: requires a qualified-value mapping; section 2 forbids dropping it while claiming an unqualified numeric result.",
+  "sources": [
+    "egfr-456-comparator.json"
+  ],
+  "expected": {
+    "eligibility": "rejected",
+    "eligibility_reason_contains": [
+      "comparator"
+    ],
+    "references": {
+      "Observation.subject": {
+        "kind": "literal-relative",
+        "resolved_target": "https://fhir.example/Patient/p123",
+        "entity_iri_established": true
+      }
+    }
+  }
+}

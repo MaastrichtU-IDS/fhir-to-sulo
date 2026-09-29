@@ -1,0 +1,23 @@
+{
+  "fixture_id": "egfr-entered-in-error",
+  "family": "egfr",
+  "concept_note_section": "4",
+  "synthetic": true,
+  "description": "status=entered-in-error. Concept note section 2: suppresses clinical assertions, does not erase the source record - hence source-only, not rejected.",
+  "sources": [
+    "egfr-456-eie.json"
+  ],
+  "expected": {
+    "eligibility": "source-only",
+    "eligibility_reason_contains": [
+      "entered-in-error"
+    ],
+    "references": {
+      "Observation.subject": {
+        "kind": "literal-relative",
+        "resolved_target": "https://fhir.example/Patient/p123",
+        "entity_iri_established": true
+      }
+    }
+  }
+}
