@@ -17,8 +17,7 @@ from __future__ import annotations
 import hashlib
 import unittest
 
-from . import support  # noqa: F401  (sets sys.path)
-from .support import graph_text
+from . import mapoutput
 
 from fhir_sulo.validation import reasoning
 
@@ -140,75 +139,233 @@ class SeparateParseUnitsLoseTheEntailment(unittest.TestCase):
 
 @unittest.skipUnless(HAVE_RDFLIB, SKIP_ENV)
 @unittest.skipUnless(HAVE_REASONER, SKIP_REASONER)
-class EncounterEntailmentAndConsistency(unittest.TestCase):
-    """Gate 3: "a PRO-aware reasoner infers the correct patient and clinician
-    as participants in the encounter; the graph contains no hasPatient"."""
+@unittest.skipUnless(mapoutput.AVAILABLE, mapoutput.SKIP_NO_FIXTURES)
+class EncounterEntailmentOnRealMapOutput(unittest.TestCase):
+    """Gate 3, on the graphs the maps actually emit.
+
+        a PRO-aware reasoner infers the correct patient and clinician as
+        participants in the encounter; the graph contains no hasPatient
+
+    Review finding M2: this ran on ``tests/integration/graphs/encounter-pro.ttl``,
+    a hand-written graph using ``ex:person-p123`` and ``sulo:SpatialObject``.
+    The real map emits ``person-<32 hex>`` and ``sulo:Object``. The properties
+    held on both, so nothing was wrong - but a Gate 3 condition backed by a
+    graph no pipeline produces establishes nothing, and would not notice the
+    map drifting. It now runs on ``fixtures/expected/encounter/*/target.nt``.
+    """
+
+    FIXTURES = ("enc-baseline", "enc-contained-practitioner")
 
     @classmethod
     def setUpClass(cls):
         cls.robot = reasoning.RobotReasoner()
         cls.robot.start()
-        cls.asserted = cls.robot._graph_of(graph_text("encounter-pro.ttl"))
-        cls.inferred = cls.robot.materialize(cls.asserted)
+        cls.cases = {}
+        for fixture_id in cls.FIXTURES:
+            asserted = mapoutput.by_id(fixture_id).graph()
+            cls.cases[fixture_id] = (asserted, cls.robot.materialize(asserted))
 
     @classmethod
     def tearDownClass(cls):
         cls.robot.close()
 
-    def _iri(self, local):
-        return rdflib.URIRef("https://example.org/fhir-sulo/" + local)
+    HAS_PARTICIPANT = "https://w3id.org/sulo/hasParticipant"
+    IS_FEATURE_OF = "https://w3id.org/sulo/isFeatureOf"
+    RDF_TYPE = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
+    ROLE = "https://w3id.org/sulo/Role"
 
-    def test_the_patient_is_inferred_as_a_participant(self):
-        self.assertIn(
-            (self._iri("encounter-9"),
-             rdflib.URIRef("https://w3id.org/sulo/hasParticipant"),
-             self._iri("person-p123")),
-            self.inferred,
-        )
+    def _role_holders(self, graph):
+        """(encounter, role, holder) triples, read out of the graph itself.
 
-    def test_the_clinician_is_inferred_as_a_participant(self):
-        self.assertIn(
-            (self._iri("encounter-9"),
-             rdflib.URIRef("https://w3id.org/sulo/hasParticipant"),
-             self._iri("clinician-c7")),
-            self.inferred,
-        )
+        Nothing is hard-coded: the IRIs in real map output are content
+        hashes, so the test discovers them rather than asserting a literal
+        that would have to be updated whenever the identity policy moves.
+        """
+        p = rdflib.URIRef
+        out = set()
+        for encounter, _p, role in graph.triples((None, p(self.HAS_PARTICIPANT), None)):
+            if (role, p(self.RDF_TYPE), p(self.ROLE)) not in graph:
+                continue
+            for _r, _p2, holder in graph.triples((role, p(self.IS_FEATURE_OF), None)):
+                out.add((encounter, role, holder))
+        return out
 
-    def test_neither_person_was_asserted_as_a_participant(self):
-        """Otherwise the test above would pass without any reasoning at all."""
-        for local in ("person-p123", "clinician-c7"):
-            self.assertNotIn(
-                (self._iri("encounter-9"),
-                 rdflib.URIRef("https://w3id.org/sulo/hasParticipant"),
-                 self._iri(local)),
-                self.asserted,
-            )
+    def test_the_maps_emit_two_typed_roles_per_encounter(self):
+        for fixture_id, (asserted, _inferred) in self.cases.items():
+            with self.subTest(fixture=fixture_id):
+                holders = self._role_holders(asserted)
+                self.assertEqual(len(holders), 2, holders)
 
-    def test_the_graph_is_consistent_with_sulo(self):
-        report = self.robot.check_consistency(self.asserted)
-        self.assertTrue(report.consistent, report.detail)
+    def test_both_holders_are_inferred_as_participants(self):
+        p = rdflib.URIRef
+        for fixture_id, (asserted, inferred) in self.cases.items():
+            for encounter, role, holder in self._role_holders(asserted):
+                with self.subTest(fixture=fixture_id, role=str(role)):
+                    self.assertIn(
+                        (encounter, p(self.HAS_PARTICIPANT), holder),
+                        inferred,
+                        "the SULO property chain did not put %s in %s"
+                        % (holder, encounter),
+                    )
 
-    def test_the_graph_contains_no_hasPatient_predicate(self):
-        """Acceptance matrix row PRO. Checked on the ASSERTED and the REASONED
-        graph: a reasoner cannot introduce one, but checking only the asserted
-        graph would leave that unstated."""
-        for label, graph in (("asserted", self.asserted), ("inferred", self.inferred)):
-            with self.subTest(graph=label):
+    def test_neither_holder_was_asserted_as_a_participant(self):
+        """Otherwise the test above would pass with no reasoning at all."""
+        p = rdflib.URIRef
+        for fixture_id, (asserted, _inferred) in self.cases.items():
+            for encounter, _role, holder in self._role_holders(asserted):
+                with self.subTest(fixture=fixture_id):
+                    self.assertNotIn(
+                        (encounter, p(self.HAS_PARTICIPANT), holder), asserted
+                    )
+
+    def test_the_patient_and_the_clinician_are_distinct_people(self):
+        """A chain that collapsed both roles onto one holder would satisfy
+        "both inferred" while being badly wrong."""
+        for fixture_id, (asserted, _inferred) in self.cases.items():
+            with self.subTest(fixture=fixture_id):
+                holders = {h for _e, _r, h in self._role_holders(asserted)}
+                self.assertEqual(len(holders), 2, holders)
+
+    def test_every_emitted_graph_is_consistent_with_sulo(self):
+        for item in mapoutput.MAPPED:
+            with self.subTest(fixture=item.fixture_id):
+                report = self.robot.check_consistency(item.graph())
+                self.assertTrue(report.consistent, report.detail)
+
+    def test_no_emitted_graph_contains_a_hasPatient_predicate(self):
+        """Acceptance matrix row PRO, over real output, asserted and inferred.
+
+        A reasoner cannot introduce one, but checking only the asserted graph
+        would leave that unstated.
+        """
+        for fixture_id, (asserted, inferred) in self.cases.items():
+            for label, graph in (("asserted", asserted), ("inferred", inferred)):
+                with self.subTest(fixture=fixture_id, graph=label):
+                    offenders = [
+                        str(pred) for _s, pred, _o in graph
+                        if str(pred).endswith(("hasPatient", "hasSubject"))
+                    ]
+                    self.assertEqual(offenders, [])
+        for item in mapoutput.MAPPED:
+            with self.subTest(fixture=item.fixture_id, graph="asserted"):
                 offenders = [
-                    str(p) for _s, p, _o in graph if str(p).endswith("hasPatient")
+                    str(pred) for _s, pred, _o in item.graph()
+                    if str(pred).endswith(("hasPatient", "hasSubject"))
                 ]
                 self.assertEqual(offenders, [])
 
-    def test_a_person_typed_into_a_feature_branch_is_caught_as_inconsistent(self):
-        """SULO makes Feature disjoint with SpatialObject (DR-002). This is
-        the mistake review item R6 exists to prevent, and the reasoner does
-        catch it - so R6 has a safety net while it is open."""
-        broken = graph_text("encounter-pro.ttl") + (
-            "\n<https://example.org/fhir-sulo/person-p123> a "
+    def test_the_maps_type_people_as_sulo_Object_not_SpatialObject(self):
+        """Pins the R6 placeholder so the map and these tests cannot disagree.
+
+        Asserts what the map does **today**; it does not answer R6. An earlier
+        version of this suite used a hand-written graph typing people as
+        ``sulo:SpatialObject`` while the map emitted ``sulo:Object``, and
+        nothing noticed. If the reviewer picks SpatialObject, the map and this
+        test change together - which is the point of having it.
+        """
+        graph = mapoutput.by_id("enc-baseline").graph()
+        p = rdflib.URIRef
+        people = set(graph.subjects(p(self.RDF_TYPE), p(mapoutput.EX + "Person")))
+        self.assertTrue(people)
+        for person in people:
+            self.assertIn(
+                (person, p(self.RDF_TYPE), p("https://w3id.org/sulo/Object")), graph
+            )
+            self.assertNotIn(
+                (person, p(self.RDF_TYPE), p("https://w3id.org/sulo/SpatialObject")),
+                graph,
+            )
+
+
+@unittest.skipUnless(HAVE_RDFLIB, SKIP_ENV)
+@unittest.skipUnless(HAVE_REASONER, SKIP_REASONER)
+class R6EvidenceThePersonClassChoiceHasConsequences(unittest.TestCase):
+    """Measured input to open review item R6, not a verdict on it.
+
+    R6 asks for the SULO parent of the patient/practitioner class. While
+    writing the Gate 3 tests against **real** map output, a claim in DR-603
+    turned out to be false. It said the reasoner catches a person wrongly
+    typed into a ``Feature`` branch, "so R6 has a safety net while it is
+    open". That is true only for ``sulo:SpatialObject``.
+
+    SULO 0.2.12 has ``Feature ⊑ Object`` and ``Feature owl:disjointWith
+    SpatialObject``. So:
+
+    ========================================= ==============
+    person typed as                           + Quality/Role
+    ========================================= ==============
+    ``sulo:SpatialObject`` (the old hand graph) INCONSISTENT
+    ``sulo:Object``        (what maps emit)     consistent
+    ========================================= ==============
+
+    The maps emit ``sulo:Object``, so **there is currently no safety net.** A
+    map bug that typed a patient as a Role would pass the reasoner. Choosing
+    SpatialObject would buy that guard; choosing bare Object does not. That is
+    a concrete consequence the reviewer should weigh, and these tests are the
+    evidence for it rather than a claim in prose.
+    """
+
+    PROBE = """
+    @prefix sulo: <https://w3id.org/sulo/> .
+    @prefix ex:   <https://example.org/fhir-sulo/> .
+    ex:enc a sulo:Process ; sulo:hasParticipant ex:role .
+    ex:role a sulo:Role ; sulo:isFeatureOf ex:p .
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        cls.robot = reasoning.RobotReasoner()
+        cls.robot.start()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.robot.close()
+
+    def _consistent(self, person_types: str) -> bool:
+        return self.robot.check_consistency(
+            self.PROBE + "ex:p a %s .\n" % person_types
+        ).consistent
+
+    def test_both_candidate_typings_are_fine_on_their_own(self):
+        self.assertTrue(self._consistent("sulo:Object"))
+        self.assertTrue(self._consistent("sulo:SpatialObject"))
+
+    def test_spatialobject_makes_a_misclassified_person_inconsistent(self):
+        self.assertFalse(self._consistent("sulo:SpatialObject , sulo:Quality"))
+        self.assertFalse(self._consistent("sulo:SpatialObject , sulo:Role"))
+
+    def test_bare_object_does_not(self):
+        """The finding. ``Quality ⊑ Feature ⊑ Object``, so there is no clash."""
+        self.assertTrue(self._consistent("sulo:Object , sulo:Quality"))
+        self.assertTrue(self._consistent("sulo:Object , sulo:Role"))
+
+    def test_the_shapes_catch_it_even_though_the_reasoner_does_not(self):
+        """Not a disaster, but the guard is in SHACL, not in OWL.
+
+        Worth stating precisely: the disjointness shapes reject a node in two
+        Feature branches, so a misclassified person is caught before it
+        reaches the store. What is *not* available under bare ``sulo:Object``
+        is the OWL consistency check, which is the one the acceptance matrix
+        row "reasoner checks consistency" leans on.
+        """
+        from fhir_sulo.validation import shapes_check, strictness
+
+        broken = (
+            "<https://example.org/fhir-sulo/p> "
+            "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type> "
+            "<https://w3id.org/sulo/Role> .\n"
+            "<https://example.org/fhir-sulo/p> "
+            "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type> "
             "<https://w3id.org/sulo/Quality> .\n"
+            "<https://example.org/fhir-sulo/p> "
+            "<https://w3id.org/sulo/isFeatureOf> "
+            "<https://example.org/fhir-sulo/q> .\n"
         )
-        report = self.robot.check_consistency(broken)
-        self.assertFalse(report.consistent)
+        report = shapes_check.validate_graph(
+            broken, strictness.CONCEPT_NOTE_LITERAL
+        )
+        self.assertFalse(report.conforms)
+        self.assertTrue(any("disjoint" in v.message for v in report.violations))
 
 
 if __name__ == "__main__":

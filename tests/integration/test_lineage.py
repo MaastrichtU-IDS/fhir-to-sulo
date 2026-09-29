@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import unittest
 
-from .support import QUADS_V1, fake_engine_payload, mapped_pair, run_inputs  # noqa: F401
+from .support import EX, QUADS_V1, fake_engine_payload, mapped_pair, run_inputs  # noqa: F401
 
 from fhir_sulo.contracts import TransformResult, TransformStatus
 from fhir_sulo.provenance import (
@@ -26,6 +26,20 @@ from fhir_sulo.provenance import (
 )
 
 T1 = "2026-09-29T10:00:00Z"
+
+# A deliberately tiny two-quad graph for the unit tests below.
+#
+# These exercise the lineage BUILDER - array lengths, ordering, missing
+# sources - not map output, and each assertion names the quad at a specific
+# index. ``support.QUADS_V1`` is the real 21-triple emitted eGFR graph, used
+# by the correction tests; reusing it here would make "the entry at index 1"
+# mean something different every time Agent 3 touches the map.
+PAIR = (
+    "<%segfr-result-egfr-456> <https://w3id.org/sulo/hasValue> "
+    '"55.0"^^<http://www.w3.org/2001/XMLSchema#decimal> .' % EX,
+    "<%segfr-result-egfr-456> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> "
+    "<https://w3id.org/sulo/Quantity> ." % EX,
+)
 
 
 class EnginePayloadParsing(unittest.TestCase):
@@ -55,7 +69,7 @@ class EnginePayloadParsing(unittest.TestCase):
 
 class LineageConstruction(unittest.TestCase):
     def test_a_bound_variable_is_recorded_as_a_source_variable(self):
-        payload = fake_engine_payload(QUADS_V1, variables=["egfr:value", "egfr:unitCode"])
+        payload = fake_engine_payload(PAIR, variables=["egfr:value", "egfr:unitCode"])
         lineage = build_lineage(payload, pivot_variables=["egfr:value", "egfr:unitCode"])
         self.assertEqual([item.source_variable for item in lineage],
                          ["egfr:value", "egfr:unitCode"])
@@ -64,22 +78,22 @@ class LineageConstruction(unittest.TestCase):
         """A constant written into the target schema is lineage, but it is not
         a value that came from the patient's record, and the two must not be
         confusable in an audit."""
-        payload = fake_engine_payload(QUADS_V1, variables=["egfr:value"])
+        payload = fake_engine_payload(PAIR, variables=["egfr:value"])
         lineage = build_lineage(payload, pivot_variables=["egfr:value"])
         self.assertEqual(lineage[0].source_variable, "egfr:value")
         self.assertIsNone(lineage[1].source_variable)
         self.assertIsNotNone(lineage[1].source_constraint)
 
     def test_iteration_key_is_carried_through_from_the_frame_origin(self):
-        payload = fake_engine_payload(QUADS_V1, variables=["egfr:value"], key=("bp-1",))
+        payload = fake_engine_payload(PAIR, variables=["egfr:value"], key=("bp-1",))
         lineage = build_lineage(payload)
         for item in lineage:
             self.assertEqual(item.iteration_key, ("bp-1",))
 
     def test_every_quad_index_is_covered_exactly_once(self):
-        payload = fake_engine_payload(QUADS_V1, variables=["egfr:value"])
+        payload = fake_engine_payload(PAIR, variables=["egfr:value"])
         lineage = build_lineage(payload)
-        self.assertEqual(sorted(i.quad_index for i in lineage), list(range(len(QUADS_V1))))
+        self.assertEqual(sorted(i.quad_index for i in lineage), list(range(len(PAIR))))
 
 
 class LineageFailsLoudly(unittest.TestCase):
@@ -88,8 +102,8 @@ class LineageFailsLoudly(unittest.TestCase):
     def test_a_short_provenance_array_is_an_error(self):
         payload = from_engine_payload(
             {
-                "quads": list(QUADS_V1),
-                "provenance": [{"quad": QUADS_V1[0], "tc": "T", "src": "v:x"}],
+                "quads": list(PAIR),
+                "provenance": [{"quad": PAIR[0], "tc": "T", "src": "v:x"}],
             }
         )
         with self.assertRaises(LineageError) as caught:
@@ -99,10 +113,10 @@ class LineageFailsLoudly(unittest.TestCase):
     def test_a_reordered_provenance_array_is_an_error(self):
         payload = from_engine_payload(
             {
-                "quads": list(QUADS_V1),
+                "quads": list(PAIR),
                 "provenance": [
-                    {"quad": QUADS_V1[1], "tc": "T1", "src": "v:x"},
-                    {"quad": QUADS_V1[0], "tc": "T0", "src": "v:y"},
+                    {"quad": PAIR[1], "tc": "T1", "src": "v:x"},
+                    {"quad": PAIR[0], "tc": "T0", "src": "v:y"},
                 ],
             }
         )
@@ -113,8 +127,8 @@ class LineageFailsLoudly(unittest.TestCase):
     def test_a_quad_with_neither_binding_nor_constraint_is_an_error(self):
         payload = from_engine_payload(
             {
-                "quads": [QUADS_V1[0]],
-                "provenance": [{"quad": QUADS_V1[0], "predicate": "p"}],
+                "quads": [PAIR[0]],
+                "provenance": [{"quad": PAIR[0], "predicate": "p"}],
             }
         )
         with self.assertRaises(UntracedQuadError) as caught:
@@ -126,7 +140,7 @@ class TransformResultRefusesUntracedOutput(unittest.TestCase):
     """The frozen contract's own guard, exercised from this side."""
 
     def test_a_mapped_result_with_partial_lineage_cannot_be_constructed(self):
-        payload = fake_engine_payload(QUADS_V1, variables=["egfr:value"])
+        payload = fake_engine_payload(PAIR, variables=["egfr:value"])
         full = build_lineage(payload)
         with self.assertRaises(ValueError) as caught:
             TransformResult(
@@ -136,7 +150,7 @@ class TransformResultRefusesUntracedOutput(unittest.TestCase):
                 source_canonical_url="u",
                 source_version_id="1",
                 output_graph_key="k",
-                target_quads=QUADS_V1,
+                target_quads=PAIR,
                 lineage=full[:1],
             )
         self.assertIn("no lineage", str(caught.exception))
@@ -147,7 +161,7 @@ class TransformResultRefusesUntracedOutput(unittest.TestCase):
         self.assertIn("engine lineage payload", str(caught.exception))
 
     def test_build_transform_result_refuses_quads_on_a_non_mapped_status(self):
-        payload = fake_engine_payload(QUADS_V1, variables=["egfr:value"])
+        payload = fake_engine_payload(PAIR, variables=["egfr:value"])
         with self.assertRaises(ValueError) as caught:
             build_transform_result(
                 run_inputs(), status=TransformStatus.SOURCE_ONLY, engine_payload=payload

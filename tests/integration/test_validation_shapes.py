@@ -1,4 +1,15 @@
-"""Target shape validation, and the R5 strictness switch.
+"""Target shape validation, on real map output, with R5 unset rejecting.
+
+Two review findings drove this file's shape:
+
+**M4** — R5 was quietly decided as option B. A permissive default meant the
+CLI, the benchmark and a test all ran under it while ``R5_RESOLVED = False``
+claimed the question was open. ``R5UnsetRejects`` is the replacement: unset
+now refuses, mirroring what Agent 5 did for R2.
+
+**M2** — every check ran on hand-written graphs. ``RealMapOutputConforms``
+validates the graphs Agent 3's maps actually emit. The hand-written negatives
+stay, because a deliberately malformed graph has no real-map equivalent.
 
 Needs the pinned environment (``requirements-runtime.txt``); skipped with a
 message rather than failing when rdflib/pyshacl are absent, because the
@@ -10,7 +21,8 @@ from __future__ import annotations
 import importlib.util
 import unittest
 
-from .support import graph_text  # noqa: F401  (sets sys.path)
+from . import mapoutput
+from .support import graph_text
 
 from fhir_sulo.validation import shapes_check, strictness
 
@@ -25,69 +37,245 @@ HAVE_SHACL = all(
 
 SKIP = "needs the pinned environment: .venv/bin/pip install -r requirements-runtime.txt"
 
+# Every suite below names its strictness. That is the point of M4: there is no
+# default to inherit, so a test states the answer it is testing under.
+LITERAL = strictness.CONCEPT_NOTE_LITERAL          # R5 option B
+STRICT = strictness.CLOSED_WORLD_COMPLETE          # R5 option A
 
-class R5StaysOpen(unittest.TestCase):
-    """The guard that stops the open review item being closed by accident."""
 
-    def test_r5_is_not_marked_resolved(self):
-        self.assertFalse(
-            strictness.R5_RESOLVED,
-            "R5 is an open clinical/ontology review item. Resolving it needs a "
-            "reviewer answer and a decision record, not a constant change.",
+class R5UnsetRejects(unittest.TestCase):
+    """R5 is open, and open now means *refused*, not *permissive*."""
+
+    def test_the_recorded_answer_is_still_null(self):
+        self.assertIsNone(
+            strictness.recorded_mode(),
+            "R5 is an open clinical/ontology review item. Recording an answer "
+            "needs a reviewer reply and a decision record.",
         )
 
-    def test_the_default_is_the_concept_notes_literal_graphs(self):
-        default = strictness.CONCEPT_NOTE_LITERAL
-        self.assertFalse(default.require_quantity_is_feature_of)
-        self.assertFalse(default.require_time_unit)
-        self.assertIn("R5 unanswered", default.label)
+    def test_the_policy_declares_that_unset_rejects(self):
+        policy = strictness.load_policy()
+        self.assertEqual(policy["unset_behaviour"], "reject")
+        self.assertIsNone(policy["reviewer_decision"])
 
-    def test_option_c_is_expressible_as_a_split(self):
-        split = strictness.Strictness(require_time_unit=True)
+    def test_resolving_without_a_mode_raises(self):
+        with self.assertRaises(strictness.R5PolicyUnset) as caught:
+            strictness.resolve()
+        self.assertIn("unanswered", str(caught.exception))
+        self.assertIn("concept-note-literal", str(caught.exception))
+
+    def test_resolving_from_policy_raises_while_it_is_unset(self):
+        """'from-policy' and no argument must behave identically.
+
+        Otherwise there would be a spelling of the call that looks deliberate
+        but still picks an answer.
+        """
+        with self.assertRaises(strictness.R5PolicyUnset):
+            strictness.resolve("from-policy")
+
+    def test_validate_graph_has_no_default_strictness(self):
+        """The API-level half of the guarantee.
+
+        A default argument is how option B came to be in force everywhere. If
+        someone reinstates one, this fails.
+        """
+        import inspect
+
+        signature = inspect.signature(shapes_check.validate_graph)
+        parameter = signature.parameters["strictness"]
+        self.assertIs(parameter.default, inspect.Parameter.empty)
+        self.assertIs(
+            signature.parameters["strictness"].kind,
+            inspect.Parameter.POSITIONAL_OR_KEYWORD,
+        )
+
+    @unittest.skipUnless(HAVE_SHACL, SKIP)
+    def test_validating_with_no_answer_refuses_rather_than_permits(self):
+        with self.assertRaises(strictness.R5PolicyUnset):
+            shapes_check.validate_graph(graph_text("egfr-target.ttl"), None)
+
+    def test_the_cli_requires_an_explicit_strictness(self):
+        from fhir_sulo.validation import cli
+
+        parser = cli.build_parser()
+        with self.assertRaises(SystemExit):
+            parser.parse_args(["shapes", "--graph", "x.nt"])
+        args = parser.parse_args(
+            ["shapes", "--graph", "x.nt", "--strictness", "concept-note-literal"]
+        )
+        self.assertEqual(args.strictness, "concept-note-literal")
+
+    def test_the_benchmark_requires_an_explicit_strictness(self):
+        """So a benchmark report always names what it ran under."""
+        import os
+        import sys
+
+        benchmarks = os.path.join(mapoutput.REPO, "benchmarks")
+        if benchmarks not in sys.path:
+            sys.path.insert(0, benchmarks)
+        import run_benchmark
+
+        with self.assertRaises(SystemExit):
+            run_benchmark.main(["-n", "1"])
+
+    def test_both_options_are_implemented(self):
+        self.assertEqual(
+            set(strictness.allowed_modes()),
+            {"concept-note-literal", "closed-world-complete"},
+        )
+        self.assertFalse(LITERAL.require_quantity_is_feature_of)
+        self.assertFalse(LITERAL.require_time_unit)
+        self.assertTrue(STRICT.require_quantity_is_feature_of)
+        self.assertTrue(STRICT.require_time_unit)
+
+    def test_a_split_needs_a_stated_rationale(self):
+        """R5 option C is a reasoned position, not a half-set flag."""
+        with self.assertRaises(strictness.R5PolicyUnset):
+            strictness.Strictness(
+                require_quantity_is_feature_of=True, require_time_unit=False
+            )
+        split = strictness.Strictness(
+            require_quantity_is_feature_of=True,
+            require_time_unit=False,
+            rationale="reviewer answered A for DR-002 axiom 4 only",
+        )
         self.assertIn("option-C", split.label)
-        self.assertIn("strict-time-unit.ttl", split.modules())
-        self.assertNotIn("strict-quantity-isfeatureof.ttl", split.modules())
+        self.assertIn("strict-quantity-isfeatureof.ttl", split.modules())
+        self.assertNotIn("strict-time-unit.ttl", split.modules())
 
 
 @unittest.skipUnless(HAVE_SHACL, SKIP)
-class ConceptNoteGraphsConform(unittest.TestCase):
-    """The default strictness validates exactly what the concept note writes."""
+@unittest.skipUnless(mapoutput.AVAILABLE, mapoutput.SKIP_NO_FIXTURES)
+class RealMapOutputConforms(unittest.TestCase):
+    """Every graph Agent 3's maps actually emit satisfies the shape contract.
 
-    def _check(self, name):
-        report = shapes_check.validate_graph(
-            graph_text(name), strictness.CONCEPT_NOTE_LITERAL
+    This is the check that has teeth: if a map starts emitting a quantity with
+    two values, or a role with no holder, it fails here. The previous version
+    of this suite validated hand-written graphs and would not have noticed.
+    """
+
+    def test_there_are_expected_graphs_to_check(self):
+        self.assertGreaterEqual(
+            len(mapoutput.MAPPED), 9,
+            "expected at least the nine mapped fixtures Agent 3 ships",
         )
-        self.assertTrue(report.conforms, "%s: %s" % (name, report.text))
-        return report
 
-    def test_egfr_target_graph(self):
-        self._check("egfr-target.ttl")
+    def test_every_emitted_graph_conforms_under_r5_option_b(self):
+        for item in mapoutput.MAPPED:
+            with self.subTest(fixture=item.fixture_id, strictness=LITERAL.label):
+                report = shapes_check.validate_graph(item.graph(), LITERAL)
+                self.assertTrue(
+                    report.conforms,
+                    "%s/%s under %s:\n%s"
+                    % (item.family, item.fixture_id, LITERAL.label, report.text),
+                )
 
-    def test_two_blood_pressure_panels(self):
-        self._check("bp-two-panels.ttl")
+    def test_every_emitted_graph_records_the_r2_mode_it_was_built_under(self):
+        """R2 is open too. A graph that does not say which answer produced it
+        cannot be re-checked when the reviewer decides."""
+        for item in mapoutput.MAPPED:
+            with self.subTest(fixture=item.fixture_id):
+                self.assertIn(
+                    item.quality_identity_mode,
+                    {"per-observation", "persistent-per-person-code"},
+                    "outcome.json must record quality_identity_mode",
+                )
 
-    def test_two_panels_with_a_shared_persisting_quality(self):
-        """R2 option A must validate too; the shapes do not prejudge it."""
-        self._check("bp-two-panels-shared-quality.ttl")
+    def test_option_a_is_the_one_that_fails_on_real_output_and_says_why(self):
+        """R5 is a live question about real graphs, not a hypothetical.
 
-    def test_pro_encounter(self):
-        self._check("encounter-pro.ttl")
+        The maps emit no ``sulo:isFeatureOf`` on quantities and no unit part on
+        time instants, so option A rejects today's output. That is the cost of
+        answering A, measured rather than described.
+        """
+        item = mapoutput.by_id("egfr-baseline")
+        report = shapes_check.validate_graph(item.graph(), STRICT)
+        self.assertFalse(report.conforms)
+        paths = {v.path for v in report.violations}
+        self.assertEqual(
+            paths,
+            {"https://w3id.org/sulo/isFeatureOf", "https://w3id.org/sulo/hasPart"},
+        )
+        self.assertTrue(all("R5 option A" in v.message for v in report.violations))
 
-    def test_report_digest_is_stable_across_runs(self):
-        a = self._check("egfr-target.ttl").digest
-        b = self._check("egfr-target.ttl").digest
-        self.assertEqual(a, b)
+    def test_a_whole_batch_of_emitted_graphs_conforms_together(self):
+        """Per-fixture conformance does not imply the union conforms: the
+        orphan and cross-patient constraints are graph-wide."""
+        graph = mapoutput.merged_graph(*[m.fixture_id for m in mapoutput.MAPPED])
+        report = shapes_check.validate_graph(graph, LITERAL)
+        self.assertTrue(report.conforms, report.text)
+
+
+@unittest.skipUnless(HAVE_SHACL, SKIP)
+@unittest.skipUnless(mapoutput.AVAILABLE, mapoutput.SKIP_NO_FIXTURES)
+class ValidationDigestIdentifiesTheGraph(unittest.TestCase):
+    """MINOR finding: the digest was the same for all nine graphs.
+
+    It hashed only the findings, and a conforming report has none - so
+    ``RunRecord.validation_report_digest`` said "something conformed" and
+    nothing about what. A validation digest that cannot tell you what was
+    validated is not evidence.
+    """
+
+    def test_digests_collide_exactly_when_the_graphs_are_equal(self):
+        """The right invariant, and it is not "all digests differ".
+
+        ``bp-reordered-serialisation`` is supposed to produce a graph
+        byte-identical to ``bp-two-panels`` - that is what the fixture tests.
+        So those two *must* share a digest, and a test demanding all-distinct
+        would be asserting a bug. What must hold is that two fixtures share a
+        digest if and only if they emitted the same triples.
+        """
+        digests, graphs = {}, {}
+        for item in mapoutput.MAPPED:
+            report = shapes_check.validate_graph(item.graph(), LITERAL)
+            digests.setdefault(report.digest, set()).add(item.fixture_id)
+            graphs.setdefault(
+                frozenset(item.triples().splitlines()), set()
+            ).add(item.fixture_id)
+
+        self.assertEqual(
+            sorted(sorted(g) for g in digests.values()),
+            sorted(sorted(g) for g in graphs.values()),
+            "digest grouping does not match graph-content grouping",
+        )
+        # And the grouping is not degenerate: before data_digest existed,
+        # every conforming report hashed the same and this was one group.
+        self.assertGreaterEqual(len(digests), 8)
+
+    def test_the_same_graph_produces_the_same_digest(self):
+        item = mapoutput.by_id("egfr-baseline")
+        first = shapes_check.validate_graph(item.graph(), LITERAL)
+        second = shapes_check.validate_graph(item.graph(), LITERAL)
+        self.assertEqual(first.digest, second.digest)
+        self.assertEqual(first.data_digest, second.data_digest)
+
+    def test_the_digest_distinguishes_strictness(self):
+        item = mapoutput.by_id("egfr-baseline")
+        self.assertNotEqual(
+            shapes_check.validate_graph(item.graph(), LITERAL).digest,
+            shapes_check.validate_graph(item.graph(), STRICT).digest,
+        )
+
+    def test_the_report_states_what_it_validated(self):
+        item = mapoutput.by_id("egfr-baseline")
+        report = shapes_check.validate_graph(item.graph(), LITERAL)
+        self.assertEqual(report.triples_validated, len(item.graph()))
+        self.assertGreater(report.focus_nodes, 0)
+        self.assertTrue(report.data_digest)
 
 
 @unittest.skipUnless(HAVE_SHACL, SKIP)
 class NegativeCasesAreRejected(unittest.TestCase):
-    """If a change makes any of these conform, the change is wrong."""
+    """Hand-written on purpose: no correct map emits these.
+
+    Kept as minimal units. If a change makes any of them conform, the change
+    is wrong.
+    """
 
     @classmethod
     def setUpClass(cls):
-        cls.report = shapes_check.validate_graph(
-            graph_text("negatives.ttl"), strictness.CONCEPT_NOTE_LITERAL
-        )
+        cls.report = shapes_check.validate_graph(graph_text("negatives.ttl"), LITERAL)
 
     def _messages_for(self, fragment):
         return [v.message for v in self.report.violations if fragment in v.focus_node]
@@ -130,55 +318,6 @@ class NegativeCasesAreRejected(unittest.TestCase):
 
     def test_a_node_in_two_disjoint_feature_branches_is_caught(self):
         self.assertTrue(any("disjoint" in m for m in self._messages_for("confused")))
-
-
-@unittest.skipUnless(HAVE_SHACL, SKIP)
-class R5SwitchFlipsExactlyTwoConstraints(unittest.TestCase):
-    """A reviewer answer changes behaviour without re-authoring a map."""
-
-    def test_option_a_flags_the_two_open_world_omissions(self):
-        report = shapes_check.validate_graph(
-            graph_text("egfr-target.ttl"), strictness.R5_OPTION_A
-        )
-        self.assertFalse(report.conforms)
-        paths = {v.path for v in report.violations}
-        self.assertEqual(
-            paths,
-            {"https://w3id.org/sulo/isFeatureOf", "https://w3id.org/sulo/hasPart"},
-        )
-        self.assertTrue(all("R5 option A" in v.message for v in report.violations))
-
-    def test_option_b_is_the_default_and_the_graph_conforms(self):
-        report = shapes_check.validate_graph(
-            graph_text("egfr-target.ttl"), strictness.R5_OPTION_B
-        )
-        self.assertTrue(report.conforms)
-
-    def test_the_split_flags_only_the_chosen_axiom(self):
-        report = shapes_check.validate_graph(
-            graph_text("egfr-target.ttl"),
-            strictness.Strictness(require_time_unit=True),
-        )
-        self.assertFalse(report.conforms)
-        self.assertEqual(len(report.violations), 1)
-        self.assertIn("TimeInstant", report.violations[0].message)
-
-    def test_the_strictness_label_is_recorded_in_the_report(self):
-        report = shapes_check.validate_graph(
-            graph_text("egfr-target.ttl"), strictness.R5_OPTION_A
-        )
-        self.assertIn("R5-option-A", report.strictness_label)
-
-    def test_the_digest_differs_between_strictness_settings(self):
-        """So a validation report can never be misread as having been
-        produced under a strictness it was not."""
-        literal = shapes_check.validate_graph(
-            graph_text("egfr-target.ttl"), strictness.CONCEPT_NOTE_LITERAL
-        )
-        strict = shapes_check.validate_graph(
-            graph_text("egfr-target.ttl"), strictness.R5_OPTION_A
-        )
-        self.assertNotEqual(literal.digest, strict.digest)
 
 
 if __name__ == "__main__":
