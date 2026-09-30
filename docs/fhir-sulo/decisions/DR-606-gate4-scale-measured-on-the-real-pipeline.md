@@ -1,4 +1,7 @@
-# DR-606 — Gate 4 scale, measured on the real pipeline: MISSED, with a diagnosis
+# DR-606 — Gate 4 scale on the real pipeline: MISSED, diagnosed, then fixed
+
+> **Superseded in outcome, not in evidence.** The measurement below stands as the profile
+> that justified the fix; the row now **PASSES**. See "Resolution" at the end.
 
 **Status:** Measured (Agent 6). **The Gate 4 scale row does not pass.**
 **Date:** 2026-09-29
@@ -166,3 +169,56 @@ row that measured a path with no mapping in it — which is what the repository 
 Nothing here revises the target. Plan §4: *"These are pilot engineering targets, to be revised
 only by an explicit performance decision backed by measured profiles."* This is the measured
 profile; the decision it supports is to fix the engine invocation, not to move the target.
+
+
+---
+
+## Resolution — the row passes
+
+Amended 2026-09-30 by the integration lead. Agent 6 flagged this record as stale but
+deliberately declined to amend it with a number they had not verified themselves, which was the
+right call. The number below is the lead's own reproduction.
+
+Agent 4 acted on the diagnosis (DR-305): the engine is now resident behind a newline-delimited
+JSON protocol, and schemas are parsed once per schema rather than once per resource.
+
+| | this record | after DR-305 |
+| --- | ---: | ---: |
+| materialize | 4,491.5 s | **46.0 s** |
+| **TOTAL** | **4,685.1 s (78.1 min)** | **228.4 s (3.8 min)** |
+| peak memory | 5.68 GB | **4.97 GB** |
+
+**Independently reproduced by the lead**, not taken from DR-305:
+
+```
+$ ./benchmarks/run.sh
+TOTAL              235.02 s  (3.9 min)   throughput 42.6 resources/s
+PEAK MEMORY        5.17 GB
+time   <= 15 min : PASS      memory <= 6 GB : PASS      VERDICT: PASS
+  failure categories: 262 dataAbsentReason, 228 entered-in-error
+```
+
+Slightly above Agent 4's figures and within run-to-run noise; both pass. `benchmarks/last-report.json`
+holds this run, so the gate reads the reproduced number rather than the reported one.
+
+Agent 6's report said "treat 3.8 min as Agent 4's measurement, not as independently reproduced" —
+that was true when written. It has since been reproduced.
+
+### What this record's diagnosis got right
+
+The 72%-container-start-up finding was the whole fix. Only step 1 of the three proposed was
+needed; batching was built, measured at 1.3% of remaining cost, and left disabled.
+
+### Where the cost now sits — Agent 6's area, not mapping
+
+At 228 s, **SHACL (85.6 s) and OWL reasoning (93.3 s) are ~78% of the run**, against
+materialize's 46 s. Not urgent at 3.9× headroom, but that is where the next optimisation lives,
+and the memory ceiling is set by reasoning too: the materialize stage peaks at 3.27 GB while
+the run's peak arrives during HermiT.
+
+### The measurement caveat still stands
+
+The runner's `--cpus=4 --memory=8g` cgroup does not reach the engine container, which is a
+sibling. What changed is that there is now **one** engine container instead of ~20,000, so its
+footprint is measurable: soaked over 2,400 runs it oscillates 90–137 MiB and returns. The
+unmeasured remainder is about 0.1 GB rather than unknown.
