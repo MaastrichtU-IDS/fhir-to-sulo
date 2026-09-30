@@ -183,20 +183,27 @@ class RealMapOutputConforms(unittest.TestCase):
                     "outcome.json must record quality_identity_mode",
                 )
 
-    def test_option_a_is_the_one_that_fails_on_real_output_and_says_why(self):
-        """R5 is a live question about real graphs, not a hypothetical.
+    def test_only_R5s_second_row_still_fails_on_real_output(self):
+        """R11 cleared R5 row 1; row 2 is what remains open.
 
-        The maps emit no ``sulo:isFeatureOf`` on quantities and no unit part on
-        time instants, so option A rejects today's output. That is the cost of
-        answering A, measured rather than described.
+        This test previously asserted that full strictness failed on **both**
+        rows, because the maps emitted no ``sulo:isFeatureOf`` on quantities.
+        Then the reviewer answered R11 -- "the results ... are features of the
+        individual" -- and Agent 3 emitted it, which is R5 row 1 satisfied.
+
+        Updated rather than repaired: the surviving violation set is the
+        cleanest evidence that R11 answered one row and not the other. If
+        ``isFeatureOf`` ever reappears here, R11 has been reverted; if
+        ``hasPart`` disappears, R5 row 2 has been answered without anyone
+        recording it.
         """
         item = mapoutput.by_id("egfr-baseline")
         report = shapes_check.validate_graph(item.graph(), STRICT)
-        self.assertFalse(report.conforms)
+        self.assertFalse(report.conforms, "R5 row 2 is open; full strictness must still fail")
         paths = {v.path for v in report.violations}
         self.assertEqual(
-            paths,
-            {"https://w3id.org/sulo/isFeatureOf", "https://w3id.org/sulo/hasPart"},
+            paths, {"https://w3id.org/sulo/hasPart"},
+            "expected only the time-unit row to fail; isFeatureOf is now emitted (R11)",
         )
         self.assertTrue(all("R5 option A" in v.message for v in report.violations))
 
@@ -362,12 +369,42 @@ class R5RowsAreIndependent(unittest.TestCase):
         )
         self.assertTrue(report.conforms, report.text)
 
-    def test_row_one_alone_still_fails_on_a_pre_r11_graph(self):
-        """So the mode is checking something, not vacuous."""
+    def test_row_one_now_passes_on_real_output_because_R11_landed(self):
+        """The row-1-only mode is satisfied by the graphs the maps emit.
+
+        Renamed from ``..._still_fails_on_a_pre_r11_graph``: the real
+        ``egfr-baseline`` graph is no longer pre-R11. The mode is still
+        checking something -- the companion test below shows it rejecting a
+        graph with the bearer arc stripped out.
+        """
         report = shapes_check.validate_graph(
             mapoutput.by_id("egfr-baseline").graph(),
             strictness.QUANTITY_BEARER_ONLY,
         )
+        self.assertTrue(report.conforms, report.text)
+
+    def test_row_one_is_not_vacuous_it_rejects_a_graph_without_the_bearer(self):
+        """Strip R11's isFeatureOf back out and the mode must object.
+
+        Without this, the test above could pass because the mode checks
+        nothing at all.
+        """
+        import rdflib
+
+        graph = mapoutput.by_id("egfr-baseline").graph()
+        stripped = rdflib.Graph()
+        bearer = rdflib.URIRef("https://w3id.org/sulo/isFeatureOf")
+        quantity = rdflib.URIRef("https://w3id.org/sulo/Quantity")
+        quantities = set(graph.subjects(rdflib.RDF.type, quantity))
+        removed = 0
+        for s_, p_, o_ in graph:
+            if p_ == bearer and s_ in quantities:
+                removed += 1
+                continue
+            stripped.add((s_, p_, o_))
+        self.assertGreater(removed, 0, "fixture no longer has a quantity bearer arc to strip")
+
+        report = shapes_check.validate_graph(stripped, strictness.QUANTITY_BEARER_ONLY)
         self.assertFalse(report.conforms)
         self.assertEqual(
             {v.path for v in report.violations},

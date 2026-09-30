@@ -437,10 +437,22 @@ and tested for exactly this. No graph migration was needed.
 > result  sulo:refersTo     quality    # unchanged
 > ```
 >
-> **Open sub-question sent back:** whether the Encounter record takes `hasPart` too. An
-> encounter is arguably not a *part* of its record the way a result is, so `refersTo` may
-> remain right there — the asymmetry the reviewer themselves raised under R1d. Agent 3 will
-> give a reading; if it needs deciding it comes back here.
+> **Sub-question closed — it is an entailment, not a judgement call.** Whether the Encounter
+> record also takes `hasPart` was sent back for a reading. It does not, and SULO 0.2.12 settles
+> it twice over:
+>
+> - `InformationObject ⊑ (hasPart only InformationObject)` — the encounter process would have
+>   to be an InformationObject, hence a Feature, hence an Object; but `Object owl:disjointWith
+>   Process` and the encounter is asserted `a sulo:Process`.
+> - `Object ⊑ ¬(hasPart some Process)` — the record, being an Object, cannot have a Process
+>   part at all.
+>
+> So the Encounter record keeps `sulo:refersTo`, and the asymmetry raised under R1d is
+> principled rather than accidental: **a result is information that sits inside a record; an
+> encounter is an event in the world and is not located in its record.** A test derives both
+> contradictions from the pinned ontology rather than restating them, so a SULO change fails
+> the test instead of leaving stale prose. Nothing further needed from the reviewer unless
+> they dispute the ontology.
 >
 > **Bears on R5.** `result isFeatureOf person` is R5's first row (materialize `isFeatureOf` on
 > quantities) answered as **A**. R5's second row — an explicit unit on a `TimeInstant` —
