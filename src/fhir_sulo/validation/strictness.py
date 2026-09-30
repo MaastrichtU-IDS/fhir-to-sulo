@@ -72,6 +72,7 @@ __all__ = [
     "resolve",
     "CONCEPT_NOTE_LITERAL",
     "CLOSED_WORLD_COMPLETE",
+    "QUANTITY_BEARER_ONLY",
     "R5_OPTION_A",
     "R5_OPTION_B",
 ]
@@ -105,14 +106,14 @@ class Strictness:
     rationale: str = ""
 
     def __post_init__(self) -> None:
-        known = (
-            self.require_quantity_is_feature_of == self.require_time_unit
-        )  # both on or both off == a named option
-        if not known and not self.rationale:
+        symmetric = self.require_quantity_is_feature_of == self.require_time_unit
+        if not symmetric and not (self.rationale or self.mode):
             raise R5PolicyUnset(
-                "a per-axiom split is R5 option C and needs a stated rationale: "
-                "pass Strictness(..., rationale='why this split'). Half-strict "
-                "with no reason recorded cannot be told apart from an oversight."
+                "a per-axiom split is R5 option C and needs a stated reason: "
+                "either name a mode from r5-strictness-policy.json (which carries "
+                "the description) or pass Strictness(..., rationale='why this "
+                "split'). Half-strict with no reason recorded cannot be told "
+                "apart from an oversight."
             )
 
     @property
@@ -222,6 +223,18 @@ CLOSED_WORLD_COMPLETE = _from_spec(
     "closed-world-complete", allowed_modes()["closed-world-complete"]
 )
 """R5 option A."""
+
+QUANTITY_BEARER_ONLY = _from_spec(
+    "quantity-bearer-only", allowed_modes()["quantity-bearer-only"]
+)
+"""R5 option C: row 1 strict, row 2 relaxed.
+
+Added when review item R11 made the maps emit ``result sulo:isFeatureOf
+person``, which satisfies R5 row 1 in practice. Agent 1 recorded R11 as
+*bearing on* R5, not answering it, and row 2 - an explicit ``sulo:Unit`` on a
+``TimeInstant`` - is still open. This mode exists so that position is
+nameable; selecting it is still a choice a caller must make, and the policy's
+recorded ``mode`` stays ``null``."""
 
 R5_OPTION_A = CLOSED_WORLD_COMPLETE
 R5_OPTION_B = CONCEPT_NOTE_LITERAL

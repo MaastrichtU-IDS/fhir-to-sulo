@@ -115,7 +115,9 @@ report can never be misread as having been produced under a strictness it was no
   accept it and also accept `sulo:Quality`, and the disjointness shapes catch the combinations
   that would make the graph inconsistent either way.
 - **Person typing (R6).** No shape constrains it. ~~The reasoner does catch the failure mode R6
-  exists to prevent.~~ **This was wrong, and DR-605 records the measurement.** The reasoner
+  exists to prevent.~~ **This was wrong, and DR-605 §3 records the measurement.
+  R6 has since been answered `sulo:SpatialObject`, which restores the guard — see
+  [CD-6](../CONTRACT-DEVIATIONS.md), resolved.** What follows is why it was wrong at the time: The reasoner
   catches it only when the person is typed `sulo:SpatialObject`; the maps emit bare
   `sulo:Object`, and `Quality ⊑ Feature ⊑ Object`, so a person also typed as a Quality or a Role
   is perfectly consistent. The SHACL disjointness shapes *do* catch it, so nothing reaches the

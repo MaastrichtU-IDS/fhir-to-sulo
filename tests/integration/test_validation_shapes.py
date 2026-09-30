@@ -119,9 +119,11 @@ class R5UnsetRejects(unittest.TestCase):
             run_benchmark.main(["-n", "1"])
 
     def test_both_options_are_implemented(self):
+        """A, B and the R11-shaped split C. All selectable, none selected."""
         self.assertEqual(
             set(strictness.allowed_modes()),
-            {"concept-note-literal", "closed-world-complete"},
+            {"concept-note-literal", "closed-world-complete",
+             "quantity-bearer-only"},
         )
         self.assertFalse(LITERAL.require_quantity_is_feature_of)
         self.assertFalse(LITERAL.require_time_unit)
@@ -290,6 +292,95 @@ class ValidationDigestIdentifiesTheGraph(unittest.TestCase):
         self.assertEqual(report.triples_validated, len(item.graph()))
         self.assertGreater(report.focus_nodes, 0)
         self.assertTrue(report.data_digest)
+
+
+@unittest.skipUnless(HAVE_SHACL, SKIP)
+@unittest.skipUnless(mapoutput.AVAILABLE, mapoutput.SKIP_NO_FIXTURES)
+class R5RowsAreIndependent(unittest.TestCase):
+    """R5 has two rows and neither implies the other.
+
+    Review item **R11** makes the maps emit ``result sulo:isFeatureOf
+    person``, which satisfies R5's first row in practice. Agent 1 recorded
+    that as *bearing on* R5, not answering it, and **row 2 - an explicit
+    ``sulo:Unit`` on a ``TimeInstant`` - remains open**.
+
+    The risk that creates is a coupling bug: row 1 arriving flips the whole
+    switch and row 2 gets answered by accident. These tests are the proof it
+    cannot happen. The strictness flags are two independent booleans, the
+    policy's recorded ``mode`` is still ``null``, and a graph that satisfies
+    row 1 still fails row 2.
+    """
+
+    def test_the_policy_is_still_unset_after_r11(self):
+        self.assertIsNone(strictness.recorded_mode())
+        self.assertEqual(strictness.load_policy()["unset_behaviour"], "reject")
+        with self.assertRaises(strictness.R5PolicyUnset):
+            strictness.resolve()
+
+    def test_the_two_flags_are_separately_settable(self):
+        modes = strictness.allowed_modes()
+        self.assertIn("quantity-bearer-only", modes)
+        split = strictness.resolve("quantity-bearer-only")
+        self.assertTrue(split.require_quantity_is_feature_of)
+        self.assertFalse(split.require_time_unit)
+        self.assertIn("strict-quantity-isfeatureof.ttl", split.modules())
+        self.assertNotIn("strict-time-unit.ttl", split.modules())
+
+    def _r11_shaped(self):
+        """The egfr graph as R11 will emit it: result isFeatureOf person."""
+        item = mapoutput.by_id("egfr-baseline")
+        lines = item.triples().splitlines()
+        type_nt = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>"
+        person = next(
+            l.split(" ", 1)[0] for l in lines
+            if type_nt in l and (mapoutput.EX + "Person") in l
+        )
+        result = "<%segfr-result-egfr-456>" % mapoutput.EX
+        return "\n".join(lines) + (
+            "\n%s <https://w3id.org/sulo/isFeatureOf> %s .\n" % (result, person)
+        )
+
+    def test_satisfying_row_one_does_not_satisfy_row_two(self):
+        """The coupling test.
+
+        Under full strictness an R11-shaped graph has exactly ONE violation
+        left, and it is the time-unit one. If the flags were coupled, either
+        both would clear or neither would.
+        """
+        report = shapes_check.validate_graph(self._r11_shaped(), STRICT)
+        self.assertFalse(report.conforms)
+        self.assertEqual(
+            {v.path for v in report.violations},
+            {"https://w3id.org/sulo/hasPart"},
+            "the only remaining strict violation must be R5 row 2 (time unit)",
+        )
+        self.assertTrue(any("TimeInstant" in v.message for v in report.violations))
+
+    def test_row_one_alone_passes_on_an_r11_shaped_graph(self):
+        report = shapes_check.validate_graph(
+            self._r11_shaped(), strictness.QUANTITY_BEARER_ONLY
+        )
+        self.assertTrue(report.conforms, report.text)
+
+    def test_row_one_alone_still_fails_on_a_pre_r11_graph(self):
+        """So the mode is checking something, not vacuous."""
+        report = shapes_check.validate_graph(
+            mapoutput.by_id("egfr-baseline").graph(),
+            strictness.QUANTITY_BEARER_ONLY,
+        )
+        self.assertFalse(report.conforms)
+        self.assertEqual(
+            {v.path for v in report.violations},
+            {"https://w3id.org/sulo/isFeatureOf"},
+        )
+
+    def test_the_default_still_accepts_both_shapes_of_graph(self):
+        """R5 is open, so neither row may be enforced by default."""
+        for label, graph in (("pre-R11", mapoutput.by_id("egfr-baseline").graph()),
+                             ("R11", self._r11_shaped())):
+            with self.subTest(graph=label):
+                self.assertTrue(
+                    shapes_check.validate_graph(graph, LITERAL).conforms)
 
 
 @unittest.skipUnless(HAVE_SHACL, SKIP)

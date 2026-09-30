@@ -33,10 +33,14 @@ ex:start-enc-9 a sulo:StartTime ;
 ex:end-enc-9 a sulo:EndTime ;
     sulo:hasValue "2026-09-02T14:30:00Z"^^xsd:dateTimeStamp .
 
-# SULO 0.2.12 makes sulo:Feature disjoint with sulo:SpatialObject, so the
-# people must not be typed as any Feature branch. Review item R6 asks the
-# reviewer for the SULO parent of the person class; until then these are typed
-# as SpatialObject, which is what the disjointness permits, and the reasoning
-# test asserts the graph is consistent under that choice.
+# Review item R6 is ANSWERED: "a person is a Spatial Object."
+#
+# This was a placeholder until 2026-09-30 and it disagreed with the maps,
+# which emitted bare sulo:Object. That disagreement was itself the finding:
+# SULO has Feature disjointWith SpatialObject but also Feature subClassOf
+# Object, so SpatialObject makes a person-typed-as-a-Role inconsistent while
+# bare Object does not. The measurement is in DR-605 s3 and CD-6; the
+# reviewer's answer restores the OWL guard. The placeholder is now the
+# answer, and tests/integration/test_reasoning_pro.py checks the maps agree.
 ex:person-p123 a sulo:SpatialObject, ex:Person .
 ex:clinician-c7 a sulo:SpatialObject, ex:Person .

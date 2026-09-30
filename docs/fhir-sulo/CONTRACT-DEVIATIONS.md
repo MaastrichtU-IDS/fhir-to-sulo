@@ -161,41 +161,75 @@ Docker-backed tool will hit it.
 
 ---
 
-## CD-6 — The "reasoner checks consistency" row overstates what the reasoner catches
+## CD-6 — RESOLVED by R6: the "reasoner checks consistency" row is true again
+
+**Status:** **Resolved 2026-09-30** by the reviewer's answer to R6. Narrowed, not deleted —
+what remains true is in "What is still deviant" at the end.
 
 **Acceptance matrix row:** "PRO — Encounter target plus reasoner — *Typed roles belong to correct
 holders and process; expected direct participation is inferred; no `hasPatient` predicate.*"
 And concept note §7: *"an OWL reasoner checks consistency and expected PRO entailments."*
 
-**Reality, measured with HermiT** (Agent 6, DR-603 corrected):
+### What was wrong, and how it was found
+
+DR-603 asserted that the reasoner catches a person wrongly typed into a `Feature` branch, "so
+R6 has a safety net while it is open". Moving the Gate 3 suites onto **real map output**
+(DR-605 §2) showed that claim was false for the typing the maps actually used. Measured with
+HermiT on the pinned image:
 
 | person typed as | with a Quality or Role also asserted on them |
 | --- | --- |
 | `sulo:SpatialObject` | **INCONSISTENT** — caught |
-| `sulo:Object` — **what the maps actually emit** | **consistent** — not caught |
+| `sulo:Object` — what the maps emitted | **consistent** — not caught |
 
 `sulo:Quality ⊑ sulo:Feature ⊑ sulo:Object`, so typing a person `sulo:Object` and also typing
-them into a `Feature` branch produces no clash. **There is currently no OWL guard against a
-patient typed as a Role.**
+them into a `Feature` branch produces no clash. There was no OWL guard against a patient typed
+as a Role.
 
-**What still holds.** SHACL catches it: the disjointness shapes reject a node in two `Feature`
-branches, so a misclassified person cannot reach the store. The PRO entailment itself is real
-and verified — HermiT materializes `encounter hasParticipant person` from the role chain, and
-ELK demonstrably does not, which is the negative control that proves the check is live.
+### The resolution
 
-**Effect on the row.** Unchanged in substance — the property is still enforced — but the
-mechanism is SHACL, not OWL, for this particular failure. The row should be read as:
+**Review item R6 is answered: "a person is a Spatial Object."** The measurement above was the
+deciding evidence. Under `sulo:SpatialObject`, `Feature owl:disjointWith SpatialObject` makes
+the misclassification inconsistent, so **the OWL guard exists again and the acceptance matrix
+row is true as written** for this failure mode. No wording change to the concept note or the
+plan is needed; the proposed re-wording in the previous version of this deviation is withdrawn.
 
-> an OWL reasoner checks consistency and expected PRO entailments; under the current
-> `sulo:Object` person typing it does not catch a person also typed as a Quality or Role —
-> SHACL does.
+### Verified on real map output
 
-**Not resolved here.** Which class a person should carry is review item **R6**, still open. This
-deviation records what is true today so that nobody reads the acceptance matrix as promising a
-guard that is not there. If R6 is answered with `sulo:SpatialObject`, the OWL guard returns and
-this deviation can be closed.
+Checked ahead of the map change by applying the R6 typing to the committed expected graphs
+(`tests/integration/test_reasoning_pro.py::R6AppliedToRealMapOutput`):
 
-**Why this is recorded rather than fixed in the contract documents:** the concept note and the
-implementation plan are the acceptance contract. Editing them to match what was built would
-make the contract unfalsifiable. The proposed wording above is offered for the reviewer to
-accept or reject.
+| check | result |
+| --- | --- |
+| all ten emitted graphs consistent under `SpatialObject` | **yes** |
+| person also typed as a Role → inconsistent | **yes — the guard works** |
+| the same under bare `Object` | consistent — control still fails correctly |
+| `SpatialObject ⊑ (hasPart only SpatialObject)`: any `person sulo:hasPart X`? | **none in any emitted graph** |
+
+That last row is the axiom that could have bitten. It does not: no map asserts parthood on a
+person.
+
+The negative control `test_bare_object_does_not` is **deliberately kept** now that
+`SpatialObject` is the answer. It is what shows the guard is doing work rather than being
+decorative; if SULO's hierarchy ever changed so that bare `Object` also caught this, the stated
+reason for the R6 answer would need revisiting, and that test would say so.
+
+### What is still deviant
+
+Two narrow things, neither of which was the substance of CD-6:
+
+1. **The guard is defence in depth, not the only line.** SHACL's disjointness shapes also reject
+   a node in two `Feature` branches, and they run *before* the store, so a misclassified person
+   never reaches a graph either way. The OWL check is the second opinion, which is what concept
+   note §7 asks it to be.
+2. **The maps had not yet emitted `SpatialObject`** when this was written — Agent 3's change was
+   in flight. `test_the_maps_emit_the_r6_answer` is marked `expectedFailure` and is
+   self-clearing: when the maps land the answer it reports an *unexpected success*, which fails
+   the suite and tells whoever landed it to remove the marker. It cannot go quietly green.
+
+### Why the history is kept rather than deleted
+
+A claim that was wrong, measured, and then fixed by a reviewer decision is worth more in the
+record than a clean page. The measurement is also what made R6 answerable, so deleting it would
+remove the evidence for the answer.
+
