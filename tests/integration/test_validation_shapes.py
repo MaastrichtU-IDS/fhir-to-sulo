@@ -43,35 +43,68 @@ LITERAL = strictness.CONCEPT_NOTE_LITERAL          # R5 option B
 STRICT = strictness.CLOSED_WORLD_COMPLETE          # R5 option A
 
 
-class R5UnsetRejects(unittest.TestCase):
-    """R5 is open, and open now means *refused*, not *permissive*."""
+def _unset_policy_file():
+    """A copy of the real R5 policy with the answer removed.
 
-    def test_the_recorded_answer_is_still_null(self):
-        self.assertIsNone(
-            strictness.recorded_mode(),
-            "R5 is an open clinical/ontology review item. Recording an answer "
-            "needs a reviewer reply and a decision record.",
-        )
+    R5 was answered on 2026-09-30, so the shipped policy names a mode. The
+    guarantee that an *unanswered* R5 refuses rather than defaults is the one
+    thing the answer must not have deleted, so it is now exercised against
+    this synthetic copy instead of against the shipped file.
+    """
+    import json
+    import tempfile
 
-    def test_the_policy_declares_that_unset_rejects(self):
-        policy = strictness.load_policy()
-        self.assertEqual(policy["unset_behaviour"], "reject")
-        self.assertIsNone(policy["reviewer_decision"])
+    policy = json.loads(open(strictness.POLICY_PATH, encoding="utf-8").read())
+    policy["mode"] = None
+    policy["reviewer_decision"] = None
+    handle = tempfile.NamedTemporaryFile(
+        "w", suffix=".json", delete=False, encoding="utf-8")
+    json.dump(policy, handle)
+    handle.close()
+    return handle.name
 
-    def test_resolving_without_a_mode_raises(self):
-        with self.assertRaises(strictness.R5PolicyUnset) as caught:
-            strictness.resolve()
-        self.assertIn("unanswered", str(caught.exception))
-        self.assertIn("concept-note-literal", str(caught.exception))
 
-    def test_resolving_from_policy_raises_while_it_is_unset(self):
-        """'from-policy' and no argument must behave identically.
+class R5IsAnsweredAndTheUnsetGuardSurvives(unittest.TestCase):
+    """R5 answered 2026-09-30 as a per-axiom split. Guard both halves.
 
-        Otherwise there would be a spelling of the call that looks deliberate
-        but still picks an answer.
+    This class previously asserted the policy was unset. Inverted rather than
+    deleted: the shipped answer must be a *recorded* one, and an unanswered
+    policy must still refuse. Losing the second property would mean the next
+    open question silently defaults instead of blocking.
+    """
+
+    def test_the_recorded_answer_is_the_reviewers_split(self):
+        self.assertEqual(strictness.recorded_mode(), "quantity-bearer-only")
+        decision = strictness.load_policy()["reviewer_decision"]
+        self.assertIsNotNone(decision, "a set mode must carry the decision that set it")
+        self.assertEqual(decision["item"], "R5")
+        self.assertTrue(decision["answer"].startswith("C"))
+        # Row 1 came via R11, row 2 on the datatype argument. Both are recorded.
+        self.assertEqual(decision["row_1"]["answer"], "A - materialize")
+        self.assertTrue(decision["row_2"]["answer"].startswith("B"))
+        self.assertIn("datatype", decision["row_2"]["reviewer_words"])
+
+    def test_the_answered_mode_is_what_the_split_means(self):
+        resolved = strictness.resolve("from-policy")
+        self.assertTrue(resolved.require_quantity_is_feature_of, "row 1 is strict")
+        self.assertFalse(resolved.require_time_unit, "row 2 is relaxed")
+
+    def test_the_policy_still_declares_that_unset_rejects(self):
+        self.assertEqual(strictness.load_policy()["unset_behaviour"], "reject")
+
+    def test_an_unanswered_policy_still_refuses_every_spelling(self):
+        """The guard the answer must not have removed.
+
+        Both spellings must behave identically, or there is a way to call it
+        that looks deliberate but still picks an answer.
         """
-        with self.assertRaises(strictness.R5PolicyUnset):
-            strictness.resolve("from-policy")
+        path = _unset_policy_file()
+        self.assertIsNone(strictness.recorded_mode(path))
+        for spelling in (None, "from-policy"):
+            with self.subTest(spelling=spelling):
+                with self.assertRaises(strictness.R5PolicyUnset):
+                    strictness.resolve(spelling, path=path) if spelling \
+                        else strictness.resolve(path=path)
 
     def test_validate_graph_has_no_default_strictness(self):
         """The API-level half of the guarantee.
@@ -90,9 +123,18 @@ class R5UnsetRejects(unittest.TestCase):
         )
 
     @unittest.skipUnless(HAVE_SHACL, SKIP)
-    def test_validating_with_no_answer_refuses_rather_than_permits(self):
-        with self.assertRaises(strictness.R5PolicyUnset):
-            shapes_check.validate_graph(graph_text("egfr-target.ttl"), None)
+    @unittest.skipUnless(mapoutput.AVAILABLE, mapoutput.SKIP_NO_FIXTURES)
+    def test_validating_resolves_the_recorded_answer_now(self):
+        """`None` means "use the recorded answer", which now exists.
+
+        Validates real map output rather than the hand-written
+        ``egfr-target.ttl``: that fixture predates R11 and carries no
+        ``sulo:isFeatureOf`` on its quantity, so under the answered split it
+        fails for a reason that says nothing about this test.
+        """
+        graph = mapoutput.by_id("egfr-baseline").graph()
+        report = shapes_check.validate_graph(graph, None)
+        self.assertTrue(report.conforms, report.text)
 
     def test_the_cli_requires_an_explicit_strictness(self):
         from fhir_sulo.validation import cli
@@ -318,11 +360,17 @@ class R5RowsAreIndependent(unittest.TestCase):
     row 1 still fails row 2.
     """
 
-    def test_the_policy_is_still_unset_after_r11(self):
-        self.assertIsNone(strictness.recorded_mode())
-        self.assertEqual(strictness.load_policy()["unset_behaviour"], "reject")
-        with self.assertRaises(strictness.R5PolicyUnset):
-            strictness.resolve()
+    def test_r11_cleared_row_one_and_the_reviewer_then_cleared_row_two(self):
+        """The split is exactly how the two rows were answered, and separately.
+
+        Row 1 arrived through R11 ("the results ... are features of the
+        individual"); row 2 through R5 itself ("time instants are specified
+        in the has value datatype"). The recorded mode is the conjunction.
+        """
+        self.assertEqual(strictness.recorded_mode(), "quantity-bearer-only")
+        resolved = strictness.resolve("from-policy")
+        self.assertTrue(resolved.require_quantity_is_feature_of)
+        self.assertFalse(resolved.require_time_unit)
 
     def test_the_two_flags_are_separately_settable(self):
         modes = strictness.allowed_modes()

@@ -17,8 +17,8 @@
   ],
   "affects_emitted_triples": false,
   "affects_emitted_triples_note": "R5 decides how strictly a delivered graph is CHECKED, not what is emitted. It is therefore deliberately NOT one of graph_key.CONTENT_FIELDS: answering R5 must not re-key every graph. It does change validation_report_digest, which is correct -- a report has to say which strictness produced it.",
-  "mode": null,
-  "mode_status": "UNSET - RESERVED FOR THE CLINICAL/ONTOLOGY REVIEWER",
+  "mode": "quantity-bearer-only",
+  "mode_status": "SET - reviewer answered R5 as a per-axiom split (option C) on 2026-09-30. Row 1 strict, row 2 relaxed.",
   "unset_behaviour": "reject",
   "unset_behaviour_note": "While mode is null, every strictness resolution that does not name a mode explicitly raises R5PolicyUnset. Nothing can validate under a guessed answer, and no gate artefact can inherit one.",
   "allowed_modes": {
@@ -50,8 +50,33 @@
   "split_allowed": true,
   "split_note": "R5 option C is a per-axiom split. Expressed as Strictness(require_quantity_is_feature_of=..., require_time_unit=..., rationale='...'), which requires a stated rationale so a split is never silently adopted.",
   "reviewer_question": "SULO states existential restrictions that an OWL reasoner satisfies silently but a closed-world shape check reads as a missing triple (DR-002 axioms 4 and 5). Should the pipeline (A) materialize sulo:isFeatureOf on quantities and an explicit unit on time instants so the shapes can be strict, (B) relax the shapes and let the reasoner cover it, or (C) split per axiom? Both A and B are implemented and tested; the default is deliberately unset and rejects.",
-  "reviewer_decision": null,
+  "reviewer_decision": {
+    "item": "R5",
+    "answer": "C - per-axiom split: row 1 strict (A), row 2 relaxed (B)",
+    "answered_on": "2026-09-30",
+    "row_1": {
+      "axiom": "Quantity -> Feature -> isFeatureOf some (Object or Process)",
+      "answer": "A - materialize",
+      "via": "Answered through R11: 'the results ... are features of the individual'. Not a separate decision; the same one."
+    },
+    "row_2": {
+      "axiom": "TimeInstant -> Time -> Quantity -> hasPart some Unit",
+      "answer": "B - relax the shape; do NOT materialize a unit",
+      "reviewer_words": "time instants are specified in the has value datatype",
+      "rationale": "The unit of a time instant is carried by the xsd datatype on sulo:hasValue, which SULO restricts to xsd:dateTime or xsd:dateTimeStamp. An explicit sulo:Unit part would restate in RDF what the literal's datatype already fixes."
+    },
+    "follow_on": "R5b - see below. If the datatype carries the specification, the CHOICE of datatype becomes load-bearing and is not yet decided."
+  },
   "reviewer": null,
   "reviewed_on": null,
-  "r11_note": "R11 (record hasPart result; result isFeatureOf person) makes the maps emit the triple R5 row 1 is about. Agent 1 recorded that as BEARING ON R5, not as answering it, and row 2 -- an explicit sulo:Unit on a TimeInstant -- remains open. mode therefore stays null. The two rows are separate booleans and neither implies the other; tests/integration/test_validation_shapes.py::R5RowsAreIndependent proves it on real map output."
+  "r11_note": "R11 (record hasPart result; result isFeatureOf person) makes the maps emit the triple R5 row 1 is about. Agent 1 recorded that as BEARING ON R5, not as answering it, and row 2 -- an explicit sulo:Unit on a TimeInstant -- remains open. mode therefore stays null. The two rows are separate booleans and neither implies the other; tests/integration/test_validation_shapes.py::R5RowsAreIndependent proves it on real map output.",
+  "R5b_open": {
+    "question": "xsd:dateTime or xsd:dateTimeStamp for a time instant?",
+    "status": "OPEN - raised by the R5 answer, not answered by it",
+    "current": "xsd:dateTime",
+    "concept_note": "section 4's schematic graph uses xsd:dateTimeStamp",
+    "why_it_matters_now": "R5 row 2 was answered on the grounds that the datatype specifies the instant. dateTimeStamp REQUIRES a timezone; dateTime permits one to be absent. So under this answer dateTime can express an under-specified instant, which is exactly what the datatype was relied on to prevent.",
+    "but": "FHIR dateTime legitimately permits a value with no offset, and concept note section 2 requires preserving temporal precision. A blanket dateTimeStamp would therefore be wrong: it would assert an offset that the source did not carry.",
+    "proposal_not_applied": "Emit xsd:dateTimeStamp when the source value carries an offset and xsd:dateTime when it does not, so the datatype records what was actually known. SULO permits both."
+  }
 }

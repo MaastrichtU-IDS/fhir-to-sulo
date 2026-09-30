@@ -1,8 +1,8 @@
 # Consolidated review request — clinical and ontology interpretations
 
 **Status:** OPEN — awaiting the human clinical/ontology reviewer
-**Answered:** R1 · R1b · R1d · R2 · R4 · R6 · R10 · R11.
-**6 of 12 remain open:** R3, R5, R7, R8, R9, R12.
+**Answered:** R1 · R1b · R1d · R2 · R4 · R5 · R6 · R10 · R11.
+**5 of 12 remain open:** R3, R7, R8, R9, R12 — plus one new sub-item, **R5b**.
 R1's namespace `https://w3id.org/ontostart/fhir2sulo/` is applied; R4, R6 and R11 are being
 applied to the maps and shapes.
 **Raised by:** Agent 1 (integration lead)
@@ -219,7 +219,39 @@ characteristic of a patient.
 
 ---
 
-## R5 — Closed-world shape strictness vs SULO's open-world existentials
+## R5 — Closed-world shape strictness vs SULO's open-world existentials  ✅ ANSWERED
+
+> **Answered — C, a per-axiom split.** Neither row was answered in isolation:
+>
+> | row | axiom | answer | how |
+> | --- | --- | --- | --- |
+> | 1 | `Quantity ⊑ isFeatureOf some (Object ⊔ Process)` | **A — materialize** | via **R11**: *"the results … are features of the individual"* |
+> | 2 | `TimeInstant ⊑ hasPart some Unit` | **B — relax** | *"time instants are specified in the has value datatype"* |
+>
+> Row 2's reasoning: the unit of a time instant is carried by the `xsd` datatype on
+> `sulo:hasValue`, which SULO restricts to `xsd:dateTime` or `xsd:dateTimeStamp`. An explicit
+> `sulo:Unit` part would restate in RDF what the literal's datatype already fixes.
+>
+> The policy mode is now `quantity-bearer-only` — a mode Agent 6 had created to *name* this
+> position before the reviewer arrived at it. Real map output conforms under it. The unset
+> guarantee survives: an unanswered policy still refuses every spelling, now tested against a
+> synthetic unset copy rather than the shipped file.
+>
+> ### R5b — OPEN, raised by this answer
+>
+> If the datatype carries the specification, **the choice of datatype becomes load-bearing.**
+> We emit `xsd:dateTime`; concept note §4's schematic uses `xsd:dateTimeStamp`. The difference
+> matters precisely under this answer: `dateTimeStamp` **requires** a timezone, `dateTime`
+> permits one to be absent — so `dateTime` can express an under-specified instant, which is
+> what the datatype was relied on to prevent.
+>
+> But a blanket `dateTimeStamp` would be wrong: FHIR `dateTime` legitimately permits a value
+> with no offset, and §2 requires preserving temporal precision, so asserting an offset the
+> source did not carry would be a fabrication.
+>
+> **Proposal, not applied:** emit `xsd:dateTimeStamp` when the source value carries an offset
+> and `xsd:dateTime` when it does not, so the datatype records what was actually known. SULO
+> permits both. Confirm, or say otherwise.
 
 **Blocks:** Gate 2 and Gate 3 target validation. Arises from DR-002 axioms 2, 4 and 5.
 
