@@ -2,7 +2,7 @@
 
 **Status:** OPEN — awaiting the human clinical/ontology reviewer
 **Answered:** R1 · R1b · R1d · R2 · R4 · R5 · R6 · R10 · R11.
-**5 of 12 remain open:** R3, R7, R8, R9, R12 — plus one new sub-item, **R5b**.
+**5 of 12 remain open:** R3, R7, R8, R9, R12 — plus **R5c** (R5b could not be applied; CD-7).
 R1's namespace `https://w3id.org/ontostart/fhir2sulo/` is applied; R4, R6 and R11 are being
 applied to the maps and shapes.
 **Raised by:** Agent 1 (integration lead)
@@ -250,9 +250,34 @@ characteristic of a patient.
 > with no offset, and §2 requires preserving temporal precision, so asserting an offset the
 > source did not carry would be a fabrication.
 >
-> **Proposal, not applied:** emit `xsd:dateTimeStamp` when the source value carries an offset
-> and `xsd:dateTime` when it does not, so the datatype records what was actually known. SULO
-> permits both. Confirm, or say otherwise.
+> **R5b: instructed to apply, and it cannot be applied.** Measured against the live engine
+> (CD-7, DR-207, 12 tests). The materializer re-emits the bound source term verbatim, so a
+> target declaring `xsd:dateTimeStamp` still emits `xsd:dateTime`; and declaring it anyway
+> makes the graph **fail reverse-validation against the schema that produced it**. The source
+> RDF is not ours to re-type either — HL7's own Turtle types an offset-bearing value as plain
+> `xsd:dateTime`, and re-typing would break the oracle.
+>
+> **R5 row 2's answer stands** — no unit is emitted. But its reasoning is weaker than it reads:
+> the datatype is `xsd:dateTime` for *every* instant, so it does not distinguish a specified
+> instant from an under-specified one. What carries the offset is the **lexical form**, and
+> nothing requires one to be present. The offset is preserved when present and never invented.
+>
+> ### R5c — OPEN. What should an offsetless instant be?
+>
+> The distinction *is* detectable — a ShEx regex facet plus `ShapeOr` separates the lexical
+> forms in the source and can bind a different variable per branch (verified for `Z`, `+01:00`,
+> `-05:00`, offsetless). It just cannot be expressed as a datatype. So an answer is
+> implementable; it only needs choosing.
+>
+> - **A. Accept as is** (current). An offsetless instant is emitted like any other; the graph
+>   does not mark it.
+> - **B. Reject.** One regex facet per time constraint. Conservative and consistent with how
+>   open items are held — but it rejects legitimate FHIR.
+> - **C. Mark it.** Alternative target shapes add a domain class beside `sulo:TimeInstant`. No
+>   re-typing, the resource stays mappable, and under-specification becomes queryable. Costs
+>   one R1 vocabulary entry.
+>
+> *Engineering recommendation, not a decision: C, with B as fallback.*
 
 **Blocks:** Gate 2 and Gate 3 target validation. Arises from DR-002 axioms 2, 4 and 5.
 

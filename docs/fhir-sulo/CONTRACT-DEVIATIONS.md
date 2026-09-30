@@ -233,3 +233,69 @@ A claim that was wrong, measured, and then fixed by a reviewer decision is worth
 record than a clean page. The measurement is also what made R6 answerable, so deleting it would
 remove the evidence for the answer.
 
+
+---
+
+## CD-7 — "Time instants are specified in the has value datatype" is not achievable as stated
+
+**Origin:** the reviewer answered R5 row 2 — do not materialize a `sulo:Unit` on a time
+instant — on the grounds that *"time instants are specified in the has value datatype"*. The
+follow-on R5b was to emit `xsd:dateTimeStamp` where the source carries an offset and
+`xsd:dateTime` where it does not, so the datatype recorded what was known. The reviewer
+instructed: apply.
+
+**It cannot be applied.** Measured against the live engine (DR-207,
+`tests/contracts/maps/test_r5b_time_datatype.py`, 12 tests):
+
+1. **The materializer re-emits the bound source term verbatim; a target constraint's declared
+   datatype is ignored.**
+
+   ```
+   target declares:  sulo:hasValue xsd:dateTimeStamp %Map:{ v:effective %}
+   source carries:   "2026-09-02T14:00:00Z"^^xsd:dateTime
+   engine emits:     "2026-09-02T14:00:00Z"^^xsd:dateTime
+   ```
+
+   Verified for `Z`, `+01:00` and an offsetless value.
+
+2. **Declaring it anyway is worse than a no-op.** Reverse-validating the emitted graph against
+   the target schema that produced it — the §5 pivot-recovery check — *passes* when the target
+   declares `xsd:dateTime` and *fails* when it declares `xsd:dateTimeStamp`. The schema would
+   no longer describe its own output.
+
+3. **ShEx datatype matching is exact, not subtype-aware**, so the source cannot read a
+   `dateTime` literal as a `dateTimeStamp` either — and the source RDF is not ours to re-type:
+   HL7's own published Turtle types an offset-bearing value as plain `xsd:dateTime`, and Agent
+   2's renderer is validated graph-isomorphically against it.
+
+The only remaining routes are a host-built `staticVar` literal or post-materialization
+re-typing. Both are rejected: the emitted value would be one the host wrote rather than one the
+map extracted, which is the line DR-302 draws.
+
+### What this does and does not change
+
+**R5 row 2's answer stands.** No `sulo:Unit` is emitted on any time node. Asserted across eGFR
+and Encounter, including `StartTime` and `EndTime`.
+
+**Its stated reasoning is weaker than it reads.** The datatype is `xsd:dateTime` for *every*
+instant, so it does not distinguish a specified instant from an under-specified one. What
+actually carries the offset is the **lexical form** — `…T14:00:00Z` versus `…T14:00:00` — and
+nothing in the graph requires one to be present. The offset is faithfully preserved when the
+source has it and never invented when it does not, which is the property §2 asks for; but
+"the datatype specifies it" overstates what the emitted graph guarantees.
+
+**The distinction is still detectable**, just not expressible as a datatype. A ShEx regex facet
+plus `ShapeOr` tells the two lexical forms apart in the *source* and can bind a different
+variable per branch — verified for `Z`, `+01:00`, `-05:00` and offsetless. So a map can act on
+the distinction; it simply cannot act on it by changing the datatype.
+
+**Open: R5c** — what should an offsetless instant be? Accept as is (current), reject, or mark
+it with a domain class beside `sulo:TimeInstant`. Routed to the reviewer; not decided here.
+
+### A side effect worth knowing
+
+rdflib canonicalises the two datatypes differently: `…T14:00:00Z` is rewritten to
+`…T14:00:00+00:00` under `xsd:dateTime` but survives untouched under `xsd:dateTimeStamp`. An
+explicit `+01:00` is untouched either way. So had both datatypes been emitted, the same instant
+would have had different lexical forms depending on its type, and the SHACL graph digests would
+have followed. Pinned by a test.
