@@ -137,7 +137,14 @@ acceptance matrix that needs one, and nothing but a fixture can supply it.
 
 ---
 
-## 3. R6: the person class choice has a measured consequence
+## 3. R6: the person class choice has a measured consequence — **now answered**
+
+> **Resolved 2026-09-30.** The reviewer answered R6: *"a person is a Spatial Object."* The
+> measurement below was the deciding evidence, so this section is kept as the record of it.
+> Under `sulo:SpatialObject` the OWL guard exists again and [CD-6](../CONTRACT-DEVIATIONS.md)
+> is resolved. Verified on real map output — all ten emitted graphs stay consistent, the guard
+> fires, and no map asserts `person sulo:hasPart X`, which is the one axiom
+> `SpatialObject ⊑ (hasPart only SpatialObject)` could have made bite.
 
 DR-603 said the reasoner catches a person wrongly typed into a `Feature` branch, "so R6 has a
 safety net while it is open". **That is false for the typing the maps actually use.**

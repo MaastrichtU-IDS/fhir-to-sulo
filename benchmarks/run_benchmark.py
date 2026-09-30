@@ -364,60 +364,24 @@ def stage_materialize(contexts, report: BenchmarkReport, *, quality_mode, repo_r
     return outcomes
 
 
-def stage_store_real(outcomes, report: BenchmarkReport, *, engine_build, policy_version):
+def stage_store_real(outcomes, report: BenchmarkReport, **_ignored):
     """Key, trace and load what the maps actually produced.
 
-    Note on the two graph keys. ``PipelineOutcome.run_record()`` fills
-    ``output_graph_key`` from ``engine.driver.graph_key``, which hashes four
-    identity fields. The store's key (DR-601) hashes the twelve inputs that
-    can change a triple, and the store refuses any record whose key does not
-    recompute from its own fields - that check is what makes an archived
-    correction verifiable. So the two are not interchangeable, and the record
-    is rebuilt here from ``RunInputs`` exactly as ``store.cli load`` rebuilds
-    it from the batch manifest. This is the supported path, not a workaround;
-    it is flagged to Agents 1 and 4 because a caller reaching for
-    ``run_record()`` and passing it straight to the store gets a
-    ``StoreIntegrityError``, which is correct but unhelpful.
+    Uses ``PipelineOutcome.run_record()`` directly. It could not be used when
+    this benchmark was first written: it filled ``output_graph_key`` from a
+    four-field function while the store requires DR-601's thirteen-field key
+    and rejects any record whose key does not recompute from its own fields.
+    DR-305 converged the two, so the supported path is now the short one, and
+    rebuilding ``RunInputs`` by hand here would reintroduce exactly the
+    duplication that let the batch entry and the run record disagree.
     """
-    import dataclasses
-
-    from fhir_sulo.contracts import CONTRACT_VERSION
-    from fhir_sulo.provenance import RunInputs, build_run_record
-
     store = NamedGraphStore()
     records = []
     with Timer("keying+lineage+store", len(outcomes)) as timer:
         for outcome in outcomes:
-            source = outcome.source
-            transform = outcome.transform
-            inputs = RunInputs(
-                source_canonical_url=source.canonical_url,
-                source_version_id=source.version_id,
-                source_json_digest=source.source_json_digest,
-                map_id=transform.map_id,
-                map_semantic_version=transform.pairing_hash,
-                pairing_hash=transform.pairing_hash,
-                sulo_version="0.2.12",
-                domain_ontology_version="unresolved:R1",
-                terminology_snapshot=source.terminology_snapshot,
-                policy_version=policy_version,
-                engine_build=engine_build,
-                renderer_id=source.renderer_id,
-                contract_version=CONTRACT_VERSION,
-            )
-            record = build_run_record(
-                inputs,
-                status=transform.status,
-                quads=transform.target_quads,
-                activity_time=ACTIVITY_TIME,
-            )
-            # The pipeline's TransformResult carries the driver's key; the
-            # store compares the two, so align it with the record's.
-            aligned = dataclasses.replace(
-                transform, output_graph_key=record.output_graph_key
-            )
-            store.load(aligned, record)
-            records.append((outcome, aligned, record))
+            record = outcome.run_record(activity_time=ACTIVITY_TIME)
+            store.load(outcome.transform, record)
+            records.append((outcome, outcome.transform, record))
         timer.detail["current graphs"] = len(store.current)
         timer.detail["current triples"] = len(store.current_triples())
         timer.detail["state digest"] = store.state_digest()[:16]
@@ -525,16 +489,7 @@ def main(argv=None) -> int:
         finally:
             shutil.rmtree(workdir, ignore_errors=True)
 
-        from fhir_sulo.pipeline.compose import Pipeline
-        from fhir_sulo.pipeline.services import policy_bundle
-
-        engine_build = Pipeline.for_family(
-            "egfr", repo_root, quality_mode=args.quality_mode).engine.build_id()
-        policy = policy_bundle(args.quality_mode)
-        store, records = stage_store_real(
-            outcomes, report,
-            engine_build=engine_build,
-            policy_version=policy.policy_version)
+        store, records = stage_store_real(outcomes, report)
         stage_provenance_real(records, report)
 
     if not args.skip_shacl:

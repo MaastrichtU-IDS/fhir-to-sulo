@@ -276,7 +276,14 @@ default did until DR-605. The choices are:
 | --- | --- |
 | `concept-note-literal` | R5 option B: shapes check only what the maps promise |
 | `closed-world-complete` | R5 option A: quantities carry `isFeatureOf`, time instants carry a unit |
+| `quantity-bearer-only` | R5 option C: row 1 strict, row 2 relaxed — the position review item **R11** puts the pilot in |
 | `from-policy` | use the reviewer's recorded answer — **fails while it is unset** |
+
+**R5 has two rows and they are separate switches.** R11 makes the maps emit
+`result sulo:isFeatureOf person`, which satisfies row 1 in practice; row 2 — an explicit
+`sulo:Unit` on a `TimeInstant` — is **still open**, and the recorded policy `mode` stays
+`null`. `quantity-bearer-only` exists so that position is nameable without answering row 2 by
+accident.
 
 Omitting it is an argparse error; passing `from-policy` today exits 2 with the reviewer
 question. Answering R5 means editing `src/fhir_sulo/validation/r5-strictness-policy.json` and
@@ -300,24 +307,26 @@ with entailments 2457 triples
 An `INCONSISTENT` result is a hard stop.
 
 **What this check does and does not catch.** The concept note §7 says "an OWL reasoner checks
-consistency and expected PRO entailments". Precisely, on the graphs the maps emit today:
+consistency and expected PRO entailments". On the graphs the maps emit:
 
 | | caught by |
 | --- | --- |
 | the PRO entailment `encounter hasParticipant person` is produced | **the reasoner** (verified two ways, DR-602) |
-| a person typed as a `sulo:Quality` or `sulo:Role` | **SHACL only** — see below |
+| a person typed as a `sulo:Quality` or `sulo:Role` | **the reasoner, and SHACL** — see below |
 | a quantity with two values, a role with no holder, an orphan node | **SHACL** |
 | a `hasPatient` shortcut | **SHACL and the negative queries** |
 
-The second row is the one to know about. SULO has `Feature ⊑ Object` and
-`Feature owl:disjointWith SpatialObject`. The maps type people as bare **`sulo:Object`**, and
-`Quality ⊑ Feature ⊑ Object`, so a person *also* typed as a Quality or a Role is perfectly
-consistent and the reasoner reports nothing. Had they been typed `sulo:SpatialObject` the
-disjointness would make it inconsistent. So **there is no OWL guard against a misclassified
-person under the current typing** — the SHACL disjointness shapes are what stops it, and they
-run before the store, so nothing reaches the graph. Measured in
-`test_reasoning_pro.py::R6EvidenceThePersonClassChoiceHasConsequences`; it is an input to open
-review item **R6**, not an answer to it. DR-605 §3.
+The second row used to read "SHACL only". Review item **R6** is now answered — *a person is a
+Spatial Object* — and that restores the OWL guard: SULO has `Feature owl:disjointWith
+SpatialObject`, so a person also typed as a Quality or Role is **inconsistent**. Under the bare
+`sulo:Object` typing the maps used previously it was not, because `Quality ⊑ Feature ⊑ Object`
+gives no clash. CD-6 records the measurement that decided it; the negative control in
+`test_reasoning_pro.py::R6EvidenceThePersonClassChoiceHasConsequences::test_bare_object_does_not`
+is kept precisely so the guard cannot quietly stop doing work.
+
+One axiom to know about with the new typing: `SpatialObject ⊑ (hasPart only SpatialObject)`. If
+a future map asserted `person sulo:hasPart X` for a non-SpatialObject `X`, the graph would go
+inconsistent. No map does today, and a test checks every emitted graph for it.
 
 ### Competency queries
 

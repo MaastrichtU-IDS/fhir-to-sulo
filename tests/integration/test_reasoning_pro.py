@@ -42,6 +42,14 @@ SKIP_SHACL = (
     "raise MissingDependencyError instead, which reads as a defect rather "
     "than a missing dependency."
 )
+R6_ANSWER = "https://w3id.org/sulo/SpatialObject"
+"""Review item R6, answered 2026-09-30: "a person is a Spatial Object."
+
+Recorded as a constant so the answer appears once and every test that
+depends on it moves together."""
+
+SULO_OBJECT = "https://w3id.org/sulo/Object"
+
 SKIP_REASONER = (
     "needs an OWL reasoner: `robot` on PATH, or docker and the pinned image %s "
     "(there is no java on the pilot host)" % reasoning.ROBOT_IMAGE_TAG
@@ -266,14 +274,22 @@ class EncounterEntailmentOnRealMapOutput(unittest.TestCase):
                 ]
                 self.assertEqual(offenders, [])
 
-    def test_the_maps_type_people_as_sulo_Object_not_SpatialObject(self):
-        """Pins the R6 placeholder so the map and these tests cannot disagree.
+    @unittest.expectedFailure
+    def test_the_maps_emit_the_r6_answer(self):
+        """Review item R6 is ANSWERED: a person is a ``sulo:SpatialObject``.
 
-        Asserts what the map does **today**; it does not answer R6. An earlier
-        version of this suite used a hand-written graph typing people as
-        ``sulo:SpatialObject`` while the map emitted ``sulo:Object``, and
-        nothing noticed. If the reviewer picks SpatialObject, the map and this
-        test change together - which is the point of having it.
+        **This is an expected failure on purpose, and it is self-clearing.**
+        The reviewer has answered; Agent 3's map change had not landed when
+        this was written, so the maps still emit bare ``sulo:Object``.
+
+        ``expectedFailure`` is the right marker rather than a skip or a
+        softened assertion, because the moment the maps start emitting
+        ``SpatialObject`` this reports an **unexpected success**, which is a
+        failure, and whoever lands that change is told to delete this
+        decorator. A skip would go quiet; an assertion of the *current*
+        behaviour would silently start passing for the wrong reason once both
+        sides moved - which is exactly how the original placeholder/map
+        disagreement went unnoticed.
         """
         graph = mapoutput.by_id("enc-baseline").graph()
         p = rdflib.URIRef
@@ -281,24 +297,47 @@ class EncounterEntailmentOnRealMapOutput(unittest.TestCase):
         self.assertTrue(people)
         for person in people:
             self.assertIn(
-                (person, p(self.RDF_TYPE), p("https://w3id.org/sulo/Object")), graph
+                (person, p(self.RDF_TYPE), p(R6_ANSWER)), graph,
+                "R6 was answered %s; this person is not typed that way" % R6_ANSWER,
             )
-            self.assertNotIn(
-                (person, p(self.RDF_TYPE), p("https://w3id.org/sulo/SpatialObject")),
-                graph,
-            )
+
+    def test_the_maps_type_people_consistently_one_way_or_the_other(self):
+        """Whatever the maps emit today, they must be uniform about it.
+
+        Holds before and after Agent 3's change, so it is the part of the old
+        pinning test that keeps working while R6 is being implemented.
+        """
+        p = rdflib.URIRef
+        seen = set()
+        for item in mapoutput.MAPPED:
+            graph = item.graph()
+            for person in graph.subjects(p(self.RDF_TYPE), p(mapoutput.EX + "Person")):
+                types = {str(o) for o in graph.objects(person, p(self.RDF_TYPE))}
+                seen.add(frozenset(types & {R6_ANSWER, SULO_OBJECT}))
+        self.assertEqual(
+            len(seen), 1,
+            "the maps type people inconsistently across fixtures: %s" % seen,
+        )
 
 
 @unittest.skipUnless(HAVE_RDFLIB, SKIP_ENV)
 @unittest.skipUnless(HAVE_REASONER, SKIP_REASONER)
 class R6EvidenceThePersonClassChoiceHasConsequences(unittest.TestCase):
-    """Measured input to open review item R6, not a verdict on it.
+    """The evidence that decided review item R6 - kept live after the answer.
 
-    R6 asks for the SULO parent of the patient/practitioner class. While
-    writing the Gate 3 tests against **real** map output, a claim in DR-603
-    turned out to be false. It said the reasoner catches a person wrongly
-    typed into a ``Feature`` branch, "so R6 has a safety net while it is
-    open". That is true only for ``sulo:SpatialObject``.
+    **R6 is now answered: "a person is a Spatial Object."** These tests are
+    what made the question answerable, and they stay because the guard they
+    describe has to keep working. In particular
+    ``test_bare_object_does_not`` is NOT deleted now that ``SpatialObject``
+    is the answer: it is the control that proves the guard does real work
+    rather than being decorative. If SULO's class hierarchy ever changed so
+    that bare ``Object`` also caught this, that test would fail and the stated
+    reason for the R6 answer would need revisiting.
+
+    The history. A claim in DR-603 turned out to be false: it said the
+    reasoner catches a person wrongly typed into a ``Feature`` branch, "so R6
+    has a safety net while it is open". That is true only for
+    ``sulo:SpatialObject``.
 
     SULO 0.2.12 has ``Feature ⊑ Object`` and ``Feature owl:disjointWith
     SpatialObject``. So:
@@ -310,11 +349,10 @@ class R6EvidenceThePersonClassChoiceHasConsequences(unittest.TestCase):
     ``sulo:Object``        (what maps emit)     consistent
     ========================================= ==============
 
-    The maps emit ``sulo:Object``, so **there is currently no safety net.** A
-    map bug that typed a patient as a Role would pass the reasoner. Choosing
-    SpatialObject would buy that guard; choosing bare Object does not. That is
-    a concrete consequence the reviewer should weigh, and these tests are the
-    evidence for it rather than a claim in prose.
+    At the time of measuring, the maps emitted ``sulo:Object``, so there was
+    no safety net: a map bug that typed a patient as a Role would pass the
+    reasoner. The reviewer weighed that and chose ``SpatialObject``, which
+    buys the guard back. See CD-6 and DR-605 s3.
     """
 
     PROBE = """
@@ -347,7 +385,12 @@ class R6EvidenceThePersonClassChoiceHasConsequences(unittest.TestCase):
         self.assertFalse(self._consistent("sulo:SpatialObject , sulo:Role"))
 
     def test_bare_object_does_not(self):
-        """The finding. ``Quality ⊑ Feature ⊑ Object``, so there is no clash."""
+        """The control. ``Quality ⊑ Feature ⊑ Object``, so there is no clash.
+
+        Deliberately kept after R6 was answered. Without it, the test above
+        would show only that *something* is inconsistent, not that the choice
+        of ``SpatialObject`` is what makes it so.
+        """
         self.assertTrue(self._consistent("sulo:Object , sulo:Quality"))
         self.assertTrue(self._consistent("sulo:Object , sulo:Role"))
 
@@ -379,6 +422,135 @@ class R6EvidenceThePersonClassChoiceHasConsequences(unittest.TestCase):
         )
         self.assertFalse(report.conforms)
         self.assertTrue(any("disjoint" in v.message for v in report.violations))
+
+
+@unittest.skipUnless(HAVE_RDFLIB, SKIP_ENV)
+@unittest.skipUnless(HAVE_REASONER, SKIP_REASONER)
+@unittest.skipUnless(mapoutput.AVAILABLE, mapoutput.SKIP_NO_FIXTURES)
+class R6AppliedToRealMapOutput(unittest.TestCase):
+    """Does the R6 answer hold on the graphs the maps actually emit?
+
+    Run ahead of Agent 3's change by retyping people in the real expected
+    graphs, so the answer is checked against real output before the maps move
+    rather than after. When the maps emit ``SpatialObject`` themselves,
+    ``_retyped`` becomes the identity function and these tests keep passing
+    unchanged - they assert a property of the graphs, not of the rewrite.
+
+    The axiom to watch, flagged by Agent 1:
+    ``SpatialObject ⊑ (hasPart only SpatialObject)``. Nothing may assert
+    ``person sulo:hasPart X`` for a non-SpatialObject X.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        cls.robot = reasoning.RobotReasoner()
+        cls.robot.start()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.robot.close()
+
+    HAS_PART = "<https://w3id.org/sulo/hasPart>"
+    TYPE_NT = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>"
+
+    @classmethod
+    def _people(cls, triples):
+        return {
+            line.split(" ", 1)[0]
+            for line in triples.splitlines()
+            if cls.TYPE_NT in line and (mapoutput.EX + "Person") in line
+        }
+
+    @classmethod
+    def _retyped(cls, triples):
+        """Apply the R6 answer to a graph that may not carry it yet."""
+        people = cls._people(triples)
+        out = []
+        for line in triples.splitlines():
+            if (line.split(" ", 1)[0] in people and cls.TYPE_NT in line
+                    and "<%s>" % SULO_OBJECT in line):
+                line = line.replace("<%s>" % SULO_OBJECT, "<%s>" % R6_ANSWER)
+            out.append(line)
+        return "\n".join(out), people
+
+    def test_every_emitted_graph_stays_consistent_under_the_r6_answer(self):
+        for item in mapoutput.MAPPED:
+            with self.subTest(fixture=item.fixture_id):
+                triples, people = self._retyped(item.triples())
+                self.assertTrue(people, "no person nodes to retype")
+                self.assertIn(R6_ANSWER, triples)
+                report = self.robot.check_consistency(triples)
+                self.assertTrue(report.consistent, report.detail)
+
+    def test_the_guard_is_back_on_real_output(self):
+        """A person also typed as a Role is now caught by the reasoner."""
+        item = mapoutput.by_id("enc-baseline")
+        triples, people = self._retyped(item.triples())
+        person = sorted(people)[0]
+        broken = triples + "\n%s %s <https://w3id.org/sulo/Role> .\n" % (
+            person, self.TYPE_NT)
+        self.assertFalse(self.robot.check_consistency(broken).consistent)
+
+    def test_no_emitted_graph_asserts_hasPart_on_a_person(self):
+        """``SpatialObject ⊑ (hasPart only SpatialObject)`` - the axiom that
+        could bite. It does not: no map asserts parthood on a person."""
+        for item in mapoutput.MAPPED:
+            with self.subTest(fixture=item.fixture_id):
+                triples = item.triples()
+                people = self._people(triples)
+                offenders = [
+                    line for line in triples.splitlines()
+                    if line.split(" ", 1)[0] in people and self.HAS_PART in line
+                ]
+                self.assertEqual(offenders, [], offenders)
+
+
+@unittest.skipUnless(HAVE_RDFLIB, SKIP_ENV)
+@unittest.skipUnless(HAVE_REASONER, SKIP_REASONER)
+@unittest.skipUnless(mapoutput.AVAILABLE, mapoutput.SKIP_NO_FIXTURES)
+class R11WithR6IsConsistent(unittest.TestCase):
+    """Review item R11 changes the graphs, so check it before it lands.
+
+    R11: ``record sulo:refersTo result`` becomes ``record sulo:hasPart
+    result``, and each result gains ``sulo:isFeatureOf person``. Two axioms
+    could have bitten and neither does:
+
+    * ``InformationObject ⊑ (hasPart only InformationObject)`` - a result is a
+      ``Quantity ⊑ InformationObject``, so the new parthood is well-formed;
+    * ``Feature owl:disjointWith SpatialObject`` - the result is a Feature and
+      the person is a SpatialObject, which are different individuals.
+    """
+
+    def test_r11_and_r6_together_are_consistent_on_real_output(self):
+        item = mapoutput.by_id("egfr-baseline")
+        lines = item.triples().splitlines()
+        type_nt = R6AppliedToRealMapOutput.TYPE_NT
+        person = next(
+            l.split(" ", 1)[0] for l in lines
+            if type_nt in l and (mapoutput.EX + "Person") in l
+        )
+        record = "<%segfr-record-egfr-456>" % mapoutput.EX
+        result = "<%segfr-result-egfr-456>" % mapoutput.EX
+
+        out = []
+        for line in lines:
+            if line.split(" ", 1)[0] == person and type_nt in line \
+                    and "<%s>" % SULO_OBJECT in line:
+                line = line.replace("<%s>" % SULO_OBJECT, "<%s>" % R6_ANSWER)
+            if line.startswith(record) and "<https://w3id.org/sulo/refersTo>" in line \
+                    and result in line:
+                line = line.replace("<https://w3id.org/sulo/refersTo>",
+                                    "<https://w3id.org/sulo/hasPart>")
+            out.append(line)
+        out.append("%s <https://w3id.org/sulo/isFeatureOf> %s ." % (result, person))
+        graph = "\n".join(out)
+
+        self.assertIn("sulo/hasPart> <%segfr-result" % mapoutput.EX, graph)
+        self.assertIn("isFeatureOf", graph)
+
+        with reasoning.RobotReasoner() as robot:
+            report = robot.check_consistency(graph)
+        self.assertTrue(report.consistent, report.detail)
 
 
 if __name__ == "__main__":
