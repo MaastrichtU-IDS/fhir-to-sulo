@@ -141,6 +141,10 @@ def bp_panel_tuples(nquads: str, vocabulary: Mapping[str, str]):
     triples = parse(nquads)
     quantity = "<%sQuantity>" % SULO
     refers_to = "<%srefersTo>" % SULO
+    # R11 (2026-09-30): the panel record HAS its component results as PARTS.
+    # It used to refersTo them; walking the wrong arc here would silently find
+    # no quantities and report every panel as empty.
+    has_part = "<%shasPart>" % SULO
     has_value = "<%shasValue>" % SULO
     quality_slots = {"<%s>" % vocabulary["sysQualityClass"]: "sys",
                      "<%s>" % vocabulary["diaQualityClass"]: "dia"}
@@ -150,7 +154,7 @@ def bp_panel_tuples(nquads: str, vocabulary: Mapping[str, str]):
     out = []
     for panel in subjects_of_type(triples, vocabulary["recordClass"]):
         found = {"sys": "", "dia": ""}
-        for referent in objects_of(triples, panel, refers_to):
+        for referent in objects_of(triples, panel, has_part):
             types = types_of(triples, referent)
             if quantity not in types:
                 continue

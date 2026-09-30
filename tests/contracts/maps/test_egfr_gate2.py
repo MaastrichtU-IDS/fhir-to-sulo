@@ -108,26 +108,38 @@ class EGFRGate2(engine.EngineTestCase):
         self.assertEqual(len(refs), 1, refs)
         self.assertEqual(refs, ["<%s>" % self.values["quality"]])
 
-    def test_exactly_one_patient_association_and_it_goes_through_the_quality(self):
+    def test_the_person_is_reached_only_by_sulo_feature_relations(self):
         """Concept note section 2: no hasPatient, no resource-specific shortcut.
 
-        The only path from the result to the person is
-        ``result refersTo quality isFeatureOf person``.
+        R11 (2026-09-30) added a second, direct arc: the result is itself a
+        feature of the individual. So the person now has TWO incoming arcs --
+        from the quality and from the result -- and the test says so rather
+        than asserting a single path that is no longer the contract. What
+        section 2 forbids is a shortcut PREDICATE, and both of these are
+        sulo:isFeatureOf.
         """
         person = "<%s>" % self.values["person"]
-        result = "<%s>" % self.values["result"]
         quality = "<%s>" % self.values["quality"]
+        result = "<%s>" % self.values["result"]
+        is_feature_of = "<%sisFeatureOf>" % SULO
 
-        # the person is reached exactly once, and only from the quality
         incoming = sorted((s, p) for s, p, o in self.triples if o == person)
-        self.assertEqual(incoming, [(quality, "<%sisFeatureOf>" % SULO)], incoming)
+        self.assertEqual(incoming, sorted([(quality, is_feature_of),
+                                           (result, is_feature_of)]), incoming)
 
-        # nothing on the result node points at the person
-        self.assertNotIn(person, [o for p, o in graph.po(self.triples, result)])
-
-        # and the inverse is stated exactly once, as the concept note's graph does
+        # and the inverse is stated exactly once, as concept note section 4 does
         self.assertEqual(
             graph.objects_of(self.triples, person, "<%shasFeature>" % SULO), [quality])
+
+    def test_no_shortcut_predicate_reaches_the_person(self):
+        allowed = {RDF_TYPE, "<http://www.w3.org/ns/prov#wasDerivedFrom>"} | {
+            "<%s%s>" % (SULO, p) for p in
+            ("hasValue", "hasPart", "refersTo", "atTime", "isFeatureOf", "hasFeature")}
+        used = graph.predicates(self.triples)
+        self.assertEqual(used - allowed, set(), sorted(used - allowed))
+        for p in used:
+            self.assertNotIn("hasPatient", p)
+            self.assertNotIn("hasSubject", p)
 
     def test_the_quality_is_a_sulo_quality_not_a_bare_feature(self):
         """R4 default (option A).  Bare sulo:Feature would leave the individual
@@ -137,6 +149,32 @@ class EGFRGate2(engine.EngineTestCase):
         self.assertNotIn("<%sFeature>" % SULO, graph.types_of(self.triples, quality))
 
     # -- no orphan nodes ----------------------------------------------------
+
+    def test_the_record_has_the_result_as_a_part(self):
+        """R11, answered 2026-09-30. The record HAS the result -- "this then
+        captures where the results are located (e.g. the record)" -- rather
+        than referring to it."""
+        record = "<%s>" % self.values["record"]
+        self.assertEqual(graph.objects_of(self.triples, record, "<%shasPart>" % SULO),
+                         ["<%s>" % self.values["result"]])
+        self.assertEqual(graph.objects_of(self.triples, record, "<%srefersTo>" % SULO), [],
+                         "R11 replaced record->result refersTo with hasPart")
+
+    def test_the_result_is_a_feature_of_the_person(self):
+        """R11: "the results are information about the individual - they are
+        features of the individual". This is also R5's FIRST row answered as
+        option A; R5's second row (a time unit) stays unset and unemitted."""
+        self.assertEqual(
+            graph.objects_of(self.triples, "<%s>" % self.values["result"],
+                             "<%sisFeatureOf>" % SULO),
+            ["<%s>" % self.values["person"]])
+
+    def test_no_time_instant_carries_a_unit(self):
+        """R5's SECOND row is still open and must stay unset."""
+        for node in graph.subjects_of_type(self.triples, SULO + "TimeInstant"):
+            with self.subTest(node=node):
+                self.assertEqual(
+                    graph.objects_of(self.triples, node, "<%shasPart>" % SULO), [])
 
     def test_no_orphan_quantity_or_unit_nodes(self):
         """Exactly one node has no incoming edge, and it is the record node.

@@ -42,14 +42,14 @@
       "status": "placeholder-awaiting-owner"
     },
     "personSuloClass": {
-      "iri": "https://w3id.org/sulo/Object",
-      "source": "REVIEW-REQUEST R6",
+      "iri": "https://w3id.org/sulo/SpatialObject",
+      "source": "REVIEW-REQUEST R6, answered 2026-09-30",
       "review_item": "R6",
-      "status": "engineering-default",
-      "alternatives": {
-        "bare-object": "https://w3id.org/sulo/Object",
-        "spatial-object": "https://w3id.org/sulo/SpatialObject"
-      }
+      "status": "reviewer-answered",
+      "answered_on": "2026-09-30",
+      "reviewer_words": "a person is a Spatial Object.",
+      "note": "sulo:SpatialObject rdfs:subClassOf sulo:Object, so hasParticipant's range is still satisfied and the PRO chain is unaffected. The point of the change is the guard it restores: sulo:Feature owl:disjointWith sulo:SpatialObject, so a person also typed as a Quality or a Role is now INCONSISTENT and a reasoner catches it. Bare sulo:Object could not, because Quality subClassOf Feature subClassOf Object. Checked against the pinned ontology before applying: sulo:hasFeature is NOT a subproperty of sulo:hasPart, so `person hasFeature quality` does not trip SpatialObject's `hasPart only SpatialObject` restriction.",
+      "not_recorded_in_policy_yet": "As of this change, policies/code-interpretation.v1.json reviewer_decisions holds only R1 and R10. Transcribed from the integration lead's relay of the reviewer's words; see DR-206."
     },
     "clinicianClass": {
       "iri": "https://w3id.org/ontostart/fhir2sulo/Person",
@@ -59,10 +59,14 @@
       "note": "Deliberately a SEPARATE manifest entry from personClass even though both currently resolve to ex:Person, so that answering R8a (is a practitioner a person, or an agent entity distinct from a patient?) is one edit here. Agent 5's service already mints practitioner and patient entities that never merge (R8b)."
     },
     "clinicianSuloClass": {
-      "iri": "https://w3id.org/sulo/Object",
-      "source": "REVIEW-REQUEST R6 / R8a",
+      "iri": "https://w3id.org/sulo/SpatialObject",
+      "source": "REVIEW-REQUEST R6, answered 2026-09-30",
       "review_item": "R6",
-      "status": "engineering-default"
+      "status": "reviewer-answered",
+      "answered_on": "2026-09-30",
+      "reviewer_words": "a person is a Spatial Object.",
+      "note": "sulo:SpatialObject rdfs:subClassOf sulo:Object, so hasParticipant's range is still satisfied and the PRO chain is unaffected. The point of the change is the guard it restores: sulo:Feature owl:disjointWith sulo:SpatialObject, so a person also typed as a Quality or a Role is now INCONSISTENT and a reasoner catches it. Bare sulo:Object could not, because Quality subClassOf Feature subClassOf Object. Checked against the pinned ontology before applying: sulo:hasFeature is NOT a subproperty of sulo:hasPart, so `person hasFeature quality` does not trip SpatialObject's `hasPart only SpatialObject` restriction.",
+      "not_recorded_in_policy_yet": "As of this change, policies/code-interpretation.v1.json reviewer_decisions holds only R1 and R10. Transcribed from the integration lead's relay of the reviewer's words; see DR-206."
     },
     "recordClass": {
       "iri": "https://w3id.org/ontostart/fhir2sulo/EncounterRecord",
@@ -189,5 +193,11 @@
     "start",
     "end"
   ],
-  "pass_vars_note": "Every target constraint in this map is required, so lastReport.unboundVariables must be empty on every pass, and lastReport.unusedStatics must be empty too. tests/contracts/maps/test_encounter_gate3.py asserts both."
+  "pass_vars_note": "Every target constraint in this map is required, so lastReport.unboundVariables must be empty on every pass, and lastReport.unusedStatics must be empty too. tests/contracts/maps/test_encounter_gate3.py asserts both.",
+  "r11_note": [
+    "R11 changed record->result to sulo:hasPart for the Observation maps. NOT applied here.",
+    "`encounter-record sulo:hasPart encounter-process` is inconsistent against SULO 0.2.12: sulo:InformationObject subClassOf (hasPart only InformationObject) would force the process to be an InformationObject and so an Object, but sulo:Object owl:disjointWith sulo:Process; and sulo:Object subClassOf (not (hasPart some Process)) forbids it directly.",
+    "A result is information that sits inside a record. An encounter is an event in the world; it is not located in its record. The record sulo:refersTo it.",
+    "Reported to the integration lead as a reading, per the R1d asymmetry the reviewer raised."
+  ]
 }

@@ -80,6 +80,14 @@ class MapsSuiteIsOrderIndependent(unittest.TestCase):
                if line.strip().startswith(MAPS) and "::" in line]
         self.assertGreater(len(ids), 50, "collection looks wrong: %d ids" % len(ids))
 
+        # Tests that are deliberately red pending an action outside this repo's
+        # code are excluded: they fail in every order, so including them would
+        # make this report a cascade instead of an ordering signal. Each is
+        # deterministic and reads nothing but a file, so it cannot BE an
+        # ordering bug. Keep this list empty whenever possible.
+        DELIBERATELY_RED = ("TheDecisionsAreRecordedWhereTheyBelong",)
+        ids = [i for i in ids if not any(marker in i for marker in DELIBERATELY_RED)]
+
         seed = os.environ.get(SEED_VAR)
         if seed:
             random.Random(seed).shuffle(ids)

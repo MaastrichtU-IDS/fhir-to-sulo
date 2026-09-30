@@ -36,6 +36,13 @@ PREFIX sh:   <https://w3id.org/fhir-sulo/map/bp/shape#>
 start = @sh:BPPanelRecordNode
 
 # --- the panel record ------------------------------------------------------
+# R11, answered 2026-09-30: the panel record HAS its component results as
+# PARTS -- "this then captures where the results are located (e.g. the
+# record)" -- rather than referring to them. sulo:InformationObject is
+# subClassOf (sulo:hasPart only sulo:InformationObject) and a result is a
+# sulo:Quantity subClassOf sulo:InformationObject, so the parthood is
+# well-formed. Each result additionally sulo:isFeatureOf the person.
+#
 # R9 is open: the LOINC panel code does NOT type this node.  Concept note
 # section 2: "a FHIR code literal alone is not an OWL class assertion", and the
 # 85354-9 entry in the code table is `proposed`, which yields source-only.
@@ -66,7 +73,7 @@ sh:BPPanelRecordNode {
   rdf:type [sulo:InformationObject] ;
   rdf:type IRI %Map:{ v:recordClass %} ;
   sulo:atTime IRI %Map:{ v:timeInstant %} ;
-  sulo:refersTo IRI %Map:{ v:sysResult %} ;
+  sulo:hasPart IRI %Map:{ v:sysResult %} ;
   prov:wasDerivedFrom IRI %Map:{ v:sourceVersionIri %}
 }
 
@@ -74,8 +81,8 @@ sh:BPPanelRecordNodeWithDiastolic {
   rdf:type [sulo:InformationObject] ;
   rdf:type IRI %Map:{ v:recordClass %} ;
   sulo:atTime IRI %Map:{ v:timeInstant %} ;
-  sulo:refersTo IRI %Map:{ v:sysResult %} ;
-  sulo:refersTo IRI %Map:{ v:diaResult %} ;
+  sulo:hasPart IRI %Map:{ v:sysResult %} ;
+  sulo:hasPart IRI %Map:{ v:diaResult %} ;
   prov:wasDerivedFrom IRI %Map:{ v:sourceVersionIri %}
 }
 
@@ -88,6 +95,7 @@ sh:BPSystolicQuantityNode {
   sulo:hasValue xsd:decimal %Map:{ v:sysValue %} ;
   sulo:hasPart  IRI %Map:{ v:unitIri %} ;
   sulo:refersTo IRI %Map:{ v:sysQuality %} ;
+  sulo:isFeatureOf IRI %Map:{ v:person %} ;
   sulo:atTime   IRI %Map:{ v:timeInstant %} ;
   prov:wasDerivedFrom IRI %Map:{ v:sourceVersionIri %}
 }
@@ -98,6 +106,7 @@ sh:BPDiastolicQuantityNode {
   sulo:hasValue xsd:decimal %Map:{ v:diaValue %} ;
   sulo:hasPart  IRI %Map:{ v:unitIri %} ;
   sulo:refersTo IRI %Map:{ v:diaQuality %} ;
+  sulo:isFeatureOf IRI %Map:{ v:person %} ;
   sulo:atTime   IRI %Map:{ v:timeInstant %} ;
   prov:wasDerivedFrom IRI %Map:{ v:sourceVersionIri %}
 }

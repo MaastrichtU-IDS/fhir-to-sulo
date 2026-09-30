@@ -109,6 +109,23 @@ sh:EndTimeNode {
 # --- the record layer ------------------------------------------------------
 # The FHIR Encounter record and its status stay in the source/record layer
 # (concept note section 6); no owl:sameAs joins them to the process.
+#
+# R11 CHANGED record->result to sulo:hasPart for the Observation maps. It does
+# NOT apply here, and this is an entailment rather than a judgement call.
+# `record sulo:hasPart process` would be INCONSISTENT against SULO 0.2.12, twice
+# over:
+#
+#   sulo:InformationObject subClassOf (sulo:hasPart only sulo:InformationObject)
+#     => the encounter process would have to be an InformationObject, hence a
+#        Feature, hence an Object; but sulo:Object owl:disjointWith sulo:Process
+#        and the process is asserted `a sulo:Process`.
+#   sulo:Object subClassOf (not (sulo:hasPart some sulo:Process))
+#     => the record, being an Object, cannot have a Process as a part at all.
+#
+# A result is information that can sit inside a record. An encounter is an
+# event that happened in the world; it is not located in its record. So the
+# record refersTo it. test_r11_record_relations.py derives both contradictions
+# from the pinned ontology file rather than restating them as prose.
 sh:EncounterRecordNode {
   rdf:type [sulo:InformationObject] ;
   rdf:type IRI %Map:{ v:recordClass %} ;

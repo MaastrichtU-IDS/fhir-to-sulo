@@ -266,14 +266,20 @@ class EncounterEntailmentOnRealMapOutput(unittest.TestCase):
                 ]
                 self.assertEqual(offenders, [])
 
-    def test_the_maps_type_people_as_sulo_Object_not_SpatialObject(self):
-        """Pins the R6 placeholder so the map and these tests cannot disagree.
+    def test_the_maps_type_people_as_sulo_SpatialObject(self):
+        """R6, answered 2026-09-30: "a person is a Spatial Object."
 
-        Asserts what the map does **today**; it does not answer R6. An earlier
-        version of this suite used a hand-written graph typing people as
-        ``sulo:SpatialObject`` while the map emitted ``sulo:Object``, and
-        nothing noticed. If the reviewer picks SpatialObject, the map and this
-        test change together - which is the point of having it.
+        This pin did the job it was written for. It previously asserted
+        ``sulo:Object`` and said: "If the reviewer picks SpatialObject, the map
+        and this test change together - which is the point of having it." The
+        reviewer picked SpatialObject, so both changed in one commit (Agent 3).
+
+        The change restores the OWL guard CD-6 recorded as missing:
+        ``Feature owl:disjointWith SpatialObject``, so a person also typed into
+        a Feature branch is now INCONSISTENT and the reasoner catches it.
+        ``R6EvidenceThePersonClassChoiceHasConsequences`` below is the measured
+        evidence for that, and is unchanged -- it probes the ontology, not the
+        map output.
         """
         graph = mapoutput.by_id("enc-baseline").graph()
         p = rdflib.URIRef
@@ -281,12 +287,29 @@ class EncounterEntailmentOnRealMapOutput(unittest.TestCase):
         self.assertTrue(people)
         for person in people:
             self.assertIn(
-                (person, p(self.RDF_TYPE), p("https://w3id.org/sulo/Object")), graph
+                (person, p(self.RDF_TYPE),
+                 p("https://w3id.org/sulo/SpatialObject")), graph
             )
             self.assertNotIn(
-                (person, p(self.RDF_TYPE), p("https://w3id.org/sulo/SpatialObject")),
-                graph,
+                (person, p(self.RDF_TYPE), p("https://w3id.org/sulo/Object")), graph
             )
+
+    def test_no_person_is_typed_into_a_feature_branch(self):
+        """What SpatialObject now makes checkable.
+
+        ``Feature owl:disjointWith SpatialObject``, so this is no longer only
+        a style rule: a person in any Feature branch makes the graph
+        inconsistent, and the reasoner says so.
+        """
+        graph = mapoutput.by_id("enc-baseline").graph()
+        p = rdflib.URIRef
+        people = set(graph.subjects(p(self.RDF_TYPE), p(mapoutput.EX + "Person")))
+        self.assertTrue(people)
+        for person in people:
+            for branch in ("Feature", "Capability", "InformationObject", "Quality", "Role"):
+                self.assertNotIn(
+                    (person, p(self.RDF_TYPE), p("https://w3id.org/sulo/" + branch)),
+                    graph, "%s is typed %s, which is disjoint with SpatialObject" % (person, branch))
 
 
 @unittest.skipUnless(HAVE_RDFLIB, SKIP_ENV)

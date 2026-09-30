@@ -165,7 +165,11 @@ Q_BP_PAIRS = CompetencyQuery(
     sparql=PREFIXES + """
         SELECT ?panel ?time ?systolic ?diastolic
         WHERE {
-            ?panel sulo:refersTo ?sysResult , ?diaResult .
+            # R11 (2026-09-30): the panel record HAS its component results as
+            # PARTS. It referred to them until then. Both components still join
+            # through the SAME panel record, which is what makes a cross-panel
+            # association show up as an extra row.
+            ?panel sulo:hasPart ?sysResult , ?diaResult .
             ?panel sulo:atTime ?instant .
             ?instant sulo:hasValue ?time .
 
