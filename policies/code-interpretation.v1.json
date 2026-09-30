@@ -138,6 +138,33 @@
       "note": "The reviewer first wrote wi3d.org; confirmed as w3id.org on a transposition check before applying, because the namespace is a graph-key input via quality_class_iri and correcting it later would have been a second migration.",
       "trailing_slash": "Added, matching SULO's own https://w3id.org/sulo/.",
       "successor": "RAG over OMOP vocabularies with LLM reranking — DR-008. Out of scope for Gates 0-4. A reranker proposes; it does not approve."
+    },
+    "R4": {
+      "question": "sulo:Quality or bare sulo:Feature for the observed quality?",
+      "answer": "A - sulo:Quality",
+      "answered_on": "2026-09-30",
+      "reviewer_words": "we should not use feature -> it should go to a more specific class eg. sulo:Quality",
+      "effect": "Ratifies what the maps already emit. Diverges deliberately from the concept note's literal 'a sulo:Feature' in section 4: bare Feature leaves the individual outside the disjoint union."
+    },
+    "R6": {
+      "question": "What is the SULO parent of the patient/practitioner class?",
+      "answer": "sulo:SpatialObject",
+      "answered_on": "2026-09-30",
+      "reviewer_words": "a person is a Spatial Object",
+      "effect": "CHANGE from the emitted bare sulo:Object. Verified safe: SpatialObject is a subclass of Object, so hasParticipant's range and the Feature isFeatureOf-some-(Object or Process) restriction both still hold.",
+      "restores": "The OWL guard recorded as absent in CD-6. Under SpatialObject a person also typed as a Quality or Role becomes INCONSISTENT, because Feature is disjointWith SpatialObject. CD-6 should close."
+    },
+    "R11": {
+      "question": "How does a record relate to its component results?",
+      "answer": "B - sulo:hasPart, plus two further relations the reviewer named",
+      "answered_on": "2026-09-30",
+      "reviewer_words": "compositionally, a record could indeed be comprised of statements, which could include the recording of results. This then captures where the results are located (e.g. the record). however, the results are information about the individual - they are features of the individual and they also refer to their qualities.",
+      "target_pattern": [
+        "record  sulo:hasPart      result    (compositional: where the result is located)",
+        "result  sulo:isFeatureOf  person    (the result is information about the individual)",
+        "result  sulo:refersTo     quality   (already emitted)"
+      ],
+      "bears_on_R5": "The isFeatureOf-on-results relation is R5's first open row (materialize isFeatureOf on quantities) answered as option A. The second row - an explicit unit on a TimeInstant - remains OPEN."
     }
   }
 }

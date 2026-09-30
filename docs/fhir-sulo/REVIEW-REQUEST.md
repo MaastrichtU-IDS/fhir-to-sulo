@@ -1,8 +1,10 @@
 # Consolidated review request — clinical and ontology interpretations
 
 **Status:** OPEN — awaiting the human clinical/ontology reviewer
-**Answered so far:** R10 (2026-09-29); R1 · R1b · R1d · R2 (2026-09-30). **8 of 12 items remain open** — R3, R4, R5, R6, R7, R8, R9, R11, R12.
-**R1's namespace is applied:** `https://w3id.org/ontostart/fhir2sulo/` (confirmed as `w3id.org`, not `wi3d.org`, before applying). The quality re-key it caused has been taken.
+**Answered:** R1 · R1b · R1d · R2 · R4 · R6 · R10 · R11.
+**6 of 12 remain open:** R3, R5, R7, R8, R9, R12.
+R1's namespace `https://w3id.org/ontostart/fhir2sulo/` is applied; R4, R6 and R11 are being
+applied to the maps and shapes.
 **Raised by:** Agent 1 (integration lead)
 **Opened:** 2026-09-29
 **Gate:** 0 (plan §4 Gate 0 requires reviewer sign-off on the record/fact distinction
@@ -180,7 +182,11 @@ item, so no unqualified assertion can escape while the question is open.
 
 ---
 
-## R4 — `sulo:Quality` vs bare `sulo:Feature` for the observed quality
+## R4 — `sulo:Quality` vs bare `sulo:Feature` for the observed quality  ✅ ANSWERED
+
+> **Answered 2026-09-30 — A, `sulo:Quality`.** *"we should not use feature -> it should go to
+> a more specific class eg. sulo:Quality."* Ratifies what the maps already emit, and sanctions
+> the deliberate divergence from the concept note's literal `a sulo:Feature` in §4.
 
 **Blocks:** Gate 2 target shape. Arises from the SULO 0.2.12 axioms (DR-002).
 
@@ -240,7 +246,18 @@ ShEx/SHACL target shape will flag as missing:
 
 ---
 
-## R6 — Person typing and the `Feature` / `SpatialObject` disjointness
+## R6 — Person typing and the `Feature` / `SpatialObject` disjointness  ✅ ANSWERED
+
+> **Answered 2026-09-30 — `sulo:SpatialObject`.** *"a person is a Spatial Object."*
+> A **change** from the emitted bare `sulo:Object`.
+>
+> Verified safe before dispatch: `SpatialObject ⊑ Object`, so `hasParticipant`'s range and the
+> `Feature ⊑ isFeatureOf some (Object ⊔ Process)` restriction both still hold. Watch
+> `SpatialObject ⊑ (hasPart only SpatialObject)`.
+>
+> **This restores the OWL guard CD-6 recorded as missing.** Under `SpatialObject` a person also
+> typed as a Quality or Role is inconsistent and HermiT catches it; bare `Object` could not,
+> because `Quality ⊑ Feature ⊑ Object`. CD-6 closes.
 
 **Blocks:** Gate 2, Gate 3 reasoning checks. Depends on R1.
 
@@ -405,7 +422,29 @@ and tested for exactly this. No graph migration was needed.
 
 ---
 
-## R11 — How does a BP panel record relate to its component results?
+## R11 — How does a BP panel record relate to its component results?  ✅ ANSWERED
+
+> **Answered 2026-09-30 — B, `sulo:hasPart`, plus two further relations.**
+>
+> *"compositionally, a record could indeed be comprised of statements, which could include the
+> recording of results. This then captures where the results are located (e.g. the record).
+> however, the results are information about the individual - they are features of the
+> individual and they also refer to their qualities."*
+>
+> ```
+> record  sulo:hasPart      result     # where the result is located
+> result  sulo:isFeatureOf  person     # information about the individual
+> result  sulo:refersTo     quality    # unchanged
+> ```
+>
+> **Open sub-question sent back:** whether the Encounter record takes `hasPart` too. An
+> encounter is arguably not a *part* of its record the way a result is, so `refersTo` may
+> remain right there — the asymmetry the reviewer themselves raised under R1d. Agent 3 will
+> give a reading; if it needs deciding it comes back here.
+>
+> **Bears on R5.** `result isFeatureOf person` is R5's first row (materialize `isFeatureOf` on
+> quantities) answered as **A**. R5's second row — an explicit unit on a `TimeInstant` —
+> **remains open** and the policy stays unset.
 
 **Blocks:** Gate 3 BP target graph.
 
