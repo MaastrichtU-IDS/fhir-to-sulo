@@ -172,6 +172,7 @@ The rest are genuinely open.
 | `status = registered` | **open** | not specified |
 | Encounter `status = in-progress` | **open** — §6 says only what it is *not* ("not treated as a finished interval"). Pinned conservatively as `source-only` pending your answer. A policy here touches R5, because a `StartTime` with no `EndTime` is exactly the closed-world case. | note §6 says nothing positive |
 | Encounter `period` with no end | **open** — §2 requires preserving unknown endpoints, which argues for *representable* rather than rejected. Currently paired only with `in-progress`. Interacts with R5. | not specified |
+| date-only `effective[x]` (e.g. `2026-09-02`) | **proposed `source-only`, derived not chosen.** The reviewer ruled *"date is not an instant"*. SULO's `Time` is a disjoint union of `Duration`/`TimeInstant`/`TimeInterval`; `Duration` is an elapsed amount, and `TimeInterval` requires a `StartTime` and an `EndTime` which are themselves instants — so deriving one means inventing a timezone the source never gave. Bare `Time` repeats the bare-`Feature` mistake R4 rejected. **No branch fits without fabricating.** DR-009. | reviewer 2026-09-30 + derivation |
 | `finished` Encounter *with* an open-ended period | **open** — valid FHIR, clinically incoherent. No fixture fabricates this; say whether it should be rejected or represented. | not specified |
 
 **What we need from you:** an outcome for every **open** row, and confirmation of the proposed
