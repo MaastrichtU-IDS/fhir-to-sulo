@@ -200,6 +200,15 @@ characteristic of a patient.
 
 **Options** — **A.** use `sulo:Quality`; **B.** keep bare `sulo:Feature` for a stated reason.
 
+> **Currently emitted: A.** This was not stated when the item was written, and should have
+> been. The maps emit
+> `ex:quality-… a ex:RenalFiltrationQuality, sulo:Quality`, which **diverges from the concept
+> note's literal `a sulo:Feature`** in §4. Engineering chose the more specific branch because
+> bare `Feature` leaves the individual outside the disjoint union, but that is a choice the
+> reviewer owns.
+>
+> So the real question is: **ratify what is emitted, or revert to the note's text?**
+
 **What we need from you:** A or B.
 
 ---
@@ -242,6 +251,23 @@ typed as a `sulo:SpatialObject` can bear features, but must never itself be type
 
 The concept note writes `ex:person-p123 a ex:Person` without saying where `ex:Person` sits
 under SULO.
+
+> **Currently emitted: bare `sulo:Object`** (`ex:person-… a ex:Person, sulo:Object`). Not
+> stated when the item was written; stating it now because it is the option with *fewer*
+> guarantees, and the reviewer should not ratify it unknowingly.
+
+**The measured consequence**, four tests, all passing:
+
+| person typed | a person also typed as a Role is… |
+| --- | --- |
+| `sulo:SpatialObject` | **inconsistent** — HermiT catches it |
+| bare `sulo:Object` *(current)* | **consistent** — no OWL guard at all |
+
+Because `Quality ⊑ Feature ⊑ Object`, bare `Object` cannot clash with a Feature branch. Both
+typings are fine on their own; the difference is only whether the reasoner can catch a
+misclassification. SHACL catches it either way, so nothing reaches the store — but the
+acceptance matrix's "an OWL reasoner checks consistency" is only true under
+`sulo:SpatialObject`. See CD-6.
 
 **What we need from you:** the SULO parent for the patient/practitioner class —
 `sulo:SpatialObject`, bare `sulo:Object`, or something else. (This is the specific form R1
