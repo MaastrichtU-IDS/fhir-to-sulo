@@ -208,15 +208,33 @@ class BPGraphShape(engine.EngineTestCase):
             self.assertNotIn("hasPatient", p)
             self.assertNotIn("hasSubject", p)
 
-    def test_each_panel_refers_to_exactly_its_own_two_quantities(self):
+    def test_each_panel_has_exactly_its_own_two_quantities_as_parts(self):
+        """R11: the record HAS the results as PARTS -- where they are located
+        -- rather than referring to them."""
         for obs, r in self.results.items():
             with self.subTest(resource=obs):
                 v = r["_hostValues"]
                 triples = graph.parse(r["nquads"])
-                refs = graph.objects_of(triples, "<%s>" % v["panelRecord"],
-                                        "<%srefersTo>" % SULO)
-                self.assertEqual(refs, sorted(["<%s>" % v["sysResult"],
-                                               "<%s>" % v["diaResult"]]))
+                panel = "<%s>" % v["panelRecord"]
+                self.assertEqual(
+                    graph.objects_of(triples, panel, "<%shasPart>" % SULO),
+                    sorted(["<%s>" % v["sysResult"], "<%s>" % v["diaResult"]]))
+                self.assertEqual(
+                    graph.objects_of(triples, panel, "<%srefersTo>" % SULO), [],
+                    "R11 replaced record->result refersTo with hasPart")
+
+    def test_each_quantity_is_a_feature_of_the_person(self):
+        """R11: \"the results are information about the individual - they are
+        features of the individual\". Also R5's first row, answered as A."""
+        for obs, r in self.results.items():
+            v = r["_hostValues"]
+            triples = graph.parse(r["nquads"])
+            for node in ("sysResult", "diaResult"):
+                with self.subTest(resource=obs, node=node):
+                    self.assertEqual(
+                        graph.objects_of(triples, "<%s>" % v[node],
+                                         "<%sisFeatureOf>" % SULO),
+                        ["<%s>" % v["person"]])
 
     def test_each_quantity_has_one_value_one_unit_and_one_quality(self):
         """Arity AND content.  Counting arcs alone would accept a diastolic
@@ -238,6 +256,9 @@ class BPGraphShape(engine.EngineTestCase):
                     quality = {"sysResult": "sysQuality", "diaResult": "diaQuality"}[node]
                     self.assertEqual(graph.objects_of(triples, iri, "<%srefersTo>" % SULO),
                                      ["<%s>" % v[quality]])
+                    self.assertEqual(graph.objects_of(triples, iri,
+                                                      "<%sisFeatureOf>" % SULO),
+                                     ["<%s>" % v["person"]])
 
     def test_systolic_and_diastolic_qualities_are_distinct(self):
         for obs, r in self.results.items():

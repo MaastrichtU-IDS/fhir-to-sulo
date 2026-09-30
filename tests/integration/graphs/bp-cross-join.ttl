@@ -21,11 +21,11 @@ ex:ucum-mm-Hg a sulo:Unit ;
     sulo:hasValue "mm[Hg]" .
 
 ex:bp-record-1 a sulo:InformationObject ;
-    sulo:refersTo ex:bp-1-systolic, ex:bp-2-diastolic ;   # <-- the cross join
+    sulo:hasPart ex:bp-1-systolic, ex:bp-2-diastolic ;    # <-- the cross join
     sulo:atTime ex:time-bp-1 .
 
 ex:bp-record-2 a sulo:InformationObject ;
-    sulo:refersTo ex:bp-2-systolic, ex:bp-1-diastolic ;   # <-- the cross join
+    sulo:hasPart ex:bp-2-systolic, ex:bp-1-diastolic ;    # <-- the cross join
     sulo:atTime ex:time-bp-2 .
 
 ex:time-bp-1 a sulo:TimeInstant ;

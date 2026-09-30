@@ -50,14 +50,14 @@
       }
     },
     "personSuloClass": {
-      "iri": "https://w3id.org/sulo/Object",
-      "source": "REVIEW-REQUEST R6",
+      "iri": "https://w3id.org/sulo/SpatialObject",
+      "source": "REVIEW-REQUEST R6, answered 2026-09-30",
       "review_item": "R6",
-      "status": "engineering-default",
-      "alternatives": {
-        "bare-object": "https://w3id.org/sulo/Object",
-        "spatial-object": "https://w3id.org/sulo/SpatialObject"
-      }
+      "status": "reviewer-answered",
+      "answered_on": "2026-09-30",
+      "reviewer_words": "a person is a Spatial Object.",
+      "note": "sulo:SpatialObject rdfs:subClassOf sulo:Object, so hasParticipant's range is still satisfied and the PRO chain is unaffected. The point of the change is the guard it restores: sulo:Feature owl:disjointWith sulo:SpatialObject, so a person also typed as a Quality or a Role is now INCONSISTENT and a reasoner catches it. Bare sulo:Object could not, because Quality subClassOf Feature subClassOf Object. Checked against the pinned ontology before applying: sulo:hasFeature is NOT a subproperty of sulo:hasPart, so `person hasFeature quality` does not trip SpatialObject's `hasPart only SpatialObject` restriction.",
+      "not_recorded_in_policy_yet": "As of this change, policies/code-interpretation.v1.json reviewer_decisions holds only R1 and R10. Transcribed from the integration lead's relay of the reviewer's words; see DR-206."
     },
     "personClass": {
       "iri": "https://w3id.org/ontostart/fhir2sulo/Person",
@@ -143,7 +143,8 @@
         "unitIri",
         "sysQuality",
         "timeInstant",
-        "sourceVersionIri"
+        "sourceVersionIri",
+        "person"
       ]
     },
     {
@@ -156,7 +157,8 @@
         "unitIri",
         "diaQuality",
         "timeInstant",
-        "sourceVersionIri"
+        "sourceVersionIri",
+        "person"
       ],
       "requires_source_binding": "diaValue"
     },
@@ -234,5 +236,11 @@
     "Why not a single shape with an optional diastolic member: an optional target constraint whose variable is unbound emits the right graph but still reports in lastReport.unboundVariables, which would destroy the invariant that a non-empty unboundVariables is always DR-301 blocker 8c. Measured, not assumed; see the comment in bp-target.v1.shex.",
     "`bp-component-omitted` therefore yields a graph with no diastolic quantity, no diastolic quality and no diastolic member triple."
   ],
-  "pass_vars_note": "tests/contracts/maps/test_bp_gate3.py asserts lastReport.unusedStatics == [] and lastReport.unboundVariables == [] on every pass, which is the CD-1 substitute for the static checker the engine does not ship. Every target constraint is required, so an unbound variable is always an error."
+  "pass_vars_note": "tests/contracts/maps/test_bp_gate3.py asserts lastReport.unusedStatics == [] and lastReport.unboundVariables == [] on every pass, which is the CD-1 substitute for the static checker the engine does not ship. Every target constraint is required, so an unbound variable is always an error.",
+  "r11_note": [
+    "R11, answered 2026-09-30. Reviewer: \"compositionally, a record could indeed be comprised of statements, which could include the recording of results. This then captures where the results are located (e.g. the record). however, the results are information about the individual - they are features of the individual and they also refer to their qualities.\"",
+    "record sulo:hasPart result (was sulo:refersTo); result sulo:isFeatureOf person (new); result sulo:refersTo quality (unchanged).",
+    "NOT applied to the Encounter record: `record hasPart process` is inconsistent against SULO 0.2.12 twice over (InformationObject hasPart only InformationObject, and Object not (hasPart some Process)). See DR-206 and encounter-target.v1.shex.",
+    "This answers R5's FIRST row (materialize isFeatureOf on quantities) as option A. R5's second row -- an explicit sulo:Unit on a TimeInstant -- REMAINS OPEN and stays unset: no time unit is emitted."
+  ]
 }

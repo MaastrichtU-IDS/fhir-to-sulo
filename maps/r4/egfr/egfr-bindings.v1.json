@@ -4,20 +4,17 @@
   "semantic_version": "1.0.0",
   "var_namespace": "https://w3id.org/fhir-sulo/map/egfr/var#",
   "shape_namespace": "https://w3id.org/fhir-sulo/map/egfr/shape#",
-
   "purpose": [
     "THE SINGLE INDIRECTION POINT for review items R1, R2, R4 and R6.",
     "Neither egfr-source.v1.shex nor egfr-target.v1.shex contains a domain class IRI, a person IRI or a quality IRI. Every one of them is a ThreadedMaterializer staticVar named here. A reviewer answer is an edit to this file; the schemas are untouched.",
     "Each entry records where its value comes from and which review item governs it. An entry sourced from a policy table is a mirror of that table, not a second opinion: tests/contracts/maps/test_indirection_point.py asserts they agree."
   ],
-
   "domain_namespace": {
     "value": "https://w3id.org/ontostart/fhir2sulo/",
     "source": "policies/code-interpretation.v1.json :: domain_namespace",
     "review_item": "R1",
     "status": "placeholder-awaiting-owner"
   },
-
   "vocabulary": {
     "resultClass": {
       "iri": "https://w3id.org/ontostart/fhir2sulo/EGFRResult",
@@ -43,15 +40,14 @@
       "note": "sulo:Feature is a disjoint union of Capability/InformationObject/Quality/Role, so the concept note's literal 'a sulo:Feature' leaves the individual unpartitioned. Defaulting to option A, which the reviewer has not confirmed."
     },
     "personSuloClass": {
-      "iri": "https://w3id.org/sulo/Object",
-      "source": "REVIEW-REQUEST R6",
+      "iri": "https://w3id.org/sulo/SpatialObject",
+      "source": "REVIEW-REQUEST R6, answered 2026-09-30",
       "review_item": "R6",
-      "status": "engineering-default",
-      "alternatives": {
-        "bare-object": "https://w3id.org/sulo/Object",
-        "spatial-object": "https://w3id.org/sulo/SpatialObject"
-      },
-      "note": "sulo:Feature owl:disjointWith sulo:SpatialObject. Bare sulo:Object is the weaker, safe choice: it cannot create the disjointness clash that sulo:SpatialObject would if any Feature branch were ever also asserted of a person. The reviewer decides."
+      "status": "reviewer-answered",
+      "note": "sulo:SpatialObject rdfs:subClassOf sulo:Object, so hasParticipant's range is still satisfied and the PRO chain is unaffected. The point of the change is the guard it restores: sulo:Feature owl:disjointWith sulo:SpatialObject, so a person also typed as a Quality or a Role is now INCONSISTENT and a reasoner catches it. Bare sulo:Object could not, because Quality subClassOf Feature subClassOf Object. Checked against the pinned ontology before applying: sulo:hasFeature is NOT a subproperty of sulo:hasPart, so `person hasFeature quality` does not trip SpatialObject's `hasPart only SpatialObject` restriction.",
+      "answered_on": "2026-09-30",
+      "reviewer_words": "a person is a Spatial Object.",
+      "not_recorded_in_policy_yet": "As of this change, policies/code-interpretation.v1.json reviewer_decisions holds only R1 and R10. Transcribed from the integration lead's relay of the reviewer's words; see DR-206."
     },
     "personClass": {
       "iri": "https://w3id.org/ontostart/fhir2sulo/Person",
@@ -66,7 +62,6 @@
       "status": "placeholder-awaiting-owner"
     }
   },
-
   "identity_provided": {
     "person": {
       "source": "fhir_sulo.identity.IdentityService.resolve(...).identity.entity_iri for Observation.subject",
@@ -82,7 +77,6 @@
       "note": "UCUM mL/min/{1.73_m2}. A unit IRI is shared across observations by design; a per-observation blank node would duplicate it and break Gate 4 idempotence."
     }
   },
-
   "node_keys": {
     "result": "{domain}egfr-result-{obsId}",
     "record": "{domain}egfr-record-{obsId}",
@@ -94,46 +88,78 @@
     "Keyed by resource id, NOT by version: a correction (a new meta.versionId) recomputes the same node IRIs and replaces their triples, which is what concept note section 7 asks for. The version appears in prov:wasDerivedFrom.",
     "GAP reported to the integration lead: Agent 5's identity service mints person and quality IRIs but not result / record / time node IRIs. These three rules are currently owned here. They should move behind the identity service so a single component owns node identity."
   ],
-
   "passes": [
     {
       "name": "quantity",
       "shape": "EGFRResultNode",
       "root": "result",
-      "vars": ["resultClass", "value", "unitIri", "quality", "timeInstant", "sourceVersionIri"]
+      "vars": [
+        "resultClass",
+        "value",
+        "unitIri",
+        "quality",
+        "timeInstant",
+        "sourceVersionIri",
+        "person"
+      ]
     },
     {
       "name": "quality",
       "shape": "EGFRQualityNode",
       "root": "quality",
-      "vars": ["qualityBranch", "qualityClass", "person"]
+      "vars": [
+        "qualityBranch",
+        "qualityClass",
+        "person"
+      ]
     },
     {
       "name": "person",
       "shape": "EGFRPersonNode",
       "root": "person",
-      "vars": ["personSuloClass", "personClass", "quality"]
+      "vars": [
+        "personSuloClass",
+        "personClass",
+        "quality"
+      ]
     },
     {
       "name": "unit",
       "shape": "EGFRUnitNode",
       "root": "unitIri",
-      "vars": ["unitCode"]
+      "vars": [
+        "unitCode"
+      ]
     },
     {
       "name": "time",
       "shape": "EGFRTimeNode",
       "root": "timeInstant",
-      "vars": ["effective"]
+      "vars": [
+        "effective"
+      ]
     },
     {
       "name": "record",
       "shape": "EGFRRecordNode",
       "root": "record",
-      "vars": ["recordClass", "result", "sourceVersionIri"]
+      "vars": [
+        "recordClass",
+        "result",
+        "sourceVersionIri"
+      ]
     }
   ],
-
-  "source_bound_vars": ["value", "unitCode", "effective"],
-  "pass_vars_note": "Every name in a pass's `vars` that is not source-bound is supplied as a staticVar for that pass and for no other. tests/contracts/maps/test_egfr_gate2.py asserts lastReport.unusedStatics == [] on every pass, so this list cannot drift from the schema without a test failure. That assertion is the CD-1 substitute for the static checker the engine does not ship."
+  "source_bound_vars": [
+    "value",
+    "unitCode",
+    "effective"
+  ],
+  "pass_vars_note": "Every name in a pass's `vars` that is not source-bound is supplied as a staticVar for that pass and for no other. tests/contracts/maps/test_egfr_gate2.py asserts lastReport.unusedStatics == [] on every pass, so this list cannot drift from the schema without a test failure. That assertion is the CD-1 substitute for the static checker the engine does not ship.",
+  "r11_note": [
+    "R11, answered 2026-09-30. Reviewer: \"compositionally, a record could indeed be comprised of statements, which could include the recording of results. This then captures where the results are located (e.g. the record). however, the results are information about the individual - they are features of the individual and they also refer to their qualities.\"",
+    "record sulo:hasPart result (was sulo:refersTo); result sulo:isFeatureOf person (new); result sulo:refersTo quality (unchanged).",
+    "NOT applied to the Encounter record: `record hasPart process` is inconsistent against SULO 0.2.12 twice over (InformationObject hasPart only InformationObject, and Object not (hasPart some Process)). See DR-206 and encounter-target.v1.shex.",
+    "This answers R5's FIRST row (materialize isFeatureOf on quantities) as option A. R5's second row -- an explicit sulo:Unit on a TimeInstant -- REMAINS OPEN and stays unset: no time unit is emitted."
+  ]
 }

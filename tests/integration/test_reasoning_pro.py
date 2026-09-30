@@ -274,22 +274,20 @@ class EncounterEntailmentOnRealMapOutput(unittest.TestCase):
                 ]
                 self.assertEqual(offenders, [])
 
-    @unittest.expectedFailure
-    def test_the_maps_emit_the_r6_answer(self):
-        """Review item R6 is ANSWERED: a person is a ``sulo:SpatialObject``.
+    def test_the_maps_type_people_as_sulo_SpatialObject(self):
+        """R6, answered 2026-09-30: "a person is a Spatial Object."
 
-        **This is an expected failure on purpose, and it is self-clearing.**
-        The reviewer has answered; Agent 3's map change had not landed when
-        this was written, so the maps still emit bare ``sulo:Object``.
+        This pin did the job it was written for. It previously asserted
+        ``sulo:Object`` and said: "If the reviewer picks SpatialObject, the map
+        and this test change together - which is the point of having it." The
+        reviewer picked SpatialObject, so both changed in one commit (Agent 3).
 
-        ``expectedFailure`` is the right marker rather than a skip or a
-        softened assertion, because the moment the maps start emitting
-        ``SpatialObject`` this reports an **unexpected success**, which is a
-        failure, and whoever lands that change is told to delete this
-        decorator. A skip would go quiet; an assertion of the *current*
-        behaviour would silently start passing for the wrong reason once both
-        sides moved - which is exactly how the original placeholder/map
-        disagreement went unnoticed.
+        The change restores the OWL guard CD-6 recorded as missing:
+        ``Feature owl:disjointWith SpatialObject``, so a person also typed into
+        a Feature branch is now INCONSISTENT and the reasoner catches it.
+        ``R6EvidenceThePersonClassChoiceHasConsequences`` below is the measured
+        evidence for that, and is unchanged -- it probes the ontology, not the
+        map output.
         """
         graph = mapoutput.by_id("enc-baseline").graph()
         p = rdflib.URIRef
@@ -297,15 +295,36 @@ class EncounterEntailmentOnRealMapOutput(unittest.TestCase):
         self.assertTrue(people)
         for person in people:
             self.assertIn(
-                (person, p(self.RDF_TYPE), p(R6_ANSWER)), graph,
-                "R6 was answered %s; this person is not typed that way" % R6_ANSWER,
+                (person, p(self.RDF_TYPE),
+                 p("https://w3id.org/sulo/SpatialObject")), graph
+            )
+            self.assertNotIn(
+                (person, p(self.RDF_TYPE), p("https://w3id.org/sulo/Object")), graph
             )
 
-    def test_the_maps_type_people_consistently_one_way_or_the_other(self):
-        """Whatever the maps emit today, they must be uniform about it.
+    def test_no_person_is_typed_into_a_feature_branch(self):
+        """What SpatialObject now makes checkable.
 
-        Holds before and after Agent 3's change, so it is the part of the old
-        pinning test that keeps working while R6 is being implemented.
+        ``Feature owl:disjointWith SpatialObject``, so this is no longer only
+        a style rule: a person in any Feature branch makes the graph
+        inconsistent, and the reasoner says so.
+        """
+        graph = mapoutput.by_id("enc-baseline").graph()
+        p = rdflib.URIRef
+        people = set(graph.subjects(p(self.RDF_TYPE), p(mapoutput.EX + "Person")))
+        self.assertTrue(people)
+        for person in people:
+            for branch in ("Feature", "Capability", "InformationObject", "Quality", "Role"):
+                self.assertNotIn(
+                    (person, p(self.RDF_TYPE), p("https://w3id.org/sulo/" + branch)),
+                    graph, "%s is typed %s, which is disjoint with SpatialObject" % (person, branch))
+
+    def test_the_maps_type_people_consistently_one_way_or_the_other(self):
+        """The maps must be uniform about it across every fixture.
+
+        Kept from the pre-answer version of this file: the two tests above
+        assert the answer is present in the graphs they look at, but neither
+        would catch R6 being applied to *some* fixtures and not others.
         """
         p = rdflib.URIRef
         seen = set()
@@ -313,7 +332,7 @@ class EncounterEntailmentOnRealMapOutput(unittest.TestCase):
             graph = item.graph()
             for person in graph.subjects(p(self.RDF_TYPE), p(mapoutput.EX + "Person")):
                 types = {str(o) for o in graph.objects(person, p(self.RDF_TYPE))}
-                seen.add(frozenset(types & {R6_ANSWER, SULO_OBJECT}))
+                seen.add(frozenset(types & {"https://w3id.org/sulo/SpatialObject", "https://w3id.org/sulo/Object"}))
         self.assertEqual(
             len(seen), 1,
             "the maps type people inconsistently across fixtures: %s" % seen,
