@@ -56,6 +56,7 @@ class EligibilityEvaluator:
                              + self.m.value_policy("unsupported_modifier_extension")["reason"]))
         if rtype == "Observation":
             findings.extend(self._observation_values(resource))
+        findings.extend(self._coarse_times(resource, rtype))
         findings.extend(self._references(references or {}))
 
         outcome = EligibilityOutcome.ELIGIBLE
@@ -148,6 +149,38 @@ class EligibilityEvaluator:
             p = self.m.value_policy("code_not_in_pinned_set")
             shown = ", ".join(f"{c.get('system')}|{c.get('code')}" for c in codings)
             yield (_OUTCOME[p["outcome"]], f"{path}: no pinned code among [{shown}]: " + p["reason"])
+
+    def _coarse_times(self, resource: Dict[str, Any], rtype: str):
+        """A time value with no clock time cannot become a SULO time node.
+
+        The reviewer ruled that a date is not an instant; DR-009 derives that
+        nothing in SULO fits, so the value stays in the source layer. Which
+        elements this applies to is manifest-driven (``applies_to``), because
+        it is a proposed rule pending R3, not a settled one.
+        """
+        policy = self.m.value_policy("effective_time_coarser_than_seconds")
+        outcome = _OUTCOME[policy["outcome"]]
+        for path in policy.get("applies_to", ()):
+            owner, _, element = path.partition(".")
+            if owner != rtype:
+                continue
+            value = resource.get(element)
+            if value is None:
+                continue
+            for label, lexical in self._time_values(element, value):
+                if isinstance(lexical, str) and "T" not in lexical:
+                    yield (outcome,
+                           f"{rtype}.{label} is {lexical!r}, which carries no clock time "
+                           "and therefore no offset: " + policy["reason"])
+
+    @staticmethod
+    def _time_values(element: str, value: Any):
+        if isinstance(value, dict):          # Period
+            for endpoint in ("start", "end"):
+                if value.get(endpoint) is not None:
+                    yield f"{element}.{endpoint}", value[endpoint]
+        else:
+            yield element, value
 
     def _references(self, references: Dict[str, ResolvedReference]):
         for path, ref in references.items():

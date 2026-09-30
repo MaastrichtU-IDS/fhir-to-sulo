@@ -139,6 +139,73 @@ class TestSpecificRules(unittest.TestCase):
                       ctx.unsupported_modifier_extensions)
 
 
+class TestCoarseEffectiveTime(unittest.TestCase):
+    """R3's new row: a date is not an instant, so no time node is emitted.
+
+    Proposed, pending R3. Asserted here so the rule is visible and so its
+    *scope* is pinned: it must fire on Observation.effective[x] and must not
+    quietly spread to Encounter.period, whose open-endedness question is R5.
+    """
+
+    def _obs(self, effective=None, period=None):
+        r = jsonio.loads(read(os.path.join(
+            FIXTURES, "egfr", "egfr-baseline", "egfr-456.json")))
+        r.pop("effectiveDateTime", None)
+        if effective is not None:
+            r["effectiveDateTime"] = effective
+        if period is not None:
+            r["effectivePeriod"] = period
+        return ingest_text(jsonio.dumps(r), identity=MockIdentityService())
+
+    def test_a_full_timestamp_stays_eligible(self):
+        self.assertIs(self._obs("2026-09-02T14:00:00Z").eligibility,
+                      EligibilityOutcome.ELIGIBLE)
+        self.assertIs(self._obs("2026-09-02T14:00:00+01:00").eligibility,
+                      EligibilityOutcome.ELIGIBLE)
+
+    def test_every_coarser_precision_is_source_only(self):
+        for value in ("2026-09-02", "2026-09", "2026"):
+            with self.subTest(value=value):
+                ctx = self._obs(value)
+                self.assertIs(ctx.eligibility, EligibilityOutcome.SOURCE_ONLY)
+                self.assertIn("carries no clock time", ctx.eligibility_reason)
+                self.assertIn("R3", ctx.eligibility_reason)
+
+    def test_the_value_is_still_retained_in_the_source_layer(self):
+        """source-only retains the record; it does not erase it."""
+        ctx = self._obs("2026-09-02")
+        self.assertIn('"2026-09-02"^^<http://www.w3.org/2001/XMLSchema#date>',
+                      ctx.rdf_graph)
+
+    def test_a_coarse_effective_period_endpoint_also_fires(self):
+        ctx = self._obs(period={"start": "2026-09-02", "end": "2026-09-03T10:00:00Z"})
+        self.assertIs(ctx.eligibility, EligibilityOutcome.SOURCE_ONLY)
+        self.assertIn("effectivePeriod.start", ctx.eligibility_reason)
+        self.assertNotIn("effectivePeriod.end", ctx.eligibility_reason)
+
+    def test_the_rule_does_not_reach_encounter_period(self):
+        """Deliberately out of scope: Encounter.period is R5 / Q-A2-3."""
+        enc = jsonio.loads(read(os.path.join(
+            FIXTURES, "encounter", "enc-baseline", "enc-9.json")))
+        enc["period"] = {"start": "2026-09-02"}
+        ctx = ingest_text(jsonio.dumps(enc), identity=MockIdentityService())
+        self.assertIs(ctx.eligibility, EligibilityOutcome.ELIGIBLE)
+
+    def test_the_scope_is_manifest_driven_not_hardcoded(self):
+        policy = default_manifest().value_policy("effective_time_coarser_than_seconds")
+        self.assertEqual(policy["outcome"], "source-only")
+        self.assertEqual(sorted(policy["applies_to"]),
+                         ["Observation.effectiveDateTime", "Observation.effectivePeriod"])
+        self.assertIn("R3", policy["reason"])
+
+    def test_an_offsetless_timestamp_is_refused_by_the_renderer_not_ruled_on_here(self):
+        """'2026-09-02T14:00:00' is not conformant R4, so it never reaches a
+        policy decision; the renderer refuses it first."""
+        from fhir_sulo.ingest.fhir_rdf import RenderError
+        with self.assertRaises(RenderError):
+            self._obs("2026-09-02T14:00:00")
+
+
 class TestSourceContextContents(unittest.TestCase):
     def test_source_context_carries_the_pinned_provenance_fields(self):
         ctx = _ingest(os.path.join(FIXTURES, "egfr", "egfr-baseline"), "egfr-456.json")

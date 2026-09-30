@@ -1,0 +1,32 @@
+{
+  "fixture_id": "egfr-effective-date-only",
+  "family": "egfr",
+  "concept_note_section": "4",
+  "synthetic": true,
+  "description": "An eGFR whose effectiveDateTime is date-precision, '2026-09-02'. Identical to egfr-baseline in every other respect. It renders as \"2026-09-02\"^^xsd:date, not xsd:dateTime. Declared source-only: the reviewer ruled that a date is not an instant, and DR-009 derives that no SULO time node fits, so the record is retained and no semantic time node is emitted. This is the map correctly declining to assert a time it cannot support, not a failure.",
+  "sources": [
+    "egfr-457.json"
+  ],
+  "temporal_precision": {
+    "source_value": "2026-09-02",
+    "rendered_datatype": "http://www.w3.org/2001/XMLSchema#date",
+    "why_not_an_offsetless_timestamp": "FHIR R4's dateTime regex makes the timezone offset MANDATORY once a time component is present: the (Z|(\\+|-)hh:mm) group sits inside the T-group and is not optional. '2026-09-02T14:00:00' is therefore not a valid R4 dateTime and no fixture can carry it. Verified against the regex in the published R4 definitions bundle (profiles-types.json, StructureDefinition/dateTime, dateTime.value regex extension). The renderer refuses such a value rather than guessing a datatype.",
+    "consequence_for_the_target": "Every conformant R4 dateTime that carries a time also carries an offset, so a rule of the form 'emit xsd:dateTimeStamp when an offset is present, xsd:dateTime when it is not' has no negative case at second precision. The real discrimination is precision: dateTime vs date vs gYearMonth vs gYear. See DR-102 Q-A2-6."
+  },
+  "expected": {
+    "eligibility": "source-only",
+    "eligibility_reason_contains": [
+      "carries no clock time",
+      "PROPOSED, PENDING REVIEW ITEM R3"
+    ],
+    "references": {
+      "Observation.subject": {
+        "kind": "literal-relative",
+        "resolved_target": "https://fhir.example/Patient/p123",
+        "entity_iri_established": true
+      }
+    },
+    "outcome_is_proposed_not_settled": "source-only here is PROPOSED and pending review item R3, which now carries a row for date-precision effective times. case.json has no first-class field for 'proposed', so it is stated here and in the manifest's value_policy reason text, which is the convention already used for amended/corrected (Q-A2-5). If the integration lead wants a first-class representation, this is the place to add it.",
+    "map_outcome_note": "Agent 3's egfr-source.v1.shex pins fhir:Observation.effectiveDateTime to { fhir:value xsd:dateTime }, so the map reports source-shape-nonconformant with a TypeMismatch on that element. That agrees with the declared source-only outcome the same way egfr-retracted does, so no coordination change is needed unless Agent 3 would rather the map bind the value and decline to materialize a time node, which produces a different diagnostic."
+  }
+}

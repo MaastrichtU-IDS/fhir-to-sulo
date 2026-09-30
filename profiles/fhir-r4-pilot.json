@@ -274,6 +274,17 @@
       "outcome": "rejected",
       "reason": "Acceptance matrix row Identity: ambiguous identity never silently merges."
     },
+    "effective_time_coarser_than_seconds": {
+      "outcome": "source-only",
+      "reason": "PROPOSED, PENDING REVIEW ITEM R3 - not a settled rule. The reviewer ruled that a date is not an instant; DR-009 derives the consequence that no SULO time node fits a date-precision value. sulo:TimeInstant needs a dateTime; sulo:Duration is an elapsed amount and a date is a position, not an amount; sulo:TimeInterval requires both a StartTime and an EndTime, and deriving those from a date means choosing a timezone the source never gave, which concept note section 2 forbids; bare sulo:Time repeats the bare-sulo:Feature mistake rejected in R4. So the record is retained and no semantic time node is emitted - the same shape as dataAbsentReason.",
+      "applies_to": [
+        "Observation.effectiveDateTime",
+        "Observation.effectivePeriod"
+      ],
+      "scope_note": "Encounter.period is deliberately NOT in this list. Its open-endedness question is Q-A2-3 / R5 and is owned there, and no Encounter fixture carries a coarse endpoint today. Adding it is a one-line manifest change once R3 and R5 are both answered.",
+      "detection": "A FHIR dateTime with no time component: the R4 regex makes the timezone offset mandatory once 'T' is present, so 'coarser than seconds' and 'carries no offset' are the same set - YYYY, YYYY-MM and YYYY-MM-DD.",
+      "review_item": "R3"
+    },
     "unsupported_modifier_extension": {
       "outcome": "rejected",
       "reason": "Acceptance matrix row Source fidelity: an unsupported modifier extension blocks semantic materialization. SourceContext enforces this."
@@ -289,6 +300,11 @@
       "YYYY-MM": "http://www.w3.org/2001/XMLSchema#gYearMonth",
       "YYYY-MM-DD": "http://www.w3.org/2001/XMLSchema#date",
       "YYYY-MM-DDThh:mm:ss[.sss](Z|±hh:mm)": "http://www.w3.org/2001/XMLSchema#dateTime"
+    },
+    "offset_is_mandatory_once_a_time_is_present": {
+      "fact": "In FHIR R4 the timezone offset is REQUIRED as soon as a dateTime carries a time component. The (Z|(+|-)hh:mm) group sits inside the T-group of the dateTime regex and is not optional, so 'YYYY-MM-DDThh:mm:ss' with no offset is NOT a conformant R4 dateTime and the renderer refuses it.",
+      "source": "StructureDefinition/dateTime, the regex extension on dateTime.value, in the published R4 definitions bundle (profiles-types.json). instant requires an offset unconditionally; date never carries one.",
+      "consequence": "Every conformant R4 dateTime that renders as xsd:dateTime carries an offset. A rule of the form 'emit xsd:dateTimeStamp when an offset is present, xsd:dateTime when it is not' therefore has no reachable second branch at second precision. The only offsetless values are YYYY, YYYY-MM and YYYY-MM-DD, which render as gYear, gYearMonth and date and are never xsd:dateTime. See DR-102 Q-A2-6 and review item R5b."
     },
     "unknown_endpoint": "An absent Period.end is rendered as an absent triple, never as an invented value. The 'open-ended period' fixture asserts this.",
     "distinct_elements": [

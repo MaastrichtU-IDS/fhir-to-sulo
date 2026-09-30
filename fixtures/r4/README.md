@@ -40,11 +40,11 @@ name (`bp-1-b7`), so two panels can never share a node by accident.
 
 ## Inventory
 
-**eGFR** (concept note §4) — 12 cases: `egfr-baseline`,
+**eGFR** (concept note §4) — 13 cases: `egfr-baseline`,
 `egfr-data-absent-reason`, `egfr-comparator`, `egfr-unit-missing`,
 `egfr-unit-unrecognised`, `egfr-code-unmapped`, `egfr-reference-unresolvable`,
 `egfr-reference-ambiguous`, `egfr-entered-in-error`, `egfr-contained-subject`,
-`egfr-corrected`, `egfr-retracted`.
+`egfr-corrected`, `egfr-retracted`, `egfr-effective-date-only`.
 
 Three of those — `egfr-baseline`, `egfr-corrected`, `egfr-retracted` — are
 **the same resource at versions 1, 2 and 3**. Same resource id `egfr-456`,

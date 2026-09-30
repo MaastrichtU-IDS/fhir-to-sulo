@@ -17,12 +17,14 @@ fail.
 from __future__ import annotations
 
 import os
+import re
 import unittest
 
 from . import _support
 from ._support import FIXTURES, ROOT, cases, read, source_files
 
 from fhir_sulo.ingest import jsonio, render, to_json  # noqa: E402
+from fhir_sulo.ingest.fhir_rdf import RenderError  # noqa: E402
 from fhir_sulo.ingest.ntriples import parse, serialize  # noqa: E402
 
 
@@ -122,6 +124,11 @@ class TestPreservedFacets(unittest.TestCase):
             nt = read(os.path.join(case_dir, "canonical.nt"))
             self.assertNotIn("owl#sameAs", nt)
 
+    def test_date_precision_effective_time_is_not_promoted_to_datetime(self):
+        nt = self._nt("egfr", "egfr-effective-date-only", "canonical.nt")
+        self.assertIn('"2026-09-02"^^<http://www.w3.org/2001/XMLSchema#date>', nt)
+        self.assertNotIn("XMLSchema#dateTime", nt)
+
     def test_the_three_time_elements_are_distinguishable(self):
         """effective[x], issued and meta.lastUpdated must not collapse."""
         from fhir_sulo.ingest import jsonio as J
@@ -133,6 +140,100 @@ class TestPreservedFacets(unittest.TestCase):
         self.assertIn("Observation.effectiveDateTime", nt)
         self.assertIn("Observation.issued", nt)
         self.assertIn("Meta.lastUpdated", nt)
+        self.assertEqual(jsonio.diff(resource, to_json(parse(nt))), [])
+
+
+class TestTemporalPrecisionLadder(unittest.TestCase):
+    """Every R4 temporal precision, and the one form R4 does not allow.
+
+    R5b asks whether the target should emit ``xsd:dateTimeStamp`` when an
+    offset is present and ``xsd:dateTime`` when it is not. The premise only
+    holds if an offsetless FHIR dateTime exists. It does not: R4's ``dateTime``
+    regex puts the ``(Z|(+|-)hh:mm)`` group *inside* the ``T`` group and does
+    not make it optional, so a value carrying a time always carries an offset.
+
+    Checked here against the regex published in the R4 definitions bundle
+    (``profiles-types.json``, ``StructureDefinition/dateTime``, the
+    ``regex`` extension on ``dateTime.value``) rather than from memory, and
+    restated as a literal so the suite documents it:
+
+        ...(T([01][0-9]|2[0-3]):[0-5][0-9]:([0-5][0-9]|60)(\\.[0-9]+)?
+            (Z|(\\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00)))?...
+
+    So the real discrimination is *precision*, and this is the ladder.
+    """
+
+    XSD = "http://www.w3.org/2001/XMLSchema#"
+
+    LADDER = [
+        ("2026", "gYear"),
+        ("2026-09", "gYearMonth"),
+        ("2026-09-02", "date"),
+        ("2026-09-02T14:00:00Z", "dateTime"),
+        ("2026-09-02T14:00:00+01:00", "dateTime"),
+        ("2026-09-02T14:00:00.250Z", "dateTime"),
+    ]
+
+    # Valid R4 dateTime requires an offset once a time is present, so none of
+    # these may be rendered. Guessing a datatype here would invent precision.
+    REFUSED = [
+        "2026-09-02T14:00:00",
+        "2026-09-02T14:00",
+        "2026-09-02 14:00:00Z",
+        "02/09/2026",
+        "",
+    ]
+
+    def _obs(self, effective):
+        resource = jsonio.loads(read(os.path.join(
+            FIXTURES, "egfr", "egfr-baseline", "egfr-456.json")))
+        resource["effectiveDateTime"] = effective
+        return resource
+
+    def test_each_precision_gets_its_own_datatype(self):
+        for value, expected in self.LADDER:
+            with self.subTest(value=value):
+                nt = render(self._obs(value)).nt
+                self.assertIn('"%s"^^<%s%s>' % (value, self.XSD, expected), nt)
+
+    def test_each_precision_round_trips_unchanged(self):
+        for value, _ in self.LADDER:
+            with self.subTest(value=value):
+                original = self._obs(value)
+                recovered = to_json(parse(render(original).nt))
+                self.assertEqual(jsonio.diff(original, recovered), [])
+                self.assertEqual(recovered["effectiveDateTime"], value)
+
+    def test_the_precisions_are_all_distinguishable_from_one_another(self):
+        rendered = {v: render(self._obs(v)).nt for v, _ in self.LADDER}
+        self.assertEqual(len(set(rendered.values())), len(self.LADDER))
+
+    def test_a_datetime_without_an_offset_is_refused_not_guessed(self):
+        for value in self.REFUSED:
+            with self.subTest(value=value):
+                with self.assertRaises(RenderError):
+                    render(self._obs(value))
+
+    def test_an_offsetless_timestamp_is_not_valid_r4_in_the_first_place(self):
+        """The premise behind R5b, checked rather than assumed."""
+        r4_datetime = re.compile(
+            r"([0-9]([0-9]([0-9][1-9]|[1-9]0)|[1-9]00)|[1-9]000)"
+            r"(-(0[1-9]|1[0-2])(-(0[1-9]|[1-2][0-9]|3[0-1])"
+            r"(T([01][0-9]|2[0-3]):[0-5][0-9]:([0-5][0-9]|60)(\.[0-9]+)?"
+            r"(Z|(\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00)))?)?)?")
+        self.assertIsNone(r4_datetime.fullmatch("2026-09-02T14:00:00"))
+        # ... while every value the renderer accepts is conformant.
+        for value, _ in self.LADDER:
+            with self.subTest(value=value):
+                self.assertIsNotNone(r4_datetime.fullmatch(value))
+
+    def test_period_endpoints_follow_the_same_ladder(self):
+        resource = jsonio.loads(read(os.path.join(
+            FIXTURES, "encounter", "enc-baseline", "enc-9.json")))
+        resource["period"] = {"start": "2026-09", "end": "2026-09-02T14:30:00Z"}
+        nt = render(resource).nt
+        self.assertIn('"2026-09"^^<%sgYearMonth>' % self.XSD, nt)
+        self.assertIn('"2026-09-02T14:30:00Z"^^<%sdateTime>' % self.XSD, nt)
         self.assertEqual(jsonio.diff(resource, to_json(parse(nt))), [])
 
 

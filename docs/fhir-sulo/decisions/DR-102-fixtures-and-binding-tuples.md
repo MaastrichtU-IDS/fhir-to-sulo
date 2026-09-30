@@ -117,7 +117,7 @@ directly has made the record/fact error §2 forbids.
 
 ## 3. Fixture inventory
 
-**eGFR (concept note §4)** — 12 cases, one per line, each its own directory:
+**eGFR (concept note §4)** — 13 cases, one per line, each its own directory:
 
 | Fixture | What it is | Declared outcome |
 | --- | --- | --- |
@@ -133,6 +133,42 @@ directly has made the record/fact error §2 forbids.
 | `egfr-contained-subject` | `subject` = `#p-inline`, resolves | eligible |
 | `egfr-corrected` | **v2 of `egfr-456`**: `versionId 2`, value restated 55.0 → 58.5 | eligible |
 | `egfr-retracted` | **v3 of `egfr-456`**: `versionId 3`, `status = entered-in-error`, value unchanged | source-only |
+| `egfr-effective-date-only` | `effectiveDateTime` at date precision, `2026-09-02` → `xsd:date` | source-only (proposed, pending R3) |
+
+### Temporal precision: `egfr-effective-date-only`
+
+`egfr-457` is `egfr-baseline` with one change: `effectiveDateTime` is
+`"2026-09-02"` rather than `"2026-09-02T14:00:00Z"`. It renders as
+`"2026-09-02"^^xsd:date`, where every other fixture renders
+`^^xsd:dateTime`.
+
+Declared **source-only**, per the reviewer's ruling that a date is not an
+instant and DR-009's derivation that no SULO time node fits one: the record is
+retained in full and no semantic time node is emitted, the same shape as
+`dataAbsentReason`. This is the map declining to assert a time it cannot
+support, not a failure.
+
+The rule lives in `profiles/fhir-r4-pilot.json` as
+`value_policy.effective_time_coarser_than_seconds`, with an `applies_to` list
+covering `Observation.effectiveDateTime` and `Observation.effectivePeriod`.
+`Encounter.period` is deliberately excluded — its open-endedness question is
+Q-A2-3 / R5 and is owned there — and a test pins that exclusion so the rule
+cannot quietly spread.
+
+**The outcome is proposed, not settled.** `case.json` has no first-class field
+for "proposed", so it is stated in the `reason` text of the manifest policy
+and in an `outcome_is_proposed_not_settled` note on the case, which is the
+convention already used for `amended`/`corrected` in Q-A2-5. If the
+integration lead wants a first-class representation, that is a schema decision
+for them, not one to invent here.
+
+Agent 3's `egfr-source.v1.shex` pins
+`fhir:Observation.effectiveDateTime` to `{ fhir:value xsd:dateTime }`, so the
+map reports `source-shape-nonconformant` with a `TypeMismatch` on that
+element. That agrees with the declared `source-only` outcome in the same way
+`egfr-retracted` does, so no coordination change is required — unless Agent 3
+would rather the map bind the value and decline to materialize a time node,
+which produces a different diagnostic.
 
 ### The `egfr-456` version lineage
 
@@ -270,6 +306,62 @@ resource. **Question: is a finished Encounter with no `period.end` a case the
 pilot must handle, and if so, is it source-only, rejected, or materialised with
 an unknown endpoint?** Concept note §2 requires preserving unknown endpoints,
 which suggests it should be representable rather than rejected.
+
+### Q-A2-6 — R5b's premise is false: R4 has no offsetless timestamp
+
+**This is a measurement, not an opinion, and it invalidates part of an item
+currently in front of the reviewer.** R5b reads:
+
+> a blanket `dateTimeStamp` would be wrong: FHIR `dateTime` legitimately
+> permits a value with no offset
+
+That is true only for values with **no clock time**. FHIR R4's `dateTime`
+regex puts the offset group *inside* the `T` group and does not make it
+optional:
+
+```
+...(-(0[1-9]|1[0-2])(-(0[1-9]|[1-2][0-9]|3[0-1])
+   (T([01][0-9]|2[0-3]):[0-5][0-9]:([0-5][0-9]|60)(\.[0-9]+)?
+    (Z|(\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00)))?)?)?
+```
+
+Taken from `StructureDefinition/dateTime`, the `regex` extension on
+`dateTime.value`, in HL7's published R4 definitions bundle
+(`profiles-types.json`). Tested against it:
+
+| value | `date` | `dateTime` | `instant` |
+| --- | --- | --- | --- |
+| `2026` | valid | valid | invalid |
+| `2026-09` | valid | valid | invalid |
+| `2026-09-02` | valid | valid | invalid |
+| **`2026-09-02T14:00:00`** | invalid | **invalid** | invalid |
+| `2026-09-02T14:00:00Z` | invalid | valid | valid |
+| `2026-09-02T14:00:00+01:00` | invalid | valid | valid |
+
+So **an under-specified instant — a clock time with no offset — cannot occur
+in conformant R4.** Three consequences:
+
+1. **The requested fixture cannot be built.** A fixture carrying
+   `"2026-09-02T14:00:00"` would be invalid FHIR, so declaring it "eligible
+   and mapped" would be asserting a conformance this pilot does not have. It
+   is covered as a *refusal* test instead
+   (`test_a_datetime_without_an_offset_is_refused_not_guessed`), which is the
+   honest home for "this input does not exist".
+2. **R5b's proposed rule has no reachable second branch.** Every conformant R4
+   dateTime that renders as `xsd:dateTime` carries an offset, so
+   `xsd:dateTimeStamp` is unconditionally correct there and nothing ever
+   selects the `xsd:dateTime` arm. The rule is not wrong, just degenerate.
+3. **R5b and DR-009 together close cleanly.** Everything that renders
+   `xsd:dateTime` has an offset, so it is a `dateTimeStamp` and a legitimate
+   `sulo:TimeInstant`; everything coarser renders `xsd:date` / `gYearMonth` /
+   `gYear`, is not an instant, and is `source-only`. There is no third case
+   and no discrimination to implement.
+
+The renderer already behaved correctly throughout: it derives the datatype
+from the lexical form and **refuses** a value matching no R4 temporal form
+rather than guessing one. `TestTemporalPrecisionLadder` now pins all six
+conformant forms, the five refused ones, and re-checks the published regex, so
+this finding cannot silently rot.
 
 ### Q-A2-5 — `amended` / `corrected` were being asserted, and are not
 
