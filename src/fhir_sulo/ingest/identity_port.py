@@ -89,7 +89,7 @@ class MockIdentityService(IdentityService):
 
     policy_version = "mock-identity/0.1.0"
 
-    def __init__(self, namespace: str = "https://example.org/fhir-sulo/entity/"):
+    def __init__(self, namespace: str = "https://w3id.org/ontostart/fhir2sulo/entity/"):
         self.namespace = namespace
 
     def establish(self, refs: Mapping[str, ResolvedReference],

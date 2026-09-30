@@ -9,34 +9,34 @@
     "Neither encounter-source.v1.shex nor encounter-target.v1.shex contains a domain class IRI, a person IRI or a clinician IRI."
   ],
   "domain_namespace": {
-    "value": "https://example.org/fhir-sulo/",
+    "value": "https://w3id.org/ontostart/fhir2sulo/",
     "source": "policies/code-interpretation.v1.json :: domain_namespace",
     "review_item": "R1",
     "status": "placeholder-awaiting-owner"
   },
   "vocabulary": {
     "encounterClass": {
-      "iri": "https://example.org/fhir-sulo/ClinicalEncounter",
+      "iri": "https://w3id.org/ontostart/fhir2sulo/ClinicalEncounter",
       "source": "concept note section 6 example graph (ex:ClinicalEncounter)",
       "review_item": "R1",
       "status": "placeholder-awaiting-owner",
       "note": "NOT derived from the FHIR Encounter.class code (v3-ActCode AMB). That code has no reviewed entry in the code-interpretation table, and concept note section 2 forbids treating a code literal as a class assertion. It is bound by the source schema and retained in the source layer."
     },
     "patientRoleClass": {
-      "iri": "https://example.org/fhir-sulo/PatientRole",
+      "iri": "https://w3id.org/ontostart/fhir2sulo/PatientRole",
       "source": "concept note section 6 example graph (ex:PatientRole)",
       "review_item": "R1",
       "status": "placeholder-awaiting-owner"
     },
     "clinicianRoleClass": {
-      "iri": "https://example.org/fhir-sulo/ClinicianRole",
+      "iri": "https://w3id.org/ontostart/fhir2sulo/ClinicianRole",
       "source": "concept note section 6 example graph (ex:ClinicianRole)",
       "review_item": "R1",
       "status": "placeholder-awaiting-owner",
       "note": "The FHIR participation type PPRF (primary performer) is bound by the source schema and guarded to PPRF, but it does not itself type this role. A reviewed participation-type-to-role-class table is the natural home for that mapping and does not exist yet."
     },
     "personClass": {
-      "iri": "https://example.org/fhir-sulo/Person",
+      "iri": "https://w3id.org/ontostart/fhir2sulo/Person",
       "source": "concept note section 4 example graph (ex:Person)",
       "review_item": "R1",
       "status": "placeholder-awaiting-owner"
@@ -52,7 +52,7 @@
       }
     },
     "clinicianClass": {
-      "iri": "https://example.org/fhir-sulo/Person",
+      "iri": "https://w3id.org/ontostart/fhir2sulo/Person",
       "source": "concept note section 6 writes ex:clinician-c7 without saying what it is",
       "review_item": "R8a",
       "status": "engineering-default",
@@ -65,7 +65,7 @@
       "status": "engineering-default"
     },
     "recordClass": {
-      "iri": "https://example.org/fhir-sulo/EncounterRecord",
+      "iri": "https://w3id.org/ontostart/fhir2sulo/EncounterRecord",
       "source": "concept note section 6: 'The FHIR Encounter record and its status remain in the source/record layer'",
       "review_item": "R1",
       "status": "placeholder-awaiting-owner",

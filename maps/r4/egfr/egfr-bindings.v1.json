@@ -12,7 +12,7 @@
   ],
 
   "domain_namespace": {
-    "value": "https://example.org/fhir-sulo/",
+    "value": "https://w3id.org/ontostart/fhir2sulo/",
     "source": "policies/code-interpretation.v1.json :: domain_namespace",
     "review_item": "R1",
     "status": "placeholder-awaiting-owner"
@@ -20,13 +20,13 @@
 
   "vocabulary": {
     "resultClass": {
-      "iri": "https://example.org/fhir-sulo/EGFRResult",
+      "iri": "https://w3id.org/ontostart/fhir2sulo/EGFRResult",
       "source": "policies/code-interpretation.v1.json :: CODE-LOINC-33914-3.result_class",
       "review_item": "R1b",
       "status": "pilot-provisional"
     },
     "qualityClass": {
-      "iri": "https://example.org/fhir-sulo/RenalFiltrationQuality",
+      "iri": "https://w3id.org/ontostart/fhir2sulo/RenalFiltrationQuality",
       "source": "policies/code-interpretation.v1.json :: CODE-LOINC-33914-3.quality_class",
       "review_item": "R1b",
       "status": "pilot-provisional"
@@ -54,13 +54,13 @@
       "note": "sulo:Feature owl:disjointWith sulo:SpatialObject. Bare sulo:Object is the weaker, safe choice: it cannot create the disjointness clash that sulo:SpatialObject would if any Feature branch were ever also asserted of a person. The reviewer decides."
     },
     "personClass": {
-      "iri": "https://example.org/fhir-sulo/Person",
+      "iri": "https://w3id.org/ontostart/fhir2sulo/Person",
       "source": "concept note section 4 example graph (ex:Person)",
       "review_item": "R1",
       "status": "placeholder-awaiting-owner"
     },
     "recordClass": {
-      "iri": "https://example.org/fhir-sulo/ObservationRecord",
+      "iri": "https://w3id.org/ontostart/fhir2sulo/ObservationRecord",
       "source": "concept note section 4 example graph (ex:ObservationRecord)",
       "review_item": "R1",
       "status": "placeholder-awaiting-owner"

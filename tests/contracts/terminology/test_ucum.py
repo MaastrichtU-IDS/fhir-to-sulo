@@ -31,7 +31,7 @@ def test_pinned_egfr_unit_resolves(term):
     )
     assert isinstance(outcome, UnitResolved)
     assert outcome.status == "mapped"
-    assert outcome.unit.unit_iri == "https://example.org/fhir-sulo/ucum-mL-min-1_73_m2"
+    assert outcome.unit.unit_iri == "https://w3id.org/ontostart/fhir2sulo/ucum-mL-min-1_73_m2"
     assert outcome.unit.dimension == "egfr-rate"
     assert outcome.unit.converted is False
     assert outcome.unit.clinical_signoff is False
@@ -40,7 +40,7 @@ def test_pinned_egfr_unit_resolves(term):
 def test_pinned_pressure_unit_resolves(term):
     outcome = term.resolve_unit(UnitRef(UCUM, "mm[Hg]", "mmHg"), expected_dimension="pressure")
     assert outcome.status == "mapped"
-    assert outcome.unit.unit_iri == "https://example.org/fhir-sulo/ucum-mm_Hg"
+    assert outcome.unit.unit_iri == "https://w3id.org/ontostart/fhir2sulo/ucum-mm_Hg"
 
 
 def test_unknown_ucum_code_is_rejected_not_guessed(term):

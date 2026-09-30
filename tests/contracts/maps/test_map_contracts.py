@@ -226,16 +226,31 @@ class MapContracts(unittest.TestCase):
 
     def test_no_domain_vocabulary_iri_appears_in_any_schema(self):
         """Review item R1: the domain vocabulary must be swappable without
-        re-authoring.  The placeholder namespace has no owner, so no schema may
-        name it; every domain class reaches the graph through the run-binding
-        manifest."""
+        re-authoring. No schema may name a domain namespace; every domain class
+        reaches the graph through the run-binding manifest.
+
+        The namespace is read from the policy rather than written here. R1 was
+        answered on 2026-09-30 and the placeholder became a real namespace; a
+        test that checked only the retired literal would have gone quietly
+        vacuous at exactly that moment. The retired one is still checked, so a
+        stale hard-coded IRI cannot creep back either.
+        """
+        import json
+
+        configured = json.loads(
+            (REPO / "policies" / "code-interpretation.v1.json").read_text()
+        )["domain_namespace"]
+        self.assertTrue(configured, "policy declares no domain_namespace")
+        banned = {configured.rstrip("/"), "https://example.org/fhir-sulo"}
+
         for family in FAMILIES:
             for rel in contractio.manifest(family)["pairing_files"]:
                 if not rel.endswith(".shex"):
                     continue
-                with self.subTest(file=rel):
-                    self.assertNotIn("example.org/fhir-sulo",
-                                     schema_body((REPO / rel).read_text()), rel)
+                body = schema_body((REPO / rel).read_text())
+                for ns in banned:
+                    with self.subTest(file=rel, namespace=ns):
+                        self.assertNotIn(ns, body, rel)
 
     def test_no_hasPatient_or_resource_specific_shortcut(self):
         """Concept note section 2, as a hard prohibition."""

@@ -272,7 +272,7 @@ class BPGraphShape(engine.EngineTestCase):
                 types = graph.types_of(triples, "<%s>" % r["_hostValues"]["panelRecord"])
                 self.assertEqual(sorted(types), sorted([
                     "<%sInformationObject>" % SULO,
-                    "<https://example.org/fhir-sulo/ObservationRecord>"]))
+                    "<https://w3id.org/ontostart/fhir2sulo/ObservationRecord>"]))
 
     def test_hasValue_is_functional_everywhere(self):
         for subject in graph.subjects(self.triples):

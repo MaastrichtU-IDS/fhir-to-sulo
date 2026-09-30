@@ -33,9 +33,9 @@ TARGET_SCHEMAS = {
     "encounter": REPO / "maps/r4/encounter/encounter-target.v1.shex",
 }
 
-ENTITY_PREFIXES = ("<https://example.org/fhir-sulo/person-",
-                   "<https://example.org/fhir-sulo/practitioner-",
-                   "<https://example.org/fhir-sulo/quality-")
+ENTITY_PREFIXES = ("<https://w3id.org/ontostart/fhir2sulo/person-",
+                   "<https://w3id.org/ontostart/fhir2sulo/practitioner-",
+                   "<https://w3id.org/ontostart/fhir2sulo/quality-")
 
 
 def outcome(path: Path):

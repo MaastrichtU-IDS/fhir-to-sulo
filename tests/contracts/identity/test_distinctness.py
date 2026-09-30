@@ -117,7 +117,7 @@ def test_legacy_key_style_rejects_a_second_source_scope():
 
     permitted = _resolve(svc, SITE_A, "p123")
     assert permitted.is_resolved
-    assert permitted.identity.entity_iri == "https://example.org/fhir-sulo/person-p123"
+    assert permitted.identity.entity_iri == "https://w3id.org/ontostart/fhir2sulo/person-p123"
 
     other = _resolve(svc, SITE_B, "p123")
     assert not other.is_resolved

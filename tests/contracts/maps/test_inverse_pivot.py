@@ -160,7 +160,7 @@ class BPInverse(engine.EngineTestCase):
                 self.assertEqual(back["timeInstant"], v["timeInstant"])
                 self.assertEqual(back["sourceVersionIri"], v["sourceVersionIri"])
                 self.assertEqual(back["recordClass"],
-                                 "https://example.org/fhir-sulo/ObservationRecord")
+                                 "https://w3id.org/ontostart/fhir2sulo/ObservationRecord")
                 # both members come back; the assignment to sysResult/diaResult is
                 # not recoverable, because the inverse cannot tell two arcs of the
                 # same predicate apart.  Recorded in the MapContract.

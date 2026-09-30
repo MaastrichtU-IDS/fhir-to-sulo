@@ -20,9 +20,9 @@ from fhir_sulo.terminology import (
 )
 
 PINNED = {
-    "33914-3": "https://example.org/fhir-sulo/EGFRResult",
-    "8480-6": "https://example.org/fhir-sulo/SystolicBloodPressureResult",
-    "8462-4": "https://example.org/fhir-sulo/DiastolicBloodPressureResult",
+    "33914-3": "https://w3id.org/ontostart/fhir2sulo/EGFRResult",
+    "8480-6": "https://w3id.org/ontostart/fhir2sulo/SystolicBloodPressureResult",
+    "8462-4": "https://w3id.org/ontostart/fhir2sulo/DiastolicBloodPressureResult",
 }
 
 

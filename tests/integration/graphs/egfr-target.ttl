@@ -13,7 +13,7 @@
 @prefix sulo: <https://w3id.org/sulo/> .
 @prefix prov: <http://www.w3.org/ns/prov#> .
 @prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
-@prefix ex:   <https://example.org/fhir-sulo/> .
+@prefix ex:   <https://w3id.org/ontostart/fhir2sulo/> .
 
 ex:person-p123 a ex:Person ;
     sulo:hasFeature ex:renal-quality-p123 .

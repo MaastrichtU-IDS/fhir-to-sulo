@@ -9,7 +9,7 @@
     "A resolved FHIR reference is lineage, not a person-equivalence claim."
   ],
   "entity_iri": {
-    "base": "https://example.org/fhir-sulo/",
+    "base": "https://w3id.org/ontostart/fhir2sulo/",
     "person_segment": "person-",
     "quality_segment": "quality-",
     "key_style": "scoped-hash",

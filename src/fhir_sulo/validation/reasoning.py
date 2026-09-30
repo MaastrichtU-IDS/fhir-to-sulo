@@ -204,7 +204,7 @@ class ConsistencyReport:
 # programmatically so that what the reasoner is asked is readable in the diff.
 PRO_PROBE_TTL = """
 @prefix sulo: <https://w3id.org/sulo/> .
-@prefix ex:   <https://example.org/fhir-sulo/> .
+@prefix ex:   <https://w3id.org/ontostart/fhir2sulo/> .
 @prefix owl:  <http://www.w3.org/2002/07/owl#> .
 
 ex:encounter-9 a sulo:Process ;
@@ -222,7 +222,7 @@ ex:person-p123 a sulo:SpatialObject .
 # the reasoner itself, not the serialiser.
 PRO_REFUTATION_TTL = """
 @prefix sulo: <https://w3id.org/sulo/> .
-@prefix ex:   <https://example.org/fhir-sulo/> .
+@prefix ex:   <https://w3id.org/ontostart/fhir2sulo/> .
 @prefix owl:  <http://www.w3.org/2002/07/owl#> .
 
 ex:encounter-9 a sulo:Process ;
@@ -239,9 +239,9 @@ ex:person-p123 a sulo:SpatialObject .
 """
 
 EXPECTED_INFERRED_TRIPLE = (
-    "<https://example.org/fhir-sulo/encounter-9> "
+    "<https://w3id.org/ontostart/fhir2sulo/encounter-9> "
     "<https://w3id.org/sulo/hasParticipant> "
-    "<https://example.org/fhir-sulo/person-p123>"
+    "<https://w3id.org/ontostart/fhir2sulo/person-p123>"
 )
 
 
@@ -622,9 +622,9 @@ class RobotReasoner:
 
         inferred = self.materialize(PRO_PROBE_TTL)
         expected = (
-            rdflib.URIRef("https://example.org/fhir-sulo/encounter-9"),
+            rdflib.URIRef("https://w3id.org/ontostart/fhir2sulo/encounter-9"),
             rdflib.URIRef("https://w3id.org/sulo/hasParticipant"),
-            rdflib.URIRef("https://example.org/fhir-sulo/person-p123"),
+            rdflib.URIRef("https://w3id.org/ontostart/fhir2sulo/person-p123"),
         )
         materialized = expected in inferred
         evidence.append(
@@ -676,9 +676,9 @@ class RobotReasoner:
             )
             inferred = self._reason_files([self.ontology_path, data_path])
         expected = (
-            rdflib.URIRef("https://example.org/fhir-sulo/encounter-9"),
+            rdflib.URIRef("https://w3id.org/ontostart/fhir2sulo/encounter-9"),
             rdflib.URIRef("https://w3id.org/sulo/hasParticipant"),
-            rdflib.URIRef("https://example.org/fhir-sulo/person-p123"),
+            rdflib.URIRef("https://w3id.org/ontostart/fhir2sulo/person-p123"),
         )
         return expected not in inferred
 

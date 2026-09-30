@@ -117,7 +117,7 @@ class IdentityContract(unittest.TestCase):
         # which is the behaviour that makes the mode meaningful.
         return QualityRequest(
             person=person,
-            quality_class_iri="https://example.org/fhir-sulo/RenalFiltrationQuality",
+            quality_class_iri="https://w3id.org/ontostart/fhir2sulo/RenalFiltrationQuality",
             observable_system="http://loinc.org",
             observable_code="33914-3",
             source_resource_canonical_url="https://fhir.example/Observation/egfr-456",
@@ -130,7 +130,7 @@ class IdentityContract(unittest.TestCase):
         person = self.svc.resolve(_request(SITE_A, "p123")).unwrap()
         thin = QualityRequest(
             person=person,
-            quality_class_iri="https://example.org/fhir-sulo/RenalFiltrationQuality",
+            quality_class_iri="https://w3id.org/ontostart/fhir2sulo/RenalFiltrationQuality",
             observable_system="http://loinc.org",
             observable_code="33914-3",
         )
@@ -168,7 +168,7 @@ class IdentityContract(unittest.TestCase):
         outcome = svc.resolve_quality(
             QualityRequest(
                 person=person,
-                quality_class_iri="https://example.org/fhir-sulo/RenalFiltrationQuality",
+                quality_class_iri="https://w3id.org/ontostart/fhir2sulo/RenalFiltrationQuality",
                 observable_system="http://loinc.org",
                 observable_code="33914-3",
                 source_resource_canonical_url="https://fhir.example/Observation/egfr-456",
@@ -275,9 +275,9 @@ class TerminologyContract(unittest.TestCase):
 
     def test_pinned_codes_are_interpreted(self):
         for code, expected in (
-            ("33914-3", "https://example.org/fhir-sulo/EGFRResult"),
-            ("8480-6", "https://example.org/fhir-sulo/SystolicBloodPressureResult"),
-            ("8462-4", "https://example.org/fhir-sulo/DiastolicBloodPressureResult"),
+            ("33914-3", "https://w3id.org/ontostart/fhir2sulo/EGFRResult"),
+            ("8480-6", "https://w3id.org/ontostart/fhir2sulo/SystolicBloodPressureResult"),
+            ("8462-4", "https://w3id.org/ontostart/fhir2sulo/DiastolicBloodPressureResult"),
         ):
             outcome = self.term.resolve_code(Coding("http://loinc.org", code))
             self.assertEqual(outcome.status, "mapped")
@@ -307,7 +307,7 @@ class TerminologyContract(unittest.TestCase):
             UnitRef(ucum, "mL/min/{1.73_m2}"), expected_dimension="egfr-rate"
         )
         self.assertEqual(ok.status, "mapped")
-        self.assertEqual(ok.unit.unit_iri, "https://example.org/fhir-sulo/ucum-mL-min-1_73_m2")
+        self.assertEqual(ok.unit.unit_iri, "https://w3id.org/ontostart/fhir2sulo/ucum-mL-min-1_73_m2")
         self.assertFalse(ok.unit.converted)
 
         for unit_ref, dimension, reason in (

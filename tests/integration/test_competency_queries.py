@@ -349,7 +349,7 @@ class ErroneousStatusIsUnassertable(unittest.TestCase):
         graph.parse(
             data="""
             @prefix prov: <http://www.w3.org/ns/prov#> .
-            @prefix ex:   <https://example.org/fhir-sulo/> .
+            @prefix ex:   <https://w3id.org/ontostart/fhir2sulo/> .
             ex:leaked prov:wasDerivedFrom <https://fhir.example/Observation/x/_history/2> .
             <https://fhir.example/Observation/x/_history/2>
                 <urn:fhir-sulo:prov#sourceStatus> "entered-in-error" .

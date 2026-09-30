@@ -51,18 +51,37 @@ class WhatR10DidNotSettle(unittest.TestCase):
             "R10 promoted nothing to approved; individual typings are R1b, still open: "
             + str(offenders))
 
-    def test_the_domain_namespace_is_still_the_r1_placeholder(self):
-        """A ratified tier running on placeholder vocabulary is the current state.
+    def test_the_domain_namespace_is_the_one_r1_confirmed(self):
+        """Updated deliberately when R1 was answered, as its predecessor asked.
 
-        If R1 is answered this test should be updated deliberately, not
-        deleted -- it is what stops 'the pipeline runs' being mistaken for
-        'the vocabulary is real'.
+        This previously asserted the namespace was still a placeholder, and
+        said to update it rather than delete it when R1 landed. R1 was
+        answered A on 2026-09-30 with the namespace confirmed on 2026-09-30
+        after a transposition check (``wi3d`` vs ``w3id``).
+
+        What it guards now: the namespace is a *recorded* decision, not a
+        value someone edited in. It is a graph-key input via
+        ``quality_class_iri``, so a silent change re-keys every quality IRI.
         """
         ns = table()["domain_namespace"]
-        self.assertIn(
-            "example.org", ns,
-            "domain_namespace is no longer a placeholder; R1 may have been "
-            "answered, in which case update this test and R1b's entries together")
+        self.assertEqual(ns, "https://w3id.org/ontostart/fhir2sulo/")
+        self.assertNotIn("example.org", ns, "the placeholder must not return")
+
+        decision = table()["reviewer_decisions"].get("R1")
+        self.assertIsNotNone(decision, "a real namespace must carry the decision that set it")
+        self.assertEqual(decision["namespace"], ns,
+                         "the recorded decision and the live value must agree")
+
+    def test_the_typings_are_still_not_approved(self):
+        """R1's namespace is settled; R1b's three typings are not.
+
+        Answering where the classes live says nothing about whether
+        33914-3 means EGFRResult. Those entries stay pilot-provisional.
+        """
+        for e in table()["entries"]:
+            if e.get("result_class"):
+                with self.subTest(code=e["code"]):
+                    self.assertNotEqual(e["review_status"], "approved")
 
     def test_the_table_still_awaits_the_reviewer_overall(self):
         self.assertEqual(table()["status"], "draft-awaiting-reviewer")

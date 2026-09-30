@@ -2,7 +2,7 @@
 
 **Status:** OPEN — awaiting the human clinical/ontology reviewer
 **Answered so far:** R10 (2026-09-29); R1 · R1b · R1d · R2 (2026-09-30). **8 of 12 items remain open** — R3, R4, R5, R6, R7, R8, R9, R11, R12.
-**One token outstanding on R1:** the namespace (`wi3d.org` vs `w3id.org`) — see DR-008.
+**R1's namespace is applied:** `https://w3id.org/ontostart/fhir2sulo/` (confirmed as `w3id.org`, not `wi3d.org`, before applying). The quality re-key it caused has been taken.
 **Raised by:** Agent 1 (integration lead)
 **Opened:** 2026-09-29
 **Gate:** 0 (plan §4 Gate 0 requires reviewer sign-off on the record/fact distinction
@@ -27,9 +27,10 @@ open and its dependent gate stays blocked. Items are ordered by how much is bloc
 ## R1 — The domain vocabulary is a placeholder and needs an owner  ✅ ANSWERED
 
 > **Answered 2026-09-30 — option A**, mint a project-local vocabulary.
-> Namespace nominated: `https://wi3d.org/ontostart/fhir2sulo` — **not yet applied**, pending
-> confirmation that this is not a transposition of `w3id.org` (where SULO itself lives). It is
-> a graph-key input, so applying the wrong one costs two migrations instead of one.
+> Namespace: **`https://w3id.org/ontostart/fhir2sulo/`**, applied 2026-09-30. The reviewer
+> first wrote `wi3d.org`; queried before applying rather than after, because it is a graph-key
+> input and correcting it later would have been a second migration. Measured effect: every
+> quality IRI re-keyed, every person IRI byte-identical apart from the prefix.
 >
 > **Option B was withdrawn as offered.** `sulo2snomed.ttl` (25 mappings) covers only SNOMED's
 > top-level hierarchies, and `sulo2sphn.ttl` types `sphn#BloodPressure` as

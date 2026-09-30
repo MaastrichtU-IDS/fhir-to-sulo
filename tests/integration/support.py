@@ -31,7 +31,7 @@ from fhir_sulo.provenance import (  # noqa: E402
     from_engine_payload,
 )
 
-EX = "https://example.org/fhir-sulo/"
+EX = "https://w3id.org/ontostart/fhir2sulo/"
 
 BASE_INPUTS = dict(
     map_id="egfr-r4",

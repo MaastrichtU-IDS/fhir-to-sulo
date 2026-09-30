@@ -324,8 +324,8 @@ review item **R6**, not an answer to it. DR-605 §3.
 ```sh
 PYTHONPATH=src .venv/bin/python -m fhir_sulo.validation.cli queries \
     --graph reasoned.ttl --reasoned \
-    --systolic-class  https://example.org/fhir-sulo/SystolicBloodPressureQuality \
-    --diastolic-class https://example.org/fhir-sulo/DiastolicBloodPressureQuality
+    --systolic-class  https://w3id.org/ontostart/fhir2sulo/SystolicBloodPressureQuality \
+    --diastolic-class https://w3id.org/ontostart/fhir2sulo/DiastolicBloodPressureQuality
 ```
 ```
 PASS CQ1-egfr-for-person                38 row(s)

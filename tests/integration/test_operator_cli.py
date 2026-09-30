@@ -43,7 +43,7 @@ BASE_INPUTS = {
 }
 
 QUAD_V1 = (
-    "<https://example.org/fhir-sulo/result-1> <https://w3id.org/sulo/hasValue> "
+    "<https://w3id.org/ontostart/fhir2sulo/result-1> <https://w3id.org/sulo/hasValue> "
     '"55.0"^^<http://www.w3.org/2001/XMLSchema#decimal> .'
 )
 QUAD_V2 = QUAD_V1.replace("55.0", "61.0")

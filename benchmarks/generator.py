@@ -36,7 +36,7 @@ from dataclasses import dataclass
 from typing import Iterator, List, Tuple
 
 SULO = "https://w3id.org/sulo/"
-EX = "https://example.org/fhir-sulo/"
+EX = "https://w3id.org/ontostart/fhir2sulo/"
 XSD = "http://www.w3.org/2001/XMLSchema#"
 RDF_TYPE = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
 PROV_DERIVED = "http://www.w3.org/ns/prov#wasDerivedFrom"

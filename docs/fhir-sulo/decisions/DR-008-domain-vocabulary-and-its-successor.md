@@ -1,6 +1,6 @@
 # DR-008 — Domain vocabulary: mint locally now, RAG over OMOP later
 
-**Status:** R1 answered (option A) 2026-09-30; **namespace awaiting one-token confirmation**
+**Status:** R1 answered (option A) and namespace applied, 2026-09-30
 **Gate:** 0
 
 ## The answer
@@ -40,16 +40,37 @@ All reachable from one indirection point (`domain_namespace` plus the per-code `
 and `quality_class`), which a test enforces by swapping the whole vocabulary and requiring no
 schema to change.
 
-## Namespace — NOT yet applied
+## Namespace — applied
 
-The reviewer nominated **`https://wi3d.org/ontostart/fhir2sulo`**.
+**`https://w3id.org/ontostart/fhir2sulo/`**
 
-`wi3d.org` is very likely a transposition of **`w3id.org`** — the W3C Permanent Identifier
-Community Group, which is where SULO itself lives (`https://w3id.org/sulo/`). The namespace
-goes into every emitted IRI and is a **graph-key input via `quality_class_iri`**, so applying
-the wrong one and correcting it later is two migrations rather than one.
+The reviewer first wrote `wi3d.org`. That was queried before applying rather than after,
+because the namespace is a **graph-key input via `quality_class_iri`** and correcting it later
+would have been a second migration. Confirmed as `w3id.org` — the W3C Permanent Identifier
+group, where SULO itself lives at `https://w3id.org/sulo/`.
 
-**Held pending a one-token confirmation.** Nothing else in this record depends on it.
+A trailing slash was added, matching SULO's own form.
+
+### What the re-key actually moved
+
+Applied across 46 files. The two contract documents — the concept note and the implementation
+plan — were **deliberately left alone**: their `ex:` examples are illustrative, and editing
+them would make the acceptance contract track the implementation rather than constrain it.
+
+Measured on `egfr-baseline`, before and after:
+
+| | before | after |
+| --- | --- | --- |
+| quality IRI | `…/quality-16ec875da7a23e14…` | `…/quality-2f1a2b367d5c6b15…` |
+| person IRI | `…/person-144658abc676816c…` | `…/person-144658abc676816c…` |
+
+**The quality hash changed; the person hash did not.** That is the predicted behaviour
+confirmed rather than assumed: `quality_class_iri` is a quality-key input and moved with the
+namespace, while person keying does not include the domain vocabulary at all. 431 lines changed
+in the expected graphs, all of them either the prefix substitution or the quality re-key.
+
+This was the migration R1 and R2 were warned to cost. Answering them together meant paying it
+once.
 
 ## The successor: RAG over OMOP vocabularies
 

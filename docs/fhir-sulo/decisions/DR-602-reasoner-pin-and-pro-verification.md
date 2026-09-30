@@ -51,7 +51,7 @@ reasoner:                 HermiT
 image:                    obolibrary/robot@sha256:58da5acb0bb861ca84409213f2b6e15ab41eda145e602ef5cfdf87d974ec5976
 entailment materialized:  True
 refutation detected:      True
-expected inferred triple: <https://example.org/fhir-sulo/encounter-9> <https://w3id.org/sulo/hasParticipant> <https://example.org/fhir-sulo/person-p123>
+expected inferred triple: <https://w3id.org/ontostart/fhir2sulo/encounter-9> <https://w3id.org/sulo/hasParticipant> <https://w3id.org/ontostart/fhir2sulo/person-p123>
 verdict:                  USABLE
   materialization: 89 inferred triples; expected triple PRESENT
   refutation: reasoner reported the denial inconsistent, so it does entail the triple

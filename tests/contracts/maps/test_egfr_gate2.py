@@ -19,7 +19,7 @@ from . import egfr_case
 from ._engine import engine, graph
 from ._engine.graph import RDF_TYPE, SULO
 
-EX = "https://example.org/fhir-sulo/"
+EX = "https://w3id.org/ontostart/fhir2sulo/"
 FIXTURE = "egfr-baseline"
 
 

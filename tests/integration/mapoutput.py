@@ -42,7 +42,7 @@ from . import support  # noqa: F401  (sets sys.path)
 REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 EXPECTED = os.path.join(REPO, "fixtures", "expected")
 
-EX = "https://example.org/fhir-sulo/"
+EX = "https://w3id.org/ontostart/fhir2sulo/"
 SULO = "https://w3id.org/sulo/"
 
 SYSTOLIC_QUALITY = EX + "SystolicBloodPressureQuality"

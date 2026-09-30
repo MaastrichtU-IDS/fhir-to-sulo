@@ -54,7 +54,7 @@ def _quality_iri(bundle):
     return svc.resolve_quality(
         QualityRequest(
             person=person,
-            quality_class_iri="https://example.org/fhir-sulo/RenalFiltrationQuality",
+            quality_class_iri="https://w3id.org/ontostart/fhir2sulo/RenalFiltrationQuality",
             observable_system="http://loinc.org",
             observable_code="33914-3",
             source_resource_canonical_url="https://fhir.example/Observation/egfr-456",

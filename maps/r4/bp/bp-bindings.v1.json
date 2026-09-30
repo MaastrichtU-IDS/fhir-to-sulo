@@ -9,32 +9,32 @@
     "Neither bp-source.v1.shex nor bp-target.v1.shex contains a domain class IRI, a person IRI or a quality IRI."
   ],
   "domain_namespace": {
-    "value": "https://example.org/fhir-sulo/",
+    "value": "https://w3id.org/ontostart/fhir2sulo/",
     "source": "policies/code-interpretation.v1.json :: domain_namespace",
     "review_item": "R1",
     "status": "placeholder-awaiting-owner"
   },
   "vocabulary": {
     "sysResultClass": {
-      "iri": "https://example.org/fhir-sulo/SystolicBloodPressureResult",
+      "iri": "https://w3id.org/ontostart/fhir2sulo/SystolicBloodPressureResult",
       "source": "policies/code-interpretation.v1.json :: CODE-LOINC-8480-6.result_class",
       "review_item": "R1b",
       "status": "pilot-provisional"
     },
     "diaResultClass": {
-      "iri": "https://example.org/fhir-sulo/DiastolicBloodPressureResult",
+      "iri": "https://w3id.org/ontostart/fhir2sulo/DiastolicBloodPressureResult",
       "source": "policies/code-interpretation.v1.json :: CODE-LOINC-8462-4.result_class",
       "review_item": "R1b",
       "status": "pilot-provisional"
     },
     "sysQualityClass": {
-      "iri": "https://example.org/fhir-sulo/SystolicBloodPressureQuality",
+      "iri": "https://w3id.org/ontostart/fhir2sulo/SystolicBloodPressureQuality",
       "source": "policies/code-interpretation.v1.json :: CODE-LOINC-8480-6.quality_class",
       "review_item": "R1b",
       "status": "pilot-provisional"
     },
     "diaQualityClass": {
-      "iri": "https://example.org/fhir-sulo/DiastolicBloodPressureQuality",
+      "iri": "https://w3id.org/ontostart/fhir2sulo/DiastolicBloodPressureQuality",
       "source": "policies/code-interpretation.v1.json :: CODE-LOINC-8462-4.quality_class",
       "review_item": "R1b",
       "status": "pilot-provisional"
@@ -60,13 +60,13 @@
       }
     },
     "personClass": {
-      "iri": "https://example.org/fhir-sulo/Person",
+      "iri": "https://w3id.org/ontostart/fhir2sulo/Person",
       "source": "concept note section 4 example graph (ex:Person)",
       "review_item": "R1",
       "status": "placeholder-awaiting-owner"
     },
     "recordClass": {
-      "iri": "https://example.org/fhir-sulo/ObservationRecord",
+      "iri": "https://w3id.org/ontostart/fhir2sulo/ObservationRecord",
       "source": "concept note section 4 example graph (ex:ObservationRecord)",
       "review_item": "R1",
       "status": "placeholder-awaiting-owner"

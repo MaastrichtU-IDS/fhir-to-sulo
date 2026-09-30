@@ -42,7 +42,7 @@ def test_fhir_reference_is_retained_as_lineage():
     assert lineage["source_reference_literal"] == "Patient/p123"
     assert lineage["source_canonical_url"] == "https://fhir.example/Patient/p123"
     assert lineage["source_scope_id"] == "synthea-pilot-r4"
-    assert lineage["entity_iri"].startswith("https://example.org/fhir-sulo/person-")
+    assert lineage["entity_iri"].startswith("https://w3id.org/ontostart/fhir2sulo/person-")
     assert lineage["entity_iri"] != lineage["source_canonical_url"]
 
 
@@ -110,7 +110,7 @@ def test_key_inputs_are_recorded_so_a_reviewer_can_recompute_the_iri():
     key_inputs = outcome.identity.key_inputs
     fields = svc.policy.identity["entity_iri"]["key_input_fields"]
     length = svc.policy.identity["entity_iri"]["key_length_hex_chars"]
-    recomputed = "https://example.org/fhir-sulo/person-" + key_fragment(
+    recomputed = "https://w3id.org/ontostart/fhir2sulo/person-" + key_fragment(
         fields, key_inputs, length=length
     )
     assert recomputed == outcome.identity.entity_iri

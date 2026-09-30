@@ -319,7 +319,7 @@ class R6EvidenceThePersonClassChoiceHasConsequences(unittest.TestCase):
 
     PROBE = """
     @prefix sulo: <https://w3id.org/sulo/> .
-    @prefix ex:   <https://example.org/fhir-sulo/> .
+    @prefix ex:   <https://w3id.org/ontostart/fhir2sulo/> .
     ex:enc a sulo:Process ; sulo:hasParticipant ex:role .
     ex:role a sulo:Role ; sulo:isFeatureOf ex:p .
     """
@@ -364,15 +364,15 @@ class R6EvidenceThePersonClassChoiceHasConsequences(unittest.TestCase):
         from fhir_sulo.validation import shapes_check, strictness
 
         broken = (
-            "<https://example.org/fhir-sulo/p> "
+            "<https://w3id.org/ontostart/fhir2sulo/p> "
             "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type> "
             "<https://w3id.org/sulo/Role> .\n"
-            "<https://example.org/fhir-sulo/p> "
+            "<https://w3id.org/ontostart/fhir2sulo/p> "
             "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type> "
             "<https://w3id.org/sulo/Quality> .\n"
-            "<https://example.org/fhir-sulo/p> "
+            "<https://w3id.org/ontostart/fhir2sulo/p> "
             "<https://w3id.org/sulo/isFeatureOf> "
-            "<https://example.org/fhir-sulo/q> .\n"
+            "<https://w3id.org/ontostart/fhir2sulo/q> .\n"
         )
         report = shapes_check.validate_graph(
             broken, strictness.CONCEPT_NOTE_LITERAL

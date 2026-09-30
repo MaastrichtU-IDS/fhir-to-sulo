@@ -84,7 +84,7 @@ items and the graphs are not valid without them:
   request** (R2). It is set explicitly so a graph exists at all. Answering R2 moves every
   quality IRI in every `target.nt` and nothing else — asserted in
   `test_egfr_gate2.py::test_the_two_quality_modes_give_different_quality_iris`.
-- The domain vocabulary is the `https://example.org/fhir-sulo/` placeholder, which has no owner
+- The domain vocabulary is the `https://w3id.org/ontostart/fhir2sulo/` placeholder, which has no owner
   (R1). Answering R1 also moves every quality IRI, because `quality_class_iri` is a quality key
   input.
 - Every code and unit used carries `review_status: pilot-provisional` and

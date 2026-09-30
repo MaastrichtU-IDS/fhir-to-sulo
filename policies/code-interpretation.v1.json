@@ -8,7 +8,7 @@
     "A code becomes a domain class ONLY through an entry in this reviewed table.",
     "The source system and code are retained on every outcome, including rejected."
   ],
-  "domain_namespace": "https://example.org/fhir-sulo/",
+  "domain_namespace": "https://w3id.org/ontostart/fhir2sulo/",
   "sulo_version": "0.2.12",
   "sulo_pin_commit": "1a4abc1699471187e94fbc59591101b2b635d6ea",
   "terminology_snapshot": {
@@ -59,8 +59,8 @@
       "code": "33914-3",
       "display_source": "Glomerular filtration rate/1.73 sq M.predicted",
       "observation_kind": "quantitative",
-      "result_class": "https://example.org/fhir-sulo/EGFRResult",
-      "quality_class": "https://example.org/fhir-sulo/RenalFiltrationQuality",
+      "result_class": "https://w3id.org/ontostart/fhir2sulo/EGFRResult",
+      "quality_class": "https://w3id.org/ontostart/fhir2sulo/RenalFiltrationQuality",
       "expected_unit_dimension": "egfr-rate",
       "component_of": null,
       "review_status": "pilot-provisional",
@@ -75,8 +75,8 @@
       "code": "8480-6",
       "display_source": "Systolic blood pressure",
       "observation_kind": "quantitative",
-      "result_class": "https://example.org/fhir-sulo/SystolicBloodPressureResult",
-      "quality_class": "https://example.org/fhir-sulo/SystolicBloodPressureQuality",
+      "result_class": "https://w3id.org/ontostart/fhir2sulo/SystolicBloodPressureResult",
+      "quality_class": "https://w3id.org/ontostart/fhir2sulo/SystolicBloodPressureQuality",
       "expected_unit_dimension": "pressure",
       "component_of": "blood-pressure-panel",
       "review_status": "pilot-provisional",
@@ -90,8 +90,8 @@
       "code": "8462-4",
       "display_source": "Diastolic blood pressure",
       "observation_kind": "quantitative",
-      "result_class": "https://example.org/fhir-sulo/DiastolicBloodPressureResult",
-      "quality_class": "https://example.org/fhir-sulo/DiastolicBloodPressureQuality",
+      "result_class": "https://w3id.org/ontostart/fhir2sulo/DiastolicBloodPressureResult",
+      "quality_class": "https://w3id.org/ontostart/fhir2sulo/DiastolicBloodPressureQuality",
       "expected_unit_dimension": "pressure",
       "component_of": "blood-pressure-panel",
       "review_status": "pilot-provisional",
@@ -129,6 +129,15 @@
         "It does NOT promote anything to 'approved'. Nothing is approved.",
         "The domain_namespace is still the R1 placeholder, so the machinery runs end-to-end on placeholder vocabulary."
       ]
+    },
+    "R1": {
+      "question": "Who owns the domain vocabulary, and under what namespace?",
+      "answer": "A — mint a project-local vocabulary",
+      "namespace": "https://w3id.org/ontostart/fhir2sulo/",
+      "answered_on": "2026-09-30",
+      "note": "The reviewer first wrote wi3d.org; confirmed as w3id.org on a transposition check before applying, because the namespace is a graph-key input via quality_class_iri and correcting it later would have been a second migration.",
+      "trailing_slash": "Added, matching SULO's own https://w3id.org/sulo/.",
+      "successor": "RAG over OMOP vocabularies with LLM reranking — DR-008. Out of scope for Gates 0-4. A reranker proposes; it does not approve."
     }
   }
 }
