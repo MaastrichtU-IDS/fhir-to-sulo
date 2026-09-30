@@ -63,6 +63,15 @@ Three time elements are kept distinct, per concept note §2:
 `Observation.effective[x]` (clinically relevant time), `Observation.issued`
 (availability of the result), `meta.lastUpdated` (resource version update).
 
+Temporal precision is derived from the lexical form, and a value matching no
+R4 temporal form is **refused**, never guessed. Note that R4 makes the
+timezone offset mandatory once a `dateTime` carries a clock time, so
+`"2026-09-02T14:00:00"` is not conformant and there is no such thing as an
+offsetless R4 timestamp — see `temporal_precision_policy.
+offset_is_mandatory_once_a_time_is_present` and DR-102 Q-A2-6. A value coarser
+than seconds is `source-only` under
+`value_policy.effective_time_coarser_than_seconds` (proposed, pending R3).
+
 ## Status and value policy
 
 `status_policy` maps every R4 status value of each resource to `eligible`,
