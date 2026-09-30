@@ -86,9 +86,21 @@ def run_job(job: Mapping[str, Any]) -> Dict[str, Any]:
             "run_job needs either 'data' (a repository-relative path) or "
             "'dataInline' (graph text); both were None"
         )
+    # `sourceSchemaInline` / `targetSchemaInline` carry schema text directly,
+    # the same way `dataInline` carries graph text. Used by the R5b probes in
+    # test_r5b_time_datatype.py, which measure what the engine does with a
+    # schema we deliberately do NOT ship -- writing those into the repository
+    # just to read them back would be worse.
+    source_schema = job.get("sourceSchemaInline")
+    if source_schema is None:
+        source_schema = _read(job["sourceSchema"])
+    target_schema = job.get("targetSchemaInline")
+    if target_schema is None:
+        target_schema = _read(job["targetSchema"]) if job.get("targetSchema") else ""
+
     map_job = MapJob(
-        source_schema=_read(job["sourceSchema"]),
-        target_schema=_read(job["targetSchema"]) if job.get("targetSchema") else "",
+        source_schema=source_schema,
+        target_schema=target_schema,
         data=inline if inline is not None else _read(job["data"]),
         node=job["focus"],
         passes=passes,
