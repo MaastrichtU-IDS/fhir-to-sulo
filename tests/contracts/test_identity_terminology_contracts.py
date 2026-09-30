@@ -109,14 +109,71 @@ class IdentityContract(unittest.TestCase):
         )
         self.assertEqual(lineage["source_reference_literal"], "Patient/p123")
 
-    def test_quality_identity_policy_is_unset_and_rejects(self):
+    def _quality_request(self, svc=None):
+        svc = svc or self.svc
+        person = svc.resolve(_request(SITE_A, "p123")).unwrap()
+        # per-observation keys on the source resource and time as well as the
+        # person and code; omitting them is refused rather than defaulted,
+        # which is the behaviour that makes the mode meaningful.
+        return QualityRequest(
+            person=person,
+            quality_class_iri="https://example.org/fhir-sulo/RenalFiltrationQuality",
+            observable_system="http://loinc.org",
+            observable_code="33914-3",
+            source_resource_canonical_url="https://fhir.example/Observation/egfr-456",
+            source_resource_version_id="1",
+            effective_time="2026-09-02T14:00:00Z",
+        )
+
+    def test_per_observation_refuses_a_request_missing_its_extra_key_inputs(self):
+        """The three fields that distinguish B from A are required, not defaulted."""
         person = self.svc.resolve(_request(SITE_A, "p123")).unwrap()
-        outcome = self.svc.resolve_quality(
+        thin = QualityRequest(
+            person=person,
+            quality_class_iri="https://example.org/fhir-sulo/RenalFiltrationQuality",
+            observable_system="http://loinc.org",
+            observable_code="33914-3",
+        )
+        outcome = self.svc.resolve_quality(thin)
+        self.assertFalse(outcome.is_resolved)
+        self.assertIn("source_resource_canonical_url", outcome.reason)
+
+    def test_quality_identity_resolves_under_the_reviewers_answer(self):
+        """R2 was answered B (per-observation) on 2026-09-30.
+
+        Previously this asserted the policy was unset and rejected. Inverted
+        rather than deleted: the rejection path still has to exist, and is
+        asserted below against a deliberately unset bundle.
+        """
+        outcome = self.svc.resolve_quality(self._quality_request())
+        self.assertTrue(outcome.is_resolved, getattr(outcome, "reason", outcome))
+
+    def test_an_unset_quality_policy_still_rejects(self):
+        """The guard the answer must not have removed."""
+        import copy
+
+        from fhir_sulo.policy.bundle import PolicyBundle
+
+        bundle = PolicyBundle.load()
+        identity_policy = copy.deepcopy(dict(bundle.identity))
+        identity_policy["quality_identity"]["mode"] = None
+        unset = PolicyBundle(
+            identity=identity_policy,
+            code_interpretation=bundle.code_interpretation,
+            unit=bundle.unit,
+            source_dir=bundle.source_dir,
+        )
+        svc = IdentityService(unset)
+        person = svc.resolve(_request(SITE_A, "p123")).unwrap()
+        outcome = svc.resolve_quality(
             QualityRequest(
                 person=person,
                 quality_class_iri="https://example.org/fhir-sulo/RenalFiltrationQuality",
                 observable_system="http://loinc.org",
                 observable_code="33914-3",
+                source_resource_canonical_url="https://fhir.example/Observation/egfr-456",
+                source_resource_version_id="1",
+                effective_time="2026-09-02T14:00:00Z",
             )
         )
         self.assertFalse(outcome.is_resolved)

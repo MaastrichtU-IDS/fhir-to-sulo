@@ -8,7 +8,6 @@
     "No entry here asserts owl:sameAs between a FHIR resource and a person.",
     "A resolved FHIR reference is lineage, not a person-equivalence claim."
   ],
-
   "entity_iri": {
     "base": "https://example.org/fhir-sulo/",
     "person_segment": "person-",
@@ -34,7 +33,6 @@
     ],
     "key_input_normalisation": "Unicode NFC, then canonical JSON (sorted keys, no whitespace, ASCII-escaped), then sha256. No timestamps, no process state, no Python hash()."
   },
-
   "reference_scope": {
     "default": "source-scoped",
     "rationale": "Concept note section 2 and plan section 7: never merge two references into one person without recorded evidence.",
@@ -42,7 +40,6 @@
     "accepted_merge_evidence": [],
     "accepted_merge_evidence_note": "Empty on purpose. No cross-source merge rule has been reviewed, so no cross-source merge can occur. Adding an entry here is a reviewed decision, not an implementation detail."
   },
-
   "resolution_rules": [
     {
       "rule_id": "ID-R1-single-candidate",
@@ -87,7 +84,6 @@
       "note": "Guards the readable key style against the exact failure it invites."
     }
   ],
-
   "ambiguity": {
     "unresolved_reference": "rejected",
     "multiple_discordant_candidates": "rejected",
@@ -97,7 +93,6 @@
     "guessing_permitted": false,
     "api_contract": "Rejection is a distinct return type with no entity IRI attribute. There is no Optional-IRI return anywhere in the identity API."
   },
-
   "lineage": {
     "retain_source_reference_literal": true,
     "retain_source_canonical_url": true,
@@ -109,10 +104,9 @@
     ],
     "permitted_lineage_predicate": "http://www.w3.org/ns/prov#wasDerivedFrom"
   },
-
   "quality_identity": {
-    "mode": null,
-    "mode_status": "UNSET - RESERVED FOR THE CLINICAL/ONTOLOGY REVIEWER",
+    "mode": "per-observation",
+    "mode_status": "SET (provisional) - reviewer answered R2 = B on 2026-09-30. Explicitly not settled; see reviewer_decision.revisit.",
     "key_revision": "1",
     "key_revision_note": "As for entity_iri.key_revision: quality IRIs are stable across policy edits that do not change the keying answer. Note that CHANGING quality_identity.mode does change every quality IRI, unavoidably, because the two modes key on different inputs. That is a graph-key-affecting decision, not an incidental version bump.",
     "unset_behaviour": "reject",
@@ -149,8 +143,15 @@
       }
     },
     "reviewer_question": "Does a quality IRI persist across observations for a patient (persistent-per-person-code), or is it keyed per observation plus time plus code (per-observation)? Concept note section 4 and plan Gate 0 both flag this as a reviewer decision. Both behaviours are implemented; the default is deliberately unset and rejects.",
-    "reviewer_decision": null,
-    "reviewer": null,
-    "reviewed_on": null
+    "reviewer_decision": {
+      "item": "R2",
+      "answer": "B (per-observation)",
+      "status": "provisional - the underlying question is NOT resolved",
+      "reviewer_words": "Whether there is a single quality of a particular kind for an individual, or whether there can be multiple distinct instances, is not yet resolved. One per event with its associated value is probably safest. This needs revisiting in a coherent theory, compared against other upper-level ontologies.",
+      "consequence_measured": "Under per-observation a correction (v1 to v2) mints a NEW quality node while the quantity keeps its IRI, so a correction is visible in the graph's identity. Under persistent-per-person-code it would not be.",
+      "revisit": "Reconcile quality individuation against other ULOs before clinical use. Both modes remain implemented and tested; switching re-keys every quality IRI and is a graph migration, not a configuration change."
+    },
+    "reviewer": "human clinical/ontology reviewer",
+    "reviewed_on": "2026-09-30"
   }
 }

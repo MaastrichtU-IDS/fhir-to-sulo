@@ -1,7 +1,8 @@
 # Consolidated review request — clinical and ontology interpretations
 
 **Status:** OPEN — awaiting the human clinical/ontology reviewer
-**Answered so far:** R10 (2026-09-29). **11 of 12 items remain open.**
+**Answered so far:** R10 (2026-09-29); R1 · R1b · R1d · R2 (2026-09-30). **8 of 12 items remain open** — R3, R4, R5, R6, R7, R8, R9, R11, R12.
+**One token outstanding on R1:** the namespace (`wi3d.org` vs `w3id.org`) — see DR-008.
 **Raised by:** Agent 1 (integration lead)
 **Opened:** 2026-09-29
 **Gate:** 0 (plan §4 Gate 0 requires reviewer sign-off on the record/fact distinction
@@ -23,7 +24,26 @@ open and its dependent gate stays blocked. Items are ordered by how much is bloc
 
 ---
 
-## R1 — The domain vocabulary is a placeholder and needs an owner
+## R1 — The domain vocabulary is a placeholder and needs an owner  ✅ ANSWERED
+
+> **Answered 2026-09-30 — option A**, mint a project-local vocabulary.
+> Namespace nominated: `https://wi3d.org/ontostart/fhir2sulo` — **not yet applied**, pending
+> confirmation that this is not a transposition of `w3id.org` (where SULO itself lives). It is
+> a graph-key input, so applying the wrong one costs two migrations instead of one.
+>
+> **Option B was withdrawn as offered.** `sulo2snomed.ttl` (25 mappings) covers only SNOMED's
+> top-level hierarchies, and `sulo2sphn.ttl` types `sphn#BloodPressure` as
+> `sulo:InformationObject`. **Neither maps anything to `sulo:Quality`**, so binding to them
+> would collapse the quality and quantity layers that the SOLID pattern separates.
+>
+> **R1b answered:** the LOINC code denotes the **measurement result**; the quality is a
+> separate commitment on the same entry. Recorded as `code_denotes: "result_class"`.
+>
+> **R1d answered:** yes — verified in the emitted graph, the record is a
+> `sulo:InformationObject` that `sulo:refersTo` the event.
+>
+> **Successor recorded:** RAG over OMOP vocabularies with LLM reranking, out of scope for
+> Gates 0–4. Detail and the two properties that keep it droppable-in: DR-008.
 
 **Blocks:** Gate 2, Gate 3, and every target shape. **Highest priority.**
 
@@ -70,7 +90,22 @@ whole vocabulary and requires no schema to change.
 
 ---
 
-## R2 — Quality identity: does a quality persist across observations?
+## R2 — Quality identity: does a quality persist across observations?  ✅ ANSWERED
+
+> **Answered 2026-09-30 — option B (per-observation), provisionally.**
+>
+> The reviewer was explicit that the underlying question is *not* resolved: whether there is a
+> single quality of a kind for an individual or several distinct instances "needs revisiting
+> in a coherent theory, compared against other upper-level ontologies". One per event with its
+> associated value was chosen as **safest**, not as settled.
+>
+> Recorded in `policies/identity-policy.v1.json` with that caveat, and a test fails if the
+> caveat is ever dropped — a provisional answer quietly becoming a conclusion is the failure
+> mode here. Both modes stay implemented; switching re-keys every quality IRI.
+>
+> **No emitted triple moved.** The fixtures were already generated under per-observation, so
+> the policy now states what was already true; `build.py --check` reports no drift on either
+> the source or the expected graphs.
 
 **Blocks:** Gate 2 node-key rules, Gate 4 idempotence and correction.
 Named as a Gate 0 decision in both documents (concept note §8.2, plan Gate 0).

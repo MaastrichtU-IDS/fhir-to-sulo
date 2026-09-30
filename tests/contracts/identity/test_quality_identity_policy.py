@@ -55,21 +55,46 @@ def _request(person, observation_id="egfr-456", version="1", when="2026-09-02T14
     )
 
 
-def test_the_shipped_default_is_unset():
+def test_the_shipped_mode_is_the_reviewers_answer_to_R2():
+    """R2 was answered B (per-observation) on 2026-09-30.
+
+    This test previously asserted the mode was unset, which was correct until
+    the reviewer answered. It is inverted rather than deleted, because the
+    thing worth guarding is that the shipped mode is a *recorded decision* and
+    not a default someone slipped in: the record must name the item, the
+    answer and the date, and must still carry the reviewer's own caveat that
+    the underlying question is unresolved.
+    """
     policy = PolicyBundle.load().identity["quality_identity"]
-    assert policy["mode"] is None
-    assert "UNSET" in policy["mode_status"]
-    assert policy["reviewer_decision"] is None
-    assert policy["unset_behaviour"] == "reject"
+    assert policy["mode"] == "per-observation"
     assert set(policy["allowed_modes"]) == {
         "persistent-per-person-code",
         "per-observation",
     }
-    assert policy["reviewer_question"]
+
+    decision = policy["reviewer_decision"]
+    assert decision is not None, "a set mode must carry the decision that set it"
+    assert decision["item"] == "R2"
+    assert decision["answer"].startswith("B")
+    assert "provisional" in decision["status"]
+
+    # The reviewer said this is safest, not settled. If that caveat is ever
+    # dropped, the mode has been promoted to a conclusion nobody reached.
+    assert "not yet resolved" in decision["reviewer_words"]
+    assert decision["revisit"]
+
+    # Switching remains possible and remains a migration.
+    assert policy["unset_behaviour"] == "reject"
 
 
-def test_unset_policy_rejects_rather_than_guessing():
-    svc = IdentityService()
+def test_an_unset_policy_still_rejects():
+    """The guard R2's answer did not remove.
+
+    The shipped bundle now names a mode, so the rejection path has to be
+    exercised against a deliberately unset bundle. Without this, answering
+    R2 would silently delete the protection that stopped a run guessing.
+    """
+    svc = IdentityService(_bundle(None))
     outcome = svc.resolve_quality(_request(_person(svc)))
     assert isinstance(outcome, QualityRejected)
     assert outcome.reason_code == "quality-identity-policy-unset"
@@ -78,6 +103,13 @@ def test_unset_policy_rejects_rather_than_guessing():
         outcome.unwrap()
     with pytest.raises(QualityIdentityPolicyUnset):
         outcome.quality_iri
+
+
+def test_the_shipped_bundle_resolves_a_quality_now_that_R2_is_answered():
+    """Consequence of the answer: quality requests succeed on the shipped policy."""
+    svc = IdentityService()
+    outcome = svc.resolve_quality(_request(_person(svc)))
+    assert outcome.is_resolved, getattr(outcome, "reason", outcome)
 
 
 def test_persistent_mode_reuses_one_quality_across_observations():
