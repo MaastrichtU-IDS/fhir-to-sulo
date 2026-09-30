@@ -2,7 +2,7 @@
 
 **Status:** OPEN — awaiting the human clinical/ontology reviewer
 **Answered:** R1 · R1b · R1d · R2 · R4 · R5 · R6 · R10 · R11.
-**5 of 12 remain open:** R3, R7, R8, R9, R12 — plus **R5c** (R5b could not be applied; CD-7).
+**5 of 12 remain open:** R3, R7, R8, R9, R12. R5b closed with nothing to implement; **R5c withdrawn** — its premise was false.
 R1's namespace `https://w3id.org/ontostart/fhir2sulo/` is applied; R4, R6 and R11 are being
 applied to the maps and shapes.
 **Raised by:** Agent 1 (integration lead)
@@ -262,22 +262,22 @@ characteristic of a patient.
 > instant from an under-specified one. What carries the offset is the **lexical form**, and
 > nothing requires one to be present. The offset is preserved when present and never invented.
 >
-> ### R5c — OPEN. What should an offsetless instant be?
+> ### R5c — WITHDRAWN. Its premise was false, and the premise was mine.
 >
-> The distinction *is* detectable — a ShEx regex facet plus `ShapeOr` separates the lexical
-> forms in the source and can bind a different variable per branch (verified for `Z`, `+01:00`,
-> `-05:00`, offsetless). It just cannot be expressed as a datatype. So an answer is
-> implementable; it only needs choosing.
+> R5c asked how to treat an offsetless instant. **There are none.** FHIR R4's `dateTime` regex
+> puts the timezone group inside the `T` group and does not make it optional, so
+> `2026-09-02T14:00:00` is not conformant R4. Anything coarser renders `xsd:date` and is not an
+> instant at all (DR-009).
 >
-> - **A. Accept as is** (current). An offsetless instant is emitted like any other; the graph
->   does not mark it.
-> - **B. Reject.** One regex facet per time constraint. Conservative and consistent with how
->   open items are held — but it rejects legitimate FHIR.
-> - **C. Mark it.** Alternative target shapes add a domain class beside `sulo:TimeInstant`. No
->   re-typing, the resource stays mappable, and under-specification becomes queryable. Costs
->   one R1 vocabulary entry.
+> I proposed R5b on the premise that FHIR permits an offsetless clock time, then wrote CD-7
+> criticising your reasoning on the same false premise. **Your reasoning was right**: every
+> instant that reaches the semantic layer carries an offset, so the literal does specify it.
+> Both the proposal and the criticism are withdrawn; CD-7 is corrected.
 >
-> *Engineering recommendation, not a decision: C, with B as fallback.*
+> Nothing to implement, and nothing further to decide here. Now asserted on emitted output by
+> `test_every_emitted_instant_carries_an_offset.py`, which also re-checks the R4 regex so that
+> if FHIR ever relaxed it, the test names what needs revisiting.
+
 
 **Blocks:** Gate 2 and Gate 3 target validation. Arises from DR-002 axioms 2, 4 and 5.
 

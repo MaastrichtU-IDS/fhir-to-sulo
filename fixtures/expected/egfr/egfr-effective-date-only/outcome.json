@@ -1,0 +1,27 @@
+{
+  "format": "fhir-sulo/expected-target/0.1.0",
+  "fixture_id": "egfr-effective-date-only",
+  "family": "egfr",
+  "map_id": "fhir-r4-egfr-solid",
+  "declared_by_agent2": "source-only",
+  "map_outcome": "source-shape-nonconformant",
+  "agrees_with_agent2": true,
+  "diagnostic": {
+    "violations": [
+      "DatatypeMismatch",
+      "NodeConstraintViolation",
+      "TypeMismatch"
+    ],
+    "elements": [
+      "Observation.effectiveDateTime",
+      "value"
+    ]
+  },
+  "run_parameters": {
+    "quality_identity_mode": "per-observation",
+    "quality_identity_mode_note": "Review item R2 is unanswered and the shipped default rejects every request. The mode is set explicitly here so a graph exists at all; answering R2 moves every quality IRI in target.nt and nothing else.",
+    "sulo_version": "0.2.12",
+    "engine": "shex@1.0.0-alpha.33 via ThreadedMaterializer"
+  },
+  "target_graph": null
+}

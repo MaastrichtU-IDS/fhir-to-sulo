@@ -236,7 +236,7 @@ remove the evidence for the answer.
 
 ---
 
-## CD-7 — "Time instants are specified in the has value datatype" is not achievable as stated
+## CD-7 — The engine cannot re-type a time literal (and a correction to this entry)
 
 **Origin:** the reviewer answered R5 row 2 — do not materialize a `sulo:Unit` on a time
 instant — on the grounds that *"time instants are specified in the has value datatype"*. The
@@ -272,26 +272,51 @@ The only remaining routes are a host-built `staticVar` literal or post-materiali
 re-typing. Both are rejected: the emitted value would be one the host wrote rather than one the
 map extracted, which is the line DR-302 draws.
 
-### What this does and does not change
+### CORRECTION, 2026-09-30 — the second half of this entry was wrong
 
-**R5 row 2's answer stands.** No `sulo:Unit` is emitted on any time node. Asserted across eGFR
-and Encounter, including `StartTime` and `EndTime`.
+As first written, this deviation made two claims. The first stands; **the second was
+incorrect and is withdrawn.**
 
-**Its stated reasoning is weaker than it reads.** The datatype is `xsd:dateTime` for *every*
-instant, so it does not distinguish a specified instant from an under-specified one. What
-actually carries the offset is the **lexical form** — `…T14:00:00Z` versus `…T14:00:00` — and
-nothing in the graph requires one to be present. The offset is faithfully preserved when the
-source has it and never invented when it does not, which is the property §2 asks for; but
-"the datatype specifies it" overstates what the emitted graph guarantees.
+It said the reviewer's reasoning was "weaker than it reads", because `xsd:dateTime` could not
+distinguish a specified instant from an under-specified one. That rested on a premise **I
+supplied when proposing R5b**: that FHIR `dateTime` legitimately permits a clock time with no
+offset. It does not. FHIR R4's published regex places the timezone group *inside* the `T`
+group and does not make it optional:
 
-**The distinction is still detectable**, just not expressible as a datatype. A ShEx regex facet
-plus `ShapeOr` tells the two lexical forms apart in the *source* and can bind a different
-variable per branch — verified for `Z`, `+01:00`, `-05:00` and offsetless. So a map can act on
-the distinction; it simply cannot act on it by changing the datatype.
+```
+2026-09-02                 valid    -> renders xsd:date; not an instant (DR-009)
+2026-09-02T14:00:00        INVALID  -> cannot occur in conformant R4
+2026-09-02T14:00:00Z       valid
+2026-09-02T14:00:00+01:00  valid
+```
 
-**Open: R5c** — what should an offsetless instant be? Accept as is (current), reject, or mark
-it with a domain class beside `sulo:TimeInstant`. Routed to the reviewer; not decided here.
+Verified against `StructureDefinition/dateTime` in HL7's published R4 definitions, and
+independently by the lead.
 
+**So the reviewer was right.** Every conformant value that renders `xsd:dateTime` carries an
+offset; anything coarser renders `xsd:date`, `gYearMonth` or `gYear`, is not an instant, and is
+`source-only` under DR-009. There is no under-specified instant for the datatype to fail to
+distinguish. *"Time instants are specified in the has value datatype"* holds.
+
+Asserted on emitted output rather than left as an argument:
+`tests/contracts/maps/test_every_emitted_instant_carries_an_offset.py` checks every emitted
+`xsd:dateTime` for an offset, checks no `xsd:date` reaches the semantic layer, and re-checks
+the R4 regex so that if FHIR ever relaxed it, the test says which decisions need revisiting.
+
+### What actually remains deviant
+
+**Only finding 1: the engine cannot re-type.** A target declaring `xsd:dateTimeStamp` still
+emits `xsd:dateTime`, and declaring it breaks reverse validation.
+
+This is now **inert rather than limiting.** Because every instant carries an offset,
+`xsd:dateTimeStamp` would have been *unconditionally* correct — R5b's conditional had no
+reachable second branch. So the engine limitation costs us a more precise datatype, not a
+distinction: the offset is present in the literal either way, and the graph is correct as
+emitted.
+
+**R5c is withdrawn.** It asked how to treat an offsetless instant. There are none.
+
+R5 row 2's answer stands unchanged: no `sulo:Unit` on any time node.
 ### A side effect worth knowing
 
 rdflib canonicalises the two datatypes differently: `…T14:00:00Z` is rewritten to
