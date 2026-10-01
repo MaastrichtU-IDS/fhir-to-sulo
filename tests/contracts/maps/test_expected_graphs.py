@@ -106,7 +106,8 @@ class ExpectedOutcomes(unittest.TestCase):
                         if outcome(p)["map_outcome"] == "mapped")
         self.assertEqual(mapped, [
             "bp-component-omitted", "bp-duplicate-values", "bp-other-patient",
-            "bp-reordered-serialisation", "bp-two-panels", "egfr-baseline",
+            "bp-reordered-serialisation", "bp-two-panels",
+            "egfr-amended", "egfr-baseline",
             "egfr-contained-subject", "egfr-corrected",
             "enc-baseline", "enc-contained-practitioner"])
         not_mapped = sorted(outcome(p)["fixture_id"] for p in FIXTURE_DIRS

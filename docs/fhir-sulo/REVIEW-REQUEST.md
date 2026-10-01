@@ -167,10 +167,33 @@ single-source data this never arises, but it will before any clinical use.
 > asserted nothing. `preliminary` and `registered` stay `source-only` — those *are* verification
 > states. `entered-in-error` stays `source-only`: retraction, not revision.
 >
-> Accepted consequence, recorded: an amendment touching only a `source_only` element yields a
-> new graph version with **identical triples**, because `source_json_digest` is a graph-key
-> content field. Visible as a replacement rather than silent — the same shape as DR-601's
-> engine-upgrade case.
+> **Correction, measured 2026-10-01.** When this answer was recorded I stated the consequence
+> as "an amendment touching only a `source_only` element yields a new graph version with
+> **identical triples**". That is **false** under the quality identity mode R2 actually chose.
+> Measured on `egfr-corrected` (v2) against `egfr-amended` (v3, which adds only an
+> `Observation.note`):
+>
+> | | differing triples |
+> | --- | ---: |
+> | `prov:wasDerivedFrom` naming `_history/2` vs `/3` | 4 — correct and unavoidable |
+> | **the quality node** | **10** |
+> | total | 14 |
+>
+> Under `per-observation` the quality is keyed by source version, so **a purely administrative
+> amendment mints a new `RenalFiltrationQuality` individual for the patient** — a new
+> `sulo:Quality`, a new `isFeatureOf`/`hasFeature` pair, and the result's `refersTo` repointed.
+> The patient's renal filtration did not change because someone added a note.
+>
+> The store behaviour R3 relied on is unaffected — it reports a replacement either way, because
+> `source_json_digest` is a graph-key content field — but the reason I gave was not the
+> operative one.
+>
+> **This is new evidence about R2, which was answered provisionally**, with the explicit
+> instruction that the caveat must not quietly become a conclusion. It is harder to justify
+> than the correction case: a correction minting a new quality is at least arguable, an
+> administrative note doing so is less so. Under `persistent-per-person-code` only the 4
+> provenance triples differ. Raised for the reviewer's attention; **no behaviour changed on the
+> strength of it.**
 >
 > ### Two residues still open
 >
