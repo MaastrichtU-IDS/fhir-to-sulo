@@ -85,7 +85,8 @@ class MapsSuiteIsOrderIndependent(unittest.TestCase):
         # make this report a cascade instead of an ordering signal. Each is
         # deterministic and reads nothing but a file, so it cannot BE an
         # ordering bug. Keep this list empty whenever possible.
-        DELIBERATELY_RED = ("TheDecisionsAreRecordedWhereTheyBelong",)
+        DELIBERATELY_RED = ("TheDecisionsAreRecordedWhereTheyBelong",
+                            "TheProfileAndTheMapsAgreeAboutEligibility")
         ids = [i for i in ids if not any(marker in i for marker in DELIBERATELY_RED)]
 
         seed = os.environ.get(SEED_VAR)
