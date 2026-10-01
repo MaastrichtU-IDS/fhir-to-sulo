@@ -80,10 +80,14 @@ the R4 value set, so a new status cannot be silently unhandled.
 `entered-in-error` is **source-only, not rejected**: concept note §2 says it
 suppresses clinical assertions but does not erase the source record.
 
-Observation `final` is the only `eligible` status. `amended`, `corrected`,
-`preliminary` and `registered` are all held at `source-only` because review
-item R3 lists them as open — see DR-102 Q-A2-5. This block is the single place
-to change when R3 is answered.
+R3 was answered on 2026-10-01: Observation `final`, `amended` and `corrected`
+are `eligible` — the *revision* axis, where a result is complete and verified
+and has since been revised. `preliminary` and `registered` stay `source-only`
+because they are the *verification* axis, and `entered-in-error` stays
+`source-only` because it is retraction rather than revision.
+`tests/contracts/ingest/test_eligibility.py::TestEveryObservationStatus`
+drives all eight statuses through ingestion and asserts exactly this split, so
+widening along the wrong axis fails a test rather than passing quietly.
 
 `value_policy` gives each awkward case an explicit outcome — comparator
 present, dataAbsentReason present, both present, unpinned code, unrecognised

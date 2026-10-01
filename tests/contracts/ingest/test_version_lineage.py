@@ -4,7 +4,8 @@
 
     v1  fixtures/r4/egfr/egfr-baseline    status=final              55.0
     v2  fixtures/r4/egfr/egfr-corrected   status=corrected          58.5
-    v3  fixtures/r4/egfr/egfr-retracted   status=entered-in-error   58.5
+    v3  fixtures/r4/egfr/egfr-amended     status=amended            58.5 + a note
+    v4  fixtures/r4/egfr/egfr-retracted   status=entered-in-error   58.5
 
 Gate 4's correction row is "version 2 removes stale version-1 derived
 assertions from the current semantic graph while preserving version-1
@@ -62,7 +63,8 @@ XSD = "http://www.w3.org/2001/XMLSchema#"
 VERSIONS = [
     ("1", "egfr-baseline", "egfr-456.json"),
     ("2", "egfr-corrected", "egfr-456.json"),
-    ("3", "egfr-retracted", "egfr-456.json"),
+    ("3", "egfr-amended", "egfr-456.json"),
+    ("4", "egfr-retracted", "egfr-456.json"),
 ]
 
 
@@ -84,13 +86,13 @@ class TestOneResourceThreeVersions(unittest.TestCase):
                 self.assertEqual(ctx.canonical_url, CANONICAL_URL)
 
     def test_the_version_ids_are_distinct_and_ordered(self):
-        self.assertEqual([c.version_id for c in self.ctx.values()], ["1", "2", "3"])
+        self.assertEqual([c.version_id for c in self.ctx.values()], ["1", "2", "3", "4"])
 
     def test_the_source_digests_are_all_different(self):
         """A v2 whose bytes matched v1 would not exercise replacement at all,
         and the store's reused-versionId guard would have nothing to catch."""
         digests = [c.source_json_digest for c in self.ctx.values()]
-        self.assertEqual(len(set(digests)), 3, digests)
+        self.assertEqual(len(set(digests)), len(VERSIONS), digests)
         for d in digests:
             self.assertTrue(d.startswith("sha256:"))
 
@@ -108,15 +110,16 @@ class TestOneResourceThreeVersions(unittest.TestCase):
     def test_eligibility_follows_the_pinned_status_policy(self):
         self.assertIs(self.ctx["1"].eligibility, EligibilityOutcome.ELIGIBLE)
         self.assertIs(self.ctx["2"].eligibility, EligibilityOutcome.ELIGIBLE)
-        self.assertIs(self.ctx["3"].eligibility, EligibilityOutcome.SOURCE_ONLY)
-        self.assertIn("entered-in-error", self.ctx["3"].eligibility_reason)
+        self.assertIs(self.ctx["3"].eligibility, EligibilityOutcome.ELIGIBLE)
+        self.assertIs(self.ctx["4"].eligibility, EligibilityOutcome.SOURCE_ONLY)
+        self.assertIn("entered-in-error", self.ctx["4"].eligibility_reason)
 
-    def test_the_sources_are_three_distinct_files_with_one_resource_id(self):
+    def test_the_sources_are_distinct_files_with_one_resource_id(self):
         """Same basename in three directories: the file is named after the
         resource it holds, which is also what Agent 3's harness assumes when
         it derives the focus IRI from the filename stem."""
         paths = [os.path.join(EGFR, case, name) for _, case, name in VERSIONS]
-        self.assertEqual(len(set(paths)), 3)
+        self.assertEqual(len(set(paths)), len(VERSIONS))
         for path in paths:
             with self.subTest(path=path):
                 self.assertTrue(os.path.isfile(path))
@@ -134,7 +137,7 @@ class TestOneResourceThreeVersions(unittest.TestCase):
     def test_the_retracted_version_keeps_its_source_record(self):
         """Concept note section 2: entered-in-error suppresses clinical
         assertions; it does not erase the record."""
-        nt = self.ctx["3"].rdf_graph
+        nt = self.ctx["4"].rdf_graph
         self.assertIn('"entered-in-error"', nt)
         self.assertIn('"58.5"^^<%sdecimal>' % XSD, nt)
         self.assertIn('"33914-3"', nt)
@@ -146,7 +149,7 @@ class TestOneResourceThreeVersions(unittest.TestCase):
 
     def test_the_three_rendered_graphs_are_all_different(self):
         graphs = [c.rdf_graph for c in self.ctx.values()]
-        self.assertEqual(len(set(graphs)), 3)
+        self.assertEqual(len(set(graphs)), len(VERSIONS))
 
     def test_the_subject_entity_is_stable_across_the_lineage(self):
         """Correcting a result does not change who the patient is."""
@@ -169,13 +172,14 @@ class TestTheTimesStayDistinct(unittest.TestCase):
 
     def test_effective_is_unchanged_by_the_correction_and_the_retraction(self):
         want = EFFECTIVE + "^^" + XSD + "dateTime"
-        self.assertEqual(self._row("egfr-corrected")["effective"], want)
-        self.assertEqual(self._row("egfr-retracted")["effective"], want)
+        for case in ("egfr-corrected", "egfr-amended", "egfr-retracted"):
+            self.assertEqual(self._row(case)["effective"], want, case)
         v1 = jsonio.loads(read(os.path.join(EGFR, "egfr-baseline", "egfr-456.json")))
         self.assertEqual(v1["effectiveDateTime"], EFFECTIVE)
 
     def test_last_updated_moves_and_is_never_the_effective_time(self):
         for case, when in (("egfr-corrected", "2026-09-03T08:15:00Z"),
+                           ("egfr-amended", "2026-09-03T16:40:00Z"),
                            ("egfr-retracted", "2026-09-04T11:00:00Z")):
             row = self._row(case)
             with self.subTest(fixture=case):
@@ -184,19 +188,68 @@ class TestTheTimesStayDistinct(unittest.TestCase):
 
     def test_a_retraction_moves_last_updated_but_not_the_effective_time(self):
         """An administrative change to the record, not a new observation."""
-        v2, v3 = self._row("egfr-corrected"), self._row("egfr-retracted")
-        self.assertEqual(v2["effective"], v3["effective"])
-        self.assertNotEqual(v2["lastUpdated"], v3["lastUpdated"])
+        v3, v4 = self._row("egfr-amended"), self._row("egfr-retracted")
+        self.assertEqual(v3["effective"], v4["effective"])
+        self.assertNotEqual(v3["lastUpdated"], v4["lastUpdated"])
 
     def test_a_retraction_does_not_restate_the_value(self):
-        self.assertEqual(self._row("egfr-corrected")["value"],
+        self.assertEqual(self._row("egfr-amended")["value"],
                          self._row("egfr-retracted")["value"])
 
     def test_the_lineage_tuples_differ_between_versions(self):
-        rows = [self._row(c) for c in ("egfr-corrected", "egfr-retracted")]
+        rows = [self._row(c) for c in
+                ("egfr-corrected", "egfr-amended", "egfr-retracted")]
         order = ["obsId", "versionId", "status", "effective", "lastUpdated", "value"]
         tuples = {tuple(r[v] for v in order) for r in rows}
-        self.assertEqual(len(tuples), 2)
+        self.assertEqual(len(tuples), 3)
+
+
+class TestTheAmendmentChangesOnlyTheRecord(unittest.TestCase):
+    """v3 amends v2 by adding an Observation.note and nothing else.
+
+    R3's answer accepted a specific consequence: an amendment touching only a
+    ``source_only`` element still produces a new graph version, because
+    ``source_json_digest`` is a graph-key content field, so the store reports a
+    replacement rather than 'unchanged'. These tests pin the *ingestion* half
+    of that - that nothing the map binds moved - so if an 'amendment' ever
+    quietly carried a clinical change it fails here rather than at the store.
+    """
+
+    BOUND_AND_CLINICAL = ("code", "codeSystem", "subjectRef", "effective",
+                          "value", "unitSystem", "unitCode", "comparator",
+                          "absentReason")
+
+    def _row(self, case):
+        doc = B.load(os.path.join(EGFR, case, "expected-bindings.json"))
+        triples = parse(read(os.path.join(EGFR, case, "canonical.nt")))
+        return B.extract(doc, triples)["observation"][0]
+
+    def test_every_clinical_binding_is_byte_equal_to_its_predecessor(self):
+        v2, v3 = self._row("egfr-corrected"), self._row("egfr-amended")
+        for var in self.BOUND_AND_CLINICAL:
+            with self.subTest(variable=var):
+                self.assertEqual(v2[var], v3[var])
+
+    def test_only_the_record_level_bindings_moved(self):
+        v2, v3 = self._row("egfr-corrected"), self._row("egfr-amended")
+        moved = {k for k in v2 if v2[k] != v3.get(k)}
+        self.assertEqual(moved, {"versionId", "status", "lastUpdated", "noteText"})
+
+    def test_the_amendment_is_really_present_in_the_source_rdf(self):
+        """Otherwise the test above would pass on an unchanged resource."""
+        self.assertEqual(self._row("egfr-corrected")["noteText"], "")
+        self.assertTrue(self._row("egfr-amended")["noteText"])
+
+    def test_the_source_digest_differs_even_though_nothing_clinical_did(self):
+        v2 = _ingest("egfr-corrected", "egfr-456.json")
+        v3 = _ingest("egfr-amended", "egfr-456.json")
+        self.assertNotEqual(v2.source_json_digest, v3.source_json_digest)
+        self.assertEqual(v2.canonical_url, v3.canonical_url)
+
+    def test_the_amendment_is_eligible(self):
+        """R3, answered 2026-10-01. Before that this fixture could not exist."""
+        self.assertIs(_ingest("egfr-amended", "egfr-456.json").eligibility,
+                      EligibilityOutcome.ELIGIBLE)
 
 
 class TestGraphKeyShape(unittest.TestCase):
@@ -228,7 +281,7 @@ class TestGraphKeyShape(unittest.TestCase):
 
     def test_each_version_gets_its_own_graph_key(self):
         graphs = {graph_key(i) for i in self.keys.values()}
-        self.assertEqual(len(graphs), 3, graphs)
+        self.assertEqual(len(graphs), len(VERSIONS), graphs)
 
     def test_every_graph_key_resolves_back_to_the_shared_subject(self):
         subject = subject_key(self.keys["1"])

@@ -1,11 +1,10 @@
 {
   "format": "fhir-sulo/expected-bindings/0.1.0",
-  "fixture_id": "egfr-retracted",
+  "fixture_id": "egfr-preliminary",
   "family": "egfr",
   "concept_note_section": "4",
   "notes": [
-    "The bindings still extract. Eligibility, not extraction, is what suppresses the clinical assertions: the source layer keeps everything, including the value that is no longer to be asserted.",
-    "meta.lastUpdated moves again while effective does not: a retraction is an administrative change to the record, not a new observation."
+    "The bindings extract; eligibility is what withholds the clinical assertion. Same shape as egfr-retracted, for a different reason."
   ],
   "identity_provided_variables": [
     "person"
@@ -18,27 +17,27 @@
     "children": [
       {
         "shape": "EGFRObservation",
-        "focus": "egfr-456",
+        "focus": "egfr-461",
         "scope": "observation",
         "iteration_key": [
-          "egfr-456",
-          "4"
+          "egfr-461",
+          "1"
         ],
         "bindings": {
-          "obsId": "egfr-456",
-          "versionId": "4",
-          "status": "entered-in-error",
+          "obsId": "egfr-461",
+          "versionId": "1",
+          "status": "preliminary",
           "code": "33914-3",
           "codeSystem": "http://loinc.org",
           "subjectRef": "Patient/p123",
           "effective": "2026-09-02T14:00:00Z^^http://www.w3.org/2001/XMLSchema#dateTime",
-          "lastUpdated": "2026-09-04T11:00:00Z^^http://www.w3.org/2001/XMLSchema#dateTime",
-          "value": "58.5^^http://www.w3.org/2001/XMLSchema#decimal",
+          "lastUpdated": "2026-09-02T14:05:00Z^^http://www.w3.org/2001/XMLSchema#dateTime",
+          "value": "55.0^^http://www.w3.org/2001/XMLSchema#decimal",
           "unitSystem": "http://unitsofmeasure.org",
           "unitCode": "mL/min/{1.73_m2}",
           "comparator": "",
           "absentReason": "",
-          "noteText": "Reviewed with the renal team on 2026-09-03; no change to the reported estimate."
+          "noteText": ""
         }
       }
     ]
@@ -60,18 +59,30 @@
         ],
         "expected_multiset": [
           [
-            "egfr-456",
-            "entered-in-error",
+            "egfr-461",
+            "preliminary",
             "33914-3",
             "Patient/p123",
             "2026-09-02T14:00:00Z^^http://www.w3.org/2001/XMLSchema#dateTime",
-            "58.5^^http://www.w3.org/2001/XMLSchema#decimal",
+            "55.0^^http://www.w3.org/2001/XMLSchema#decimal",
             "mL/min/{1.73_m2}",
             "",
             ""
           ]
         ],
-        "must_not_contain": []
+        "must_not_contain": [
+          [
+            "egfr-461",
+            "final",
+            "33914-3",
+            "Patient/p123",
+            "2026-09-02T14:00:00Z^^http://www.w3.org/2001/XMLSchema#dateTime",
+            "55.0^^http://www.w3.org/2001/XMLSchema#decimal",
+            "mL/min/{1.73_m2}",
+            "",
+            ""
+          ]
+        ]
       },
       {
         "scope": "observation",
@@ -85,12 +96,12 @@
         ],
         "expected_multiset": [
           [
-            "egfr-456",
-            "4",
-            "entered-in-error",
+            "egfr-461",
+            "1",
+            "preliminary",
             "2026-09-02T14:00:00Z^^http://www.w3.org/2001/XMLSchema#dateTime",
-            "2026-09-04T11:00:00Z^^http://www.w3.org/2001/XMLSchema#dateTime",
-            "58.5^^http://www.w3.org/2001/XMLSchema#decimal"
+            "2026-09-02T14:05:00Z^^http://www.w3.org/2001/XMLSchema#dateTime",
+            "55.0^^http://www.w3.org/2001/XMLSchema#decimal"
           ]
         ],
         "must_not_contain": [],

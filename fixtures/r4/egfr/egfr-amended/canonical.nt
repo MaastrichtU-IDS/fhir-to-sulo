@@ -27,9 +27,9 @@ _:egfr-456-b16 <http://hl7.org/fhir/value> "mL/min/{1.73_m2}" .
 _:egfr-456-b17 <http://hl7.org/fhir/Annotation.text> _:egfr-456-b18 .
 _:egfr-456-b17 <http://hl7.org/fhir/index> "0"^^<http://www.w3.org/2001/XMLSchema#integer> .
 _:egfr-456-b18 <http://hl7.org/fhir/value> "Reviewed with the renal team on 2026-09-03; no change to the reported estimate." .
-_:egfr-456-b2 <http://hl7.org/fhir/value> "4" .
-_:egfr-456-b3 <http://hl7.org/fhir/value> "2026-09-04T11:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
-_:egfr-456-b4 <http://hl7.org/fhir/value> "entered-in-error" .
+_:egfr-456-b2 <http://hl7.org/fhir/value> "3" .
+_:egfr-456-b3 <http://hl7.org/fhir/value> "2026-09-03T16:40:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
+_:egfr-456-b4 <http://hl7.org/fhir/value> "amended" .
 _:egfr-456-b5 <http://hl7.org/fhir/CodeableConcept.coding> _:egfr-456-b6 .
 _:egfr-456-b6 <http://hl7.org/fhir/Coding.code> _:egfr-456-b8 .
 _:egfr-456-b6 <http://hl7.org/fhir/Coding.system> _:egfr-456-b7 .

@@ -40,17 +40,20 @@ name (`bp-1-b7`), so two panels can never share a node by accident.
 
 ## Inventory
 
-**eGFR** (concept note §4) — 13 cases: `egfr-baseline`,
+**eGFR** (concept note §4) — 15 cases: `egfr-baseline`,
 `egfr-data-absent-reason`, `egfr-comparator`, `egfr-unit-missing`,
 `egfr-unit-unrecognised`, `egfr-code-unmapped`, `egfr-reference-unresolvable`,
 `egfr-reference-ambiguous`, `egfr-entered-in-error`, `egfr-contained-subject`,
-`egfr-corrected`, `egfr-retracted`, `egfr-effective-date-only`.
+`egfr-corrected`, `egfr-amended`, `egfr-retracted`,
+`egfr-effective-date-only`, `egfr-preliminary`.
 
-Three of those — `egfr-baseline`, `egfr-corrected`, `egfr-retracted` — are
-**the same resource at versions 1, 2 and 3**. Same resource id `egfr-456`,
-same canonical URL, different `meta.versionId` and different source digest.
+Four of those — `egfr-baseline`, `egfr-corrected`, `egfr-amended`,
+`egfr-retracted` — are **the same resource at versions 1 to 4**: final 55.0,
+corrected 58.5, amended (a note added, no value change), entered-in-error.
+Same resource id `egfr-456`, same canonical URL, different `meta.versionId`
+and different source digest.
 That is the lineage Gate 4's correction row needs; `egfr-entered-in-error` is
-a *different* resource and cannot supply it. All three source files are called
+a *different* resource and cannot supply it. All four source files are called
 `egfr-456.json`, one per directory, because the file is named after the
 resource it holds. See DR-102 §3 and
 `tests/contracts/ingest/test_version_lineage.py`.

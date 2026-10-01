@@ -11,14 +11,14 @@
   ];
   fhir:Resource.meta [
     fhir:Meta.versionId [
-      fhir:value "4"
+      fhir:value "3"
     ];
     fhir:Meta.lastUpdated [
-      fhir:value "2026-09-04T11:00:00Z"^^xsd:dateTime
+      fhir:value "2026-09-03T16:40:00Z"^^xsd:dateTime
     ]
   ];
   fhir:Observation.status [
-    fhir:value "entered-in-error"
+    fhir:value "amended"
   ];
   fhir:Observation.code [
     fhir:CodeableConcept.coding [

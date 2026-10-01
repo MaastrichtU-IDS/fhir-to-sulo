@@ -5,12 +5,12 @@
   "concept_note_section": "4",
   "notes": [
     "The value differs from version 1 (55.0), so the derived graph genuinely changes and the replacement path is exercised rather than short-circuited.",
-    "effective is byte-identical to egfr-baseline's; meta.lastUpdated is not. A map that conflated the clinically relevant time with the resource update time would produce the same lineage tuple for both versions."
+    "status is 'corrected'. Until R3 was answered this fixture had to say 'final', because the source shape guarded status to final; that workaround is gone."
   ],
   "identity_provided_variables": [
     "person"
   ],
-  "identity_note": "egfr:person is the identity service's output for egfr:subjectRef, supplied as a run binding. It is deliberately stable across this lineage: a correction changes the reported value, not who the patient is.",
+  "identity_note": "egfr:person is the identity service's output for egfr:subjectRef, supplied as a run binding. Stable across this lineage: revising a result does not change who the patient is.",
   "binding_tree": {
     "shape": "EGFRSource",
     "focus": "observation-set",
@@ -27,7 +27,7 @@
         "bindings": {
           "obsId": "egfr-456",
           "versionId": "2",
-          "status": "final",
+          "status": "corrected",
           "code": "33914-3",
           "codeSystem": "http://loinc.org",
           "subjectRef": "Patient/p123",
@@ -37,7 +37,8 @@
           "unitSystem": "http://unitsofmeasure.org",
           "unitCode": "mL/min/{1.73_m2}",
           "comparator": "",
-          "absentReason": ""
+          "absentReason": "",
+          "noteText": ""
         }
       }
     ]
@@ -60,7 +61,7 @@
         "expected_multiset": [
           [
             "egfr-456",
-            "final",
+            "corrected",
             "33914-3",
             "Patient/p123",
             "2026-09-02T14:00:00Z^^http://www.w3.org/2001/XMLSchema#dateTime",
@@ -73,7 +74,7 @@
         "must_not_contain": [
           [
             "egfr-456",
-            "final",
+            "corrected",
             "33914-3",
             "Patient/p123",
             "2026-09-02T14:00:00Z^^http://www.w3.org/2001/XMLSchema#dateTime",
@@ -87,7 +88,7 @@
             "final",
             "33914-3",
             "Patient/p123",
-            "2026-09-03T08:15:00Z^^http://www.w3.org/2001/XMLSchema#dateTime",
+            "2026-09-02T14:00:00Z^^http://www.w3.org/2001/XMLSchema#dateTime",
             "58.5^^http://www.w3.org/2001/XMLSchema#decimal",
             "mL/min/{1.73_m2}",
             "",
@@ -109,14 +110,14 @@
           [
             "egfr-456",
             "2",
-            "final",
+            "corrected",
             "2026-09-02T14:00:00Z^^http://www.w3.org/2001/XMLSchema#dateTime",
             "2026-09-03T08:15:00Z^^http://www.w3.org/2001/XMLSchema#dateTime",
             "58.5^^http://www.w3.org/2001/XMLSchema#decimal"
           ]
         ],
         "must_not_contain": [],
-        "note": "The lineage tuple. effective[x] is identical to version 1's; meta.lastUpdated is not. Concept note section 2 requires the clinically relevant time and the resource update time to stay distinguishable, and a correction is where that actually bites. Observation.issued is absent from these fixtures because the pinned eGFR source shape is CLOSED and rejects it."
+        "note": "The lineage tuple. effective[x] is identical to version 1's; meta.lastUpdated is not."
       }
     ]
   },
@@ -304,6 +305,20 @@
               },
               {
                 "p": "Coding.code"
+              },
+              {
+                "p": "value"
+              }
+            ],
+            "optional": true
+          },
+          "noteText": {
+            "steps": [
+              {
+                "p": "Observation.note"
+              },
+              {
+                "p": "Annotation.text"
               },
               {
                 "p": "value"
