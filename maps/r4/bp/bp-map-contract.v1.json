@@ -7,7 +7,7 @@
     "maps/r4/bp/bp-target.v1.shex",
     "maps/r4/bp/bp-bindings.v1.json"
   ],
-  "pairing_hash": "34ebdbf4ec2352aa05cfc74dba682fc705c5c3bb059bf01eeaeb3b7ea17138d9",
+  "pairing_hash": "231ad25ca5e443c5abaecf332f413a1ac672f7818c2a8a4f056a62ba3dae31bc",
   "pairing_hash_note": "Recomputed and checked by tests/contracts/maps/test_map_contracts.py; written by `python3 maps/r4/rehash.py`.",
   "source_release": "R4",
   "source_profiles": [
@@ -221,7 +221,9 @@
     "policies/identity-policy.v1.json :: entity_iri, quality_identity [R2 unanswered]"
   ],
   "status_eligibility": [
-    "final"
+    "final",
+    "amended",
+    "corrected"
   ],
   "expected_failures": [
     "Observation.status != 'final'",
@@ -285,5 +287,6 @@
     "fixtures/r4/bp/bp-reordered-serialisation",
     "fixtures/r4/bp/bp-duplicate-values",
     "fixtures/r4/bp/bp-other-patient"
-  ]
+  ],
+  "status_eligibility_note": "R3, answered 2026-10-01. FHIR status conflates a VERIFICATION axis (registered -> preliminary -> final) with a REVISION axis (final -> amended / corrected). The revision axis is post-final and has been revisited, so it does not reduce reliability; holding it at source-only applied the wrong axis's caution and meant a correction never reached the semantic layer. preliminary and registered stay source-only because they ARE verification states; entered-in-error stays source-only because it is a retraction, not a revision. Every other Observation.status fails the source shape."
 }

@@ -162,7 +162,7 @@
   "status_eligibility": [
     "finished"
   ],
-  "status_eligibility_note": "Concept note section 6: an in-progress Encounter 'may receive a separate, explicitly defined policy; it is not treated as a finished interval'. That policy is R3 / Q-A2-2 and is unanswered, so in-progress fails the source shape and stays source-only.",
+  "status_eligibility_note": "Concept note section 6: an in-progress Encounter 'may receive a separate, explicitly defined policy; it is not treated as a finished interval'. That policy is R3 / Q-A2-2 and is unanswered, so in-progress fails the source shape and stays source-only. R3's 2026-10-01 answer widened the Observation maps to amended/corrected; it says nothing about Encounter, which has no revision axis in its status value set. `finished` remains the only eligible Encounter status, and a finished Encounter with an open-ended period still awaits a ruling.",
   "expected_failures": [
     "Encounter.status != 'finished' (covers enc-in-progress, declared source-only)",
     "Encounter.period without Period.end (covers enc-open-period, declared source-only)",

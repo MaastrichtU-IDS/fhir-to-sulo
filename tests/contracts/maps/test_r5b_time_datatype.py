@@ -28,8 +28,15 @@ comment nobody rechecks:
 The only remaining routes are host-side literal construction, which rule 4
 forbids ("target triple construction lives in the schemas"), or a
 postprocessor, which is forbidden outright. So the map emits `xsd:dateTime`
-for every instant, faithfully carrying whatever offset the source had, and
-DR-207 raises **R5c** with the options.
+for every instant, faithfully carrying the offset the source had.
+
+**Postscript, 2026-10-01.** DR-207 raised R5c on the premise that an
+offsetless instant could occur. It cannot: FHIR R4's `dateTime` regex does not
+make the timezone optional, so every conformant value that renders
+`xsd:dateTime` carries an offset and the reviewer's reasoning holds as stated.
+R5c is withdrawn and CD-7 is corrected. The three measurements below are
+unaffected -- they are about the engine, not about FHIR -- and CD-7 cites
+them.
 
 What IS available, and is proved here, is **discrimination**: a source shape
 can tell the two lexical forms apart with a ShEx regex facet. Whatever the
@@ -114,10 +121,20 @@ def emitted_time_value(nquads: str, node: str):
 class WhatTheMapsEmitToday(engine.EngineTestCase):
     """The side-by-side the integration lead asked for.
 
-    The offsetless input is a **labelled perturbation** of
-    `egfr-baseline`'s rendered RDF, not a fixture: every fixture in
-    `fixtures/r4/` carries `Z`. A real offsetless fixture is Agent 2's to add
-    and is requested -- see DR-207.
+    The offsetless input is a **labelled perturbation** of `egfr-baseline`'s
+    rendered RDF, and since 2026-10-01 we know it is also **not conformant
+    FHIR R4**: the published `dateTime` regex does not make the timezone
+    optional, so a clock time with no offset cannot occur. R5c was withdrawn
+    on that basis and no offsetless fixture is needed.
+
+    The case is kept as a robustness probe rather than deleted. If such a
+    value ever reached the map -- a non-conformant source, a renderer bug --
+    the map must carry it through unchanged rather than silently repair it by
+    inventing an offset. Section 2 requires preserving precision, and a
+    fabricated `Z` would be the worst available outcome: wrong and invisible.
+    `test_every_emitted_instant_carries_an_offset.py` asserts the positive
+    property on real fixtures; this asserts the map does not paper over the
+    negative one.
     """
 
     OFFSET = "2026-09-02T14:00:00Z"
@@ -143,10 +160,10 @@ class WhatTheMapsEmitToday(engine.EngineTestCase):
             emitted_time_value(result["nquads"], result["_hostValues"]["timeInstant"]),
             ['"%s"^^<%s>' % (self.OFFSET, DATETIME)])
 
-    def test_an_offsetless_instant(self):
-        """Accepted, and emitted offsetless. No offset is invented -- section 2
-        requires preserving precision, and asserting an offset the source did
-        not carry would be a fabrication."""
+    def test_an_offsetless_instant_is_not_silently_repaired(self):
+        """Non-conformant FHIR R4, so it should never arrive. If it does, it
+        is emitted offsetless: no offset is invented. Asserting a `Z` the
+        source did not carry would be a fabrication, and an invisible one."""
         result = self.emit(self.OFFSETLESS)
         self.assertEqual(
             emitted_time_value(result["nquads"], result["_hostValues"]["timeInstant"]),

@@ -62,7 +62,22 @@ sh:EGFRObservation CLOSED {
   # fail rather than have the string silently dropped.
   fhir:Resource.id   { fhir:value xsd:string %Map:{ v:obsId %} } ;
   fhir:Resource.meta { fhir:Meta.versionId { fhir:value xsd:string %Map:{ v:versionId %} } } ;
-  fhir:Observation.status  { fhir:value ["final"] %Map:{ v:status %} } ;
+  # R3, answered 2026-10-01: `amended` and `corrected` are ELIGIBLE.
+  #
+  # FHIR's `status` conflates two independent axes. VERIFICATION runs
+  # registered -> preliminary -> final; REVISION runs final -> amended /
+  # corrected. A position on the revision axis is post-final and has been
+  # revisited, so it does not reduce reliability. Holding it at source-only
+  # applied the verification axis's caution to the wrong axis, and it meant a
+  # correction never reached the semantic layer at all: v2 replaced v1's
+  # graph and then asserted nothing, so the erroneous value was removed and
+  # the corrected one never arrived.
+  #
+  # Still NOT eligible, and the distinction is the point of the answer:
+  # `preliminary` and `registered` are verification states, and
+  # `entered-in-error` is a retraction rather than a revision.
+  fhir:Observation.status  { fhir:value ["final" "amended" "corrected"]
+                             %Map:{ v:status %} } ;
   fhir:Observation.code    @sh:EGFRCode ;
   fhir:Observation.subject @sh:SubjectReference ;
   fhir:Observation.effectiveDateTime { fhir:value xsd:dateTime %Map:{ v:effective %} } ;

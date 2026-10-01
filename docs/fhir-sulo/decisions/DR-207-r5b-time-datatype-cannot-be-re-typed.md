@@ -1,7 +1,13 @@
 # DR-207 — R5b: ShExMap cannot re-type a literal, so the time datatype cannot discriminate
 
-**Status:** **Blocked on a capability we do not have.** Measured, not argued.
-A new reviewer item **R5c** is proposed; nothing is decided unilaterally.
+**Status:** Measurement stands; **R5c withdrawn 2026-10-01**.
+The engine findings below are unaffected and are cited by CD-7. What changed is
+their consequence: R5c assumed an offsetless instant could occur, and it cannot.
+FHIR R4's published `dateTime` regex does not make the timezone optional, so
+every conformant value that renders `xsd:dateTime` carries an offset and the
+reviewer's "time instants are specified in the has value datatype" holds as
+stated. Nothing to implement. See `test_every_emitted_instant_carries_an_offset.py`
+for the positive property on real fixtures.
 **Date:** 2026-09-30
 **Gate:** 2 / 3
 **Owner:** Agent 3 — mapping author
