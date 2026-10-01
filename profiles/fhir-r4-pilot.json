@@ -4,7 +4,6 @@
   "owner": "Agent 2 (FHIR ingestion)",
   "gate": 0,
   "description": "The pinned FHIR release, profile set, code systems, unit systems and element scope for the FHIR-to-SULO pilot. Everything SourceContext and MapContract need about the source side. Machine-readable; see profiles/README.md for prose.",
-
   "release": {
     "fhir_release": "4.0.1",
     "fhir_release_name": "R4",
@@ -14,13 +13,11 @@
     "rdf_specification": "https://hl7.org/fhir/R4/rdf.html",
     "note": "R5 is a separate compatibility track (plan section 1). Element names such as effective[x] and occurrence[x] differ by release, so the renderer refuses any resource whose declared release is not 4.0.1."
   },
-
   "source_server": {
     "base_url": "https://fhir.example/",
     "synthetic": true,
     "note": "Synthetic base used to form canonical resource IRIs and fhir:link targets. No such server is contacted; the pilot never performs network I/O at ingestion time."
   },
-
   "renderer": {
     "renderer_id": "fhir_sulo.ingest.fhir_rdf/0.1.0",
     "decision_record": "docs/fhir-sulo/decisions/DR-101-fhir-rdf-renderer.md",
@@ -41,12 +38,10 @@
       "emit_reference_stub_types": "'<https://fhir.example/Patient/p123> a fhir:Patient .' Matches HL7 rendering and gives the source ShEx shape a typed node to match. This is a record-layer type, not a person claim."
     }
   },
-
   "code_system_iri_templates": {
     "http://loinc.org": "http://loinc.org/rdf#{code}",
     "http://snomed.info/sct": "http://snomed.info/id/{code}"
   },
-
   "resources": {
     "Observation": {
       "base_profile": "http://hl7.org/fhir/StructureDefinition/Observation",
@@ -111,7 +106,6 @@
       ],
       "source_only_note": "Rendered into FHIR RDF and retained in the source layer, but not bound to a pivot variable. Observation.issued and Observation.meta.lastUpdated are deliberately NOT interchangeable with effective[x] (concept note section 2)."
     },
-
     "Encounter": {
       "base_profile": "http://hl7.org/fhir/StructureDefinition/Encounter",
       "pinned_profiles": [
@@ -146,7 +140,6 @@
       ]
     }
   },
-
   "code_systems": {
     "http://loinc.org": {
       "name": "LOINC",
@@ -177,26 +170,37 @@
       "name": "DataAbsentReason",
       "role": "Observation.dataAbsentReason / Observation.component.dataAbsentReason",
       "pinned_codes": [
-        {"code": "not-performed", "display": "Not Performed"},
-        {"code": "unknown", "display": "Unknown"}
+        {
+          "code": "not-performed",
+          "display": "Not Performed"
+        },
+        {
+          "code": "unknown",
+          "display": "Unknown"
+        }
       ]
     },
     "http://terminology.hl7.org/CodeSystem/v3-ActCode": {
       "name": "ActCode",
       "role": "Encounter.class",
       "pinned_codes": [
-        {"code": "AMB", "display": "ambulatory"}
+        {
+          "code": "AMB",
+          "display": "ambulatory"
+        }
       ]
     },
     "http://terminology.hl7.org/CodeSystem/v3-ParticipationType": {
       "name": "ParticipationType",
       "role": "Encounter.participant.type",
       "pinned_codes": [
-        {"code": "PPRF", "display": "primary performer"}
+        {
+          "code": "PPRF",
+          "display": "primary performer"
+        }
       ]
     }
   },
-
   "unit_systems": {
     "http://unitsofmeasure.org": {
       "name": "UCUM",
@@ -218,12 +222,11 @@
       "note": "Concept note section 4: missing or unrecognised UCUM units fail the numeric target shape. Recognition is against this pinned list only; Agent 5 owns any broader UCUM resolver."
     }
   },
-
   "status_policy": {
     "Observation": {
       "final": "eligible",
-      "amended": "source-only",
-      "corrected": "source-only",
+      "amended": "eligible",
+      "corrected": "eligible",
       "preliminary": "source-only",
       "registered": "source-only",
       "cancelled": "source-only",
@@ -244,11 +247,11 @@
     "notes": [
       "entered-in-error is source-only, never rejected: concept note section 2 says it suppresses clinical assertions but does not erase the source record.",
       "Encounter in-progress is source-only pending an explicit policy (concept note section 6: 'may receive a separate, explicitly defined policy; it is not treated as a finished interval'). See reviewer question Q-A2-2.",
-      "Observation amended, corrected, preliminary and registered are ALL held at source-only because review item R3 lists them as open. This manifest previously declared amended and corrected eligible, which asserted an answer to an open question; corrected on 2026-09-29. source-only is the conservative outcome: the record is retained in full and no clinical assertion is made. When R3 is answered, this block is the single place to change.",
-      "Agent 3's egfr-source.v1.shex independently guards Observation.status to 'final' (see maps/r4/egfr/egfr-map-contract.v1.json, status_eligibility). These are two different layers - ingestion eligibility and map acceptance - and they now agree that nothing but 'final' produces clinical assertions."
+      "Agent 3's egfr-source.v1.shex independently guards Observation.status to 'final' (see maps/r4/egfr/egfr-map-contract.v1.json, status_eligibility). These are two different layers - ingestion eligibility and map acceptance - and they now agree that nothing but 'final' produces clinical assertions.",
+      "R3, answered 2026-10-01: amended and corrected are ELIGIBLE. FHIR's status conflates two axes -- verification (registered < preliminary < final) and revision (final -> amended/corrected). The revision axis does not reduce reliability: both are post-final and have been revisited. Holding them at source-only applied the verification axis's caution to a position on the revision axis, and meant a correction never reached the semantic layer. preliminary and registered remain source-only -- those ARE verification states. entered-in-error remains source-only: retraction, not revision.",
+      "Known consequence of accepting amended, accepted with the answer: an amendment that touches only a source_only element produces a new graph version whose triples are identical to its predecessor's, because source_json_digest is a graph-key content field. The store reports this as a replacement rather than as unchanged. That is visible rather than silent, and is the same shape as the engine-upgrade case DR-601 already accepts."
     ]
   },
-
   "value_policy": {
     "valueQuantity.comparator_present": {
       "outcome": "rejected",
@@ -290,9 +293,7 @@
       "reason": "Acceptance matrix row Source fidelity: an unsupported modifier extension blocks semantic materialization. SourceContext enforces this."
     }
   },
-
   "supported_modifier_extensions": [],
-
   "temporal_precision_policy": {
     "rule": "The xsd datatype of a rendered date/dateTime/instant literal is chosen from the lexical form so that precision survives the rendering.",
     "mapping": {
@@ -313,8 +314,45 @@
       "Observation.meta.lastUpdated - resource version update"
     ]
   },
-
   "terminology_snapshot": "pilot-pinned/0.1.0 (this manifest; no external terminology server is contacted)",
-
-  "element_table": "profiles/fhir-r4-element-table.json"
+  "element_table": "profiles/fhir-r4-element-table.json",
+  "reviewer_decisions": {
+    "R3_confirmations": {
+      "answered_on": "2026-10-01",
+      "reviewer_words": "confirm all",
+      "scope": "Confirms every row of R3 that carried a current value awaiting confirmation. The outcomes below are now the reviewer's, not engineering's conservative holding position.",
+      "confirmed": [
+        "Observation final -> eligible",
+        "Observation entered-in-error -> source-only (never rejected; section 2: suppresses clinical assertions, does not erase the source record)",
+        "Observation cancelled, unknown -> source-only",
+        "Observation preliminary, registered -> source-only",
+        "Encounter finished -> eligible",
+        "Encounter in-progress, planned, arrived, triaged, onleave, cancelled, entered-in-error, unknown -> source-only",
+        "dataAbsentReason present -> source-only",
+        "value AND dataAbsentReason both present -> rejected (FHIR obs-6)",
+        "code not in the pinned set -> rejected",
+        "unresolvable reference -> rejected",
+        "ambiguous reference -> rejected",
+        "unsupported modifier extension -> rejected",
+        "date-only effective[x] -> source-only (DR-009)"
+      ],
+      "still_open_not_covered_by_this_confirmation": [
+        "Observation amended / corrected -- the reviewer asked for an explanation before deciding. Held at source-only MEANWHILE, which is their current value, but this is not a ratification.",
+        "A 'finished' Encounter with an open-ended period -- no current value to confirm; it needs a ruling and no fixture fabricates it.",
+        "The comparator qualified-value pattern (ex:UpperBoundedResult) -- a new proposal, not a row awaiting confirmation. Comparator stays rejected.",
+        "N4 Observation.method, and the method-in-the-code rule -- same."
+      ]
+    },
+    "R3_amended_corrected": {
+      "question": "Should Observation amended and corrected be eligible?",
+      "answer": "Both eligible",
+      "answered_on": "2026-10-01",
+      "rationale_accepted": "The revision axis does not reduce reliability.",
+      "entered_in_error": "Unchanged at source-only -- retraction, not revision.",
+      "follow_through_required": [
+        "Agent 3: widen status_eligibility from [final] to [final, amended, corrected] in the three MapContracts and the source shapes.",
+        "Agent 2: re-point egfr-corrected at status 'corrected'. It currently uses 'final' at versionId 2 because the map rejected 'corrected' -- so Gate 4's correction row passes on a status that is not the FHIR-precise one."
+      ]
+    }
+  }
 }

@@ -2,7 +2,7 @@
 
 **Status:** OPEN — awaiting the human clinical/ontology reviewer
 **Answered:** R1 · R1b · R1d · R2 · R4 · R5 · R6 · R10 · R11.
-**5 of 12 remain open:** R3, R7, R8, R9, R12. R5b closed with nothing to implement; **R5c withdrawn** — its premise was false.
+**4 of 12 remain open:** R7, R8, R9, R12 — R3 is answered bar two residues. R5b closed with nothing to implement; **R5c withdrawn** — its premise was false.
 R1's namespace `https://w3id.org/ontostart/fhir2sulo/` is applied; R4, R6 and R11 are being
 applied to the maps and shapes.
 **Raised by:** Agent 1 (integration lead)
@@ -151,7 +151,33 @@ single-source data this never arises, but it will before any clinical use.
 
 ---
 
-## R3 — Status and `value[x]` interpretation policy
+## R3 — Status and `value[x]` interpretation policy  ✅ ANSWERED (two residues)
+
+> **Answered 2026-10-01 — "confirm all", plus `amended`/`corrected` eligible.**
+>
+> Every row that carried a value awaiting confirmation is confirmed; those outcomes are now the
+> reviewer's rather than engineering's holding position. Recorded in
+> `profiles/fhir-r4-pilot.json` under `reviewer_decisions`.
+>
+> **`Observation.amended` and `corrected` are ELIGIBLE.** FHIR's `status` conflates two axes —
+> verification (`registered` → `preliminary` → `final`) and revision (`final` →
+> `amended`/`corrected`). The revision axis does not reduce reliability. Holding them at
+> `source-only` applied the verification axis's caution to a position on the revision axis, and
+> meant a **correction never reached the semantic layer**: v2 replaced v1's graph and then
+> asserted nothing. `preliminary` and `registered` stay `source-only` — those *are* verification
+> states. `entered-in-error` stays `source-only`: retraction, not revision.
+>
+> Accepted consequence, recorded: an amendment touching only a `source_only` element yields a
+> new graph version with **identical triples**, because `source_json_digest` is a graph-key
+> content field. Visible as a replacement rather than silent — the same shape as DR-601's
+> engine-upgrade case.
+>
+> ### Two residues still open
+>
+> 1. **A `finished` Encounter with an open-ended period.** Valid FHIR, clinically incoherent. No
+>    current value to confirm and no fixture fabricates it. Reject, or represent?
+> 2. **The comparator and N4 `Observation.method`** — both still `rejected`. These were new
+>    *proposals*, not rows awaiting confirmation, so "confirm all" did not cover them. See below.
 
 **Blocks:** Gate 2 negative fixtures. Concept note §8.3 requires explicit outcomes.
 
