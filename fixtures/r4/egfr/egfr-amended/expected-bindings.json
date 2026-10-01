@@ -1,11 +1,11 @@
 {
   "format": "fhir-sulo/expected-bindings/0.1.0",
-  "fixture_id": "egfr-retracted",
+  "fixture_id": "egfr-amended",
   "family": "egfr",
   "concept_note_section": "4",
   "notes": [
-    "The bindings still extract. Eligibility, not extraction, is what suppresses the clinical assertions: the source layer keeps everything, including the value that is no longer to be asserted.",
-    "meta.lastUpdated moves again while effective does not: a retraction is an administrative change to the record, not a new observation."
+    "Every bound variable except versionId, status and lastUpdated is identical to egfr-corrected's. noteText is extracted here only to prove the amendment is really present in the source RDF; Observation.note is source-only and the map does not bind it.",
+    "A test asserts the value/unit/code/subject/effective entries are byte-equal to egfr-corrected's, so an amendment that silently moved a clinical value would fail here rather than at the store."
   ],
   "identity_provided_variables": [
     "person"
@@ -22,17 +22,17 @@
         "scope": "observation",
         "iteration_key": [
           "egfr-456",
-          "4"
+          "3"
         ],
         "bindings": {
           "obsId": "egfr-456",
-          "versionId": "4",
-          "status": "entered-in-error",
+          "versionId": "3",
+          "status": "amended",
           "code": "33914-3",
           "codeSystem": "http://loinc.org",
           "subjectRef": "Patient/p123",
           "effective": "2026-09-02T14:00:00Z^^http://www.w3.org/2001/XMLSchema#dateTime",
-          "lastUpdated": "2026-09-04T11:00:00Z^^http://www.w3.org/2001/XMLSchema#dateTime",
+          "lastUpdated": "2026-09-03T16:40:00Z^^http://www.w3.org/2001/XMLSchema#dateTime",
           "value": "58.5^^http://www.w3.org/2001/XMLSchema#decimal",
           "unitSystem": "http://unitsofmeasure.org",
           "unitCode": "mL/min/{1.73_m2}",
@@ -61,7 +61,7 @@
         "expected_multiset": [
           [
             "egfr-456",
-            "entered-in-error",
+            "amended",
             "33914-3",
             "Patient/p123",
             "2026-09-02T14:00:00Z^^http://www.w3.org/2001/XMLSchema#dateTime",
@@ -71,7 +71,19 @@
             ""
           ]
         ],
-        "must_not_contain": []
+        "must_not_contain": [
+          [
+            "egfr-456",
+            "amended",
+            "33914-3",
+            "Patient/p123",
+            "2026-09-02T14:00:00Z^^http://www.w3.org/2001/XMLSchema#dateTime",
+            "55.0^^http://www.w3.org/2001/XMLSchema#decimal",
+            "mL/min/{1.73_m2}",
+            "",
+            ""
+          ]
+        ]
       },
       {
         "scope": "observation",
@@ -86,15 +98,15 @@
         "expected_multiset": [
           [
             "egfr-456",
-            "4",
-            "entered-in-error",
+            "3",
+            "amended",
             "2026-09-02T14:00:00Z^^http://www.w3.org/2001/XMLSchema#dateTime",
-            "2026-09-04T11:00:00Z^^http://www.w3.org/2001/XMLSchema#dateTime",
+            "2026-09-03T16:40:00Z^^http://www.w3.org/2001/XMLSchema#dateTime",
             "58.5^^http://www.w3.org/2001/XMLSchema#decimal"
           ]
         ],
         "must_not_contain": [],
-        "note": "The lineage tuple. effective[x] is identical to version 1's; meta.lastUpdated is not."
+        "note": "The lineage tuple. Only versionId, status and lastUpdated move between version 2 and version 3; effective[x] and the value do not. That is what makes this an amendment rather than a correction."
       }
     ]
   },

@@ -25,7 +25,7 @@ _:egfr-456-b15 <http://hl7.org/fhir/value> "http://unitsofmeasure.org" .
 _:egfr-456-b16 <http://hl7.org/fhir/value> "mL/min/{1.73_m2}" .
 _:egfr-456-b2 <http://hl7.org/fhir/value> "2" .
 _:egfr-456-b3 <http://hl7.org/fhir/value> "2026-09-03T08:15:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
-_:egfr-456-b4 <http://hl7.org/fhir/value> "final" .
+_:egfr-456-b4 <http://hl7.org/fhir/value> "corrected" .
 _:egfr-456-b5 <http://hl7.org/fhir/CodeableConcept.coding> _:egfr-456-b6 .
 _:egfr-456-b6 <http://hl7.org/fhir/Coding.code> _:egfr-456-b8 .
 _:egfr-456-b6 <http://hl7.org/fhir/Coding.system> _:egfr-456-b7 .

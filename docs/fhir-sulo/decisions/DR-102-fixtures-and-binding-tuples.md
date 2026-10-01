@@ -117,7 +117,7 @@ directly has made the record/fact error §2 forbids.
 
 ## 3. Fixture inventory
 
-**eGFR (concept note §4)** — 13 cases, one per line, each its own directory:
+**eGFR (concept note §4)** — 15 cases, one per line, each its own directory:
 
 | Fixture | What it is | Declared outcome |
 | --- | --- | --- |
@@ -131,8 +131,10 @@ directly has made the record/fact error §2 forbids.
 | `egfr-reference-ambiguous` | two contained Patients share id `p` | rejected |
 | `egfr-entered-in-error` | `status = entered-in-error` | source-only |
 | `egfr-contained-subject` | `subject` = `#p-inline`, resolves | eligible |
-| `egfr-corrected` | **v2 of `egfr-456`**: `versionId 2`, value restated 55.0 → 58.5 | eligible |
-| `egfr-retracted` | **v3 of `egfr-456`**: `versionId 3`, `status = entered-in-error`, value unchanged | source-only |
+| `egfr-corrected` | **v2 of `egfr-456`**: `versionId 2`, `status = corrected`, value restated 55.0 → 58.5 | eligible |
+| `egfr-amended` | **v3 of `egfr-456`**: `versionId 3`, `status = amended`, adds an `Observation.note` and nothing else | eligible |
+| `egfr-retracted` | **v4 of `egfr-456`**: `versionId 4`, `status = entered-in-error`, value unchanged | source-only |
+| `egfr-preliminary` | `egfr-461`, `status = preliminary`: the verification axis, which R3 did *not* widen | source-only |
 | `egfr-effective-date-only` | `effectiveDateTime` at date precision, `2026-09-02` → `xsd:date` | source-only (proposed, pending R3) |
 
 ### Temporal precision: `egfr-effective-date-only`
@@ -172,8 +174,8 @@ which produces a different diagnostic.
 
 ### The `egfr-456` version lineage
 
-`egfr-baseline`, `egfr-corrected` and `egfr-retracted` are **three versions of
-one resource**, not three resources. They share the resource id `egfr-456` and
+`egfr-baseline`, `egfr-corrected`, `egfr-amended` and `egfr-retracted` are
+**four versions of one resource**, not four resources. They share the resource id `egfr-456` and
 therefore the canonical URL `https://fhir.example/Observation/egfr-456`, and
 differ in `meta.versionId` (1, 2, 3).
 
@@ -184,12 +186,14 @@ version-1 lineage" — cannot be evidenced by two *different* resources.
 the single-resource negative case; `egfr-retracted` is the same resource later
 retracted, which is what actually happens.
 
-Four properties are asserted in `tests/contracts/ingest/test_version_lineage.py`:
+The chain is final 55.0 -> corrected 58.5 -> amended (note added, no value
+change) -> entered-in-error. Four properties are asserted in
+`tests/contracts/ingest/test_version_lineage.py`:
 
 | Property | Why it matters |
 | --- | --- |
 | one canonical URL across all three | the store sees one subject key, three graph keys; `subject_of(graph_key(v))` is identical for all three |
-| three distinct `source_json_digest` values | a v2 whose bytes matched v1 would short-circuit the replacement path, and the store's reused-`versionId` guard would have nothing to catch |
+| four distinct `source_json_digest` values | a v2 whose bytes matched v1 would short-circuit the replacement path, and the store's reused-`versionId` guard would have nothing to catch |
 | one stable subject entity IRI | correcting a result does not change who the patient is |
 | `effective[x]` fixed while `meta.lastUpdated` moves | concept note §2 requires the clinically relevant time and the resource update time to stay distinguishable. A single resource cannot demonstrate that, because nothing moves; a correction can. |
 
@@ -199,7 +203,7 @@ and the replacement is real rather than a no-op. The value does **not** change
 at v3, because a retraction invalidates the record rather than restating the
 result.
 
-All three source files are named `egfr-456.json`, one per directory. The file
+All four source files are named `egfr-456.json`, one per directory. The file
 is named after the resource it holds, which is also what
 `tests/contracts/maps/egfr_case.py` assumes when it derives the focus IRI from
 the filename stem.
@@ -210,14 +214,15 @@ directory names.
 
 #### Two things these fixtures deliberately do not do
 
-**v2 is `status = "final"`, not `"corrected"`.** FHIR `corrected` is the more
-precise status for a restated result, but review item R3 lists
-`amended`/`corrected` as open and `maps/r4/egfr/egfr-source.v1.shex` guards
-`Observation.status` to `["final"]`. A `corrected` v2 would be rejected by the
-map, and Gate 4's correction row could not run on it. Revisit when R3 is
-answered.
+**v2 is `status = "corrected"`.** It was `"final"` until R3 was answered on
+2026-10-01, purely because `maps/r4/egfr/egfr-source.v1.shex` guarded
+`Observation.status` to `["final"]` and a `corrected` v2 would have been
+rejected by the map. That workaround is gone. The guard must widen to
+`["final", "amended", "corrected"]` in the same merge as these fixtures:
+a re-pointed fixture against the old guard just fails, and a widened guard
+with no fixture is untested.
 
-**None of the three carries `Observation.issued`.** The same source shape is
+**None of the four carries `Observation.issued`.** The same source shape is
 CLOSED and does not list `fhir:Observation.issued`, so a fixture carrying it
 fails source validation. Verified by bisection: with `issued` the map reports
 `stage=validate, ok=false`; without it, `stage=done, 21 triples`.
@@ -306,6 +311,55 @@ resource. **Question: is a finished Encounter with no `period.end` a case the
 pilot must handle, and if so, is it source-only, rejected, or materialised with
 an unknown endpoint?** Concept note §2 requires preserving unknown endpoints,
 which suggests it should be representable rather than rejected.
+
+### Q-A2-7 — the amendment's triples are not identical, under the mode R2 chose
+
+R3's answer accepted a consequence, recorded in the manifest as:
+
+> an amendment that touches only a `source_only` element produces a new graph
+> version whose triples are **identical to its predecessor's**, because
+> `source_json_digest` is a graph-key content field
+
+**Measured 2026-10-01, with Agent 3's status guard widened locally so both
+versions map. It does not hold under the quality identity mode R2 chose.**
+
+`egfr-amended` is `egfr-456` v3: it adds an `Observation.note` to v2 and
+changes nothing else. Comparing the emitted target graphs of v2 and v3:
+
+| quality identity mode | differing triples | of which provenance | other |
+| --- | ---: | ---: | ---: |
+| `per-observation` (R2's answer, shipped) | 14 | 4 | **10** |
+| `persistent-per-person-code` | 4 | 4 | 0 |
+
+The 4 provenance triples are `prov:wasDerivedFrom` naming `_history/2` versus
+`_history/3`, on the record node and the result node. Those are unavoidable
+and correct — provenance must record the version.
+
+The other 10 are the quality node. Under `per-observation` the quality IRI is
+keyed by version, so **a purely administrative amendment mints a new
+renal-quality individual for the patient**: a new `ex:RenalFiltrationQuality`,
+a new `sulo:Quality`, a new `isFeatureOf`/`hasFeature` pair, and the result's
+`refersTo` repointed. Under `persistent-per-person-code` none of that happens
+and the expectation holds exactly, modulo provenance.
+
+The store behaviour R3 relied on is unaffected either way — it reports a
+replacement rather than "unchanged", because `source_json_digest` is a
+graph-key content field — but the *reason* differs, and the stated reason is
+not the operative one.
+
+**Why this is worth the reviewer's time.** R2 was answered
+*provisionally* (2026-09-30, option B) with an explicit instruction that the
+caveat must not quietly become a conclusion. Agent 3's
+`test_the_quality_iri_moves_with_the_version_under_the_current_policy` already
+records that a *correction* mints a new quality. This fixture shows the same
+thing happens for an amendment that changes nothing clinical at all, which is
+a harder case to justify: the patient's renal filtration quality did not
+change because someone added a note. That is new evidence about an answer that
+was explicitly left provisional, not a request to reopen a settled one.
+
+No behaviour was changed on the strength of this. The manifest note is
+corrected to state the measurement; the fixture, the tuples and the tests
+stand under either mode.
 
 ### Q-A2-6 — R5b's premise is false: R4 has no offsetless timestamp
 

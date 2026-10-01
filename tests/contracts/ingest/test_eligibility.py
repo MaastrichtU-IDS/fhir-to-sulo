@@ -139,6 +139,64 @@ class TestSpecificRules(unittest.TestCase):
                       ctx.unsupported_modifier_extensions)
 
 
+class TestEveryObservationStatus(unittest.TestCase):
+    """All eight R4 Observation statuses, driven through ingestion.
+
+    R3's answer widened the eligible set from {final} to
+    {final, amended, corrected}. FHIR's status conflates two axes, and the
+    answer turns on the distinction: ``amended``/``corrected`` are points on
+    the *revision* axis - complete and verified, then revised - while
+    ``preliminary``/``registered`` are points on the *verification* axis.
+    Widening along the wrong axis is the failure this guards, and a suite that
+    only showed ``final`` mapping would not notice it.
+
+    Driven from the manifest rather than a second hardcoded list, so the table
+    and the behaviour cannot drift apart; ``test_manifest`` separately asserts
+    the manifest covers exactly the R4 value set.
+    """
+
+    REVISION_AXIS = {"final", "amended", "corrected"}
+    VERIFICATION_AXIS = {"registered", "preliminary"}
+
+    def _with_status(self, status):
+        r = jsonio.loads(read(os.path.join(
+            FIXTURES, "egfr", "egfr-baseline", "egfr-456.json")))
+        r["status"] = status
+        return ingest_text(jsonio.dumps(r), identity=MockIdentityService())
+
+    def test_each_status_takes_the_outcome_the_manifest_declares(self):
+        m = default_manifest()
+        for status in m.data["status_policy"]["Observation"]:
+            with self.subTest(status=status):
+                self.assertIs(self._with_status(status).eligibility,
+                              OUTCOME[m.status_outcome("Observation", status)])
+
+    def test_exactly_the_revision_axis_is_eligible(self):
+        m = default_manifest()
+        eligible = {s for s in m.data["status_policy"]["Observation"]
+                    if m.status_outcome("Observation", s) == "eligible"}
+        self.assertEqual(eligible, self.REVISION_AXIS)
+
+    def test_no_verification_axis_status_is_eligible(self):
+        for status in self.VERIFICATION_AXIS:
+            with self.subTest(status=status):
+                self.assertIs(self._with_status(status).eligibility,
+                              EligibilityOutcome.SOURCE_ONLY)
+
+    def test_retraction_is_source_only_not_eligible(self):
+        """entered-in-error is retraction, not revision: R3 kept it out."""
+        self.assertIs(self._with_status("entered-in-error").eligibility,
+                      EligibilityOutcome.SOURCE_ONLY)
+
+    def test_every_source_only_status_still_keeps_its_record(self):
+        for status in ("preliminary", "registered", "cancelled", "unknown",
+                       "entered-in-error"):
+            with self.subTest(status=status):
+                ctx = self._with_status(status)
+                self.assertIn('"%s"' % status, ctx.rdf_graph)
+                self.assertIn('"55.0"', ctx.rdf_graph)
+
+
 class TestCoarseEffectiveTime(unittest.TestCase):
     """R3's new row: a date is not an instant, so no time node is emitted.
 

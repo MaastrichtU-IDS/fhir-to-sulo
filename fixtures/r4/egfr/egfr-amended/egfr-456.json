@@ -2,10 +2,10 @@
   "resourceType": "Observation",
   "id": "egfr-456",
   "meta": {
-    "versionId": "2",
-    "lastUpdated": "2026-09-03T08:15:00Z"
+    "versionId": "3",
+    "lastUpdated": "2026-09-03T16:40:00Z"
   },
-  "status": "corrected",
+  "status": "amended",
   "code": {
     "coding": [
       {
@@ -23,5 +23,10 @@
     "unit": "mL/min/1.73 m2",
     "system": "http://unitsofmeasure.org",
     "code": "mL/min/{1.73_m2}"
-  }
+  },
+  "note": [
+    {
+      "text": "Reviewed with the renal team on 2026-09-03; no change to the reported estimate."
+    }
+  ]
 }
