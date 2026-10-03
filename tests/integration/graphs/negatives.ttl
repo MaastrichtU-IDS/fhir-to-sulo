@@ -47,6 +47,10 @@ ex:shortcut-practitioner-encounter a sulo:Process ;
     sulo:hasParticipant ex:some-role ;
     ex:hasPractitioner ex:person-a .
 
+ex:shortcut-subject-encounter a sulo:Process ;
+    sulo:hasParticipant ex:some-role ;
+    ex:hasSubject ex:person-a .
+
 ### quantity with no unit part (DR-002 axiom 2)
 ex:unitless-record a sulo:InformationObject ; sulo:refersTo ex:unitless .
 ex:unitless a sulo:Quantity ;

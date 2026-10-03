@@ -9,7 +9,9 @@ identity criterion, and the person's IRI would change when the role lapsed.
 These tests pin the three places that went wrong, so none can come back.
 """
 import json
+import re
 import pathlib
+import unittest
 
 import pytest
 
@@ -83,3 +85,44 @@ def test_a_practitioner_reference_mints_a_person_iri():
         assert term not in local.lower(), (
             "entity IRI %r carries the anti-rigid term %r" % (local, term)
         )
+
+
+class NoPersonIsNamedAfterARole(unittest.TestCase):
+    """DR-010 applies to hand-written graphs too, not only to minted IRIs.
+
+    Found by review: applying the ruling, a blanket ClinicianRole ->
+    PractitionerRole rename turned ``ex:clinician-c7`` into
+    ``ex:practitioner-c7`` -- a node typed ``ex:Person``, now named after the
+    very anti-rigid property the ruling exists to keep off people.  The patient
+    counterpart was ``ex:person-p123`` throughout, the same asymmetry the
+    ruling was about, reintroduced while fixing it.
+    """
+
+    GRAPHS = sorted(
+        list((ROOT / "tests/integration/graphs").glob("*.ttl"))
+        + list((ROOT / "fixtures/expected").glob("*/*/target.nt"))
+    )
+
+    PERSON_SUBJECT = re.compile(
+        r"(?:ex:|<https://w3id\.org/ontostart/fhir2sulo/)([A-Za-z0-9-]+)>?\s+"
+        r"(?:a|<http://www\.w3\.org/1999/02/22-rdf-syntax-ns#type>)\s+[^.]*?"
+        r"(?:ex:Person|<https://w3id\.org/ontostart/fhir2sulo/Person>)"
+    )
+
+    def test_no_person_typed_node_carries_an_anti_rigid_term(self):
+        self.assertTrue(self.GRAPHS, "no graphs found to check")
+        checked = 0
+        for path in self.GRAPHS:
+            text = path.read_text(encoding="utf-8")
+            for local in self.PERSON_SUBJECT.findall(text):
+                checked += 1
+                for term in ANTI_RIGID:
+                    with self.subTest(graph=path.name, node=local, term=term):
+                        self.assertNotIn(
+                            term, local.lower(),
+                            "%s types %r as ex:Person, but its local name carries the "
+                            "anti-rigid term %r. A person is not named after a role "
+                            "(DR-010); the role goes on a Role individual."
+                            % (path.name, local, term),
+                        )
+        self.assertGreater(checked, 0, "no ex:Person nodes found to check")

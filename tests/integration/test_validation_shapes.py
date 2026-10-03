@@ -514,6 +514,11 @@ class NegativeCasesAreRejected(unittest.TestCase):
             any("shortcut" in m for m in self._messages_for("shortcut-practitioner-encounter"))
         )
 
+    def test_a_hasSubject_shortcut_is_caught(self):
+        self.assertTrue(
+            any("shortcut" in m for m in self._messages_for("shortcut-subject-encounter"))
+        )
+
     def test_a_quantity_without_a_unit_is_caught(self):
         self.assertTrue(any("Unit part" in m for m in self._messages_for("unitless")))
 

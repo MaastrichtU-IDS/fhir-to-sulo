@@ -66,6 +66,27 @@ def target_schema(family):
                 if p.endswith("target.v1.shex"))
 
 
+
+def banned_shortcut_predicates():
+    """The prohibition, read out of the SHACL constraint that enforces it.
+
+    Hardcoded here as a tuple until 2026-10-03, when a blanket rename turned
+    ("hasPatient", "hasSubject", "hasPractitioner", "hasClinician") into
+    (..., "hasPractitioner", "hasPractitioner") -- a four-predicate prohibition
+    silently became three, and no test noticed because a duplicate subTest
+    still passes.  Deriving it means the schema test and the SHACL shape can
+    never disagree about what is forbidden.
+    """
+    shapes = (REPO / "src/fhir_sulo/validation/shapes/base.ttl").read_text()
+    found = tuple(dict.fromkeys(re.findall(r'STRENDS\(STR\(\?p\), "(has\w+)"\)', shapes)))
+    if len(found) < 4:
+        raise AssertionError(
+            "expected at least 4 banned shortcut predicates in base.ttl, found %r. "
+            "If one was deliberately removed, remove it from the SHACL shape and say "
+            "why in a decision record." % (found,)
+        )
+    return found
+
 class MapContracts(unittest.TestCase):
     def test_manifest_deserialises_to_the_frozen_map_contract(self):
         for family in FAMILIES:
@@ -256,7 +277,7 @@ class MapContracts(unittest.TestCase):
         """Concept note section 2, as a hard prohibition."""
         for family in FAMILIES:
             body = schema_body((REPO / target_schema(family)).read_text())
-            for banned in ("hasPatient", "hasSubject", "hasPractitioner", "hasPractitioner"):
+            for banned in banned_shortcut_predicates():
                 with self.subTest(family=family, predicate=banned):
                     self.assertNotIn(banned, body)
 

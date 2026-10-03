@@ -155,7 +155,8 @@ def _bp(index: int, person: str, rng: random.Random) -> Tuple[List[str], List[st
 def _encounter(index: int, person: str, rng: random.Random) -> Tuple[List[str], List[str]]:
     rid = "enc-%d" % index
     encounter = EX + rid
-    practitioner = "%spractitioner-c%d" % (EX, rng.randrange(1, 50))
+    # person-, not practitioner-: the role is anti-rigid, the person is not (DR-010).
+    practitioner = "%sperson-c%d" % (EX, rng.randrange(1, 50))
     interval, start, end = (
         EX + "interval-" + rid, EX + "start-" + rid, EX + "end-" + rid
     )

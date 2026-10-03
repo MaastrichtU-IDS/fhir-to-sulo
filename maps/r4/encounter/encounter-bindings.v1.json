@@ -99,7 +99,7 @@
     "sourceVersionIri": "{canonicalUrl}/_history/{versionId}"
   },
   "node_key_note": [
-    "These match the concept note section 6 example graph's local names exactly (ex:encounter-9, ex:patient-role-enc-9, ex:practitioner-role-enc-9, ex:interval-enc-9, ex:start-enc-9, ex:end-enc-9).",
+    "These match the concept note section 6 example graph's local names with ONE reviewer-ordered divergence: the note writes ex:clinician-role-enc-9 and this map emits ex:practitioner-role-enc-9, on the OntoClean ruling recorded in DR-010. The rest are exact: ex:encounter-9, ex:patient-role-enc-9, ex:interval-enc-9, ex:start-enc-9, ex:end-enc-9.",
     "A ROLE IS KEYED BY THE ENCOUNTER, not by the person. Two encounters give two distinct patient-role nodes, which is correct: a role is a feature of its holder in the context of one process, and merging them would assert one role participating in two processes.",
     "CD-1: host-chosen root nodes declared in MapContract.node_key_rules, not engine-minted."
   ],

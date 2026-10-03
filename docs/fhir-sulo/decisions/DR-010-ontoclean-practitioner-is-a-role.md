@@ -116,3 +116,58 @@ Two further gaps found while applying this and closed:
   negative fixture, so dropping the other branches would have failed no test. Fixtures for
   `hasClinician` and `hasPractitioner` were added, and fault-injecting the `hasPractitioner`
   branch out of the constraint was confirmed to fail exactly one test.
+
+## Independent review of this change, and what it found
+
+An independent agent reviewed the applied change adversarially. It found four issues; all are
+fixed. Two were defects I introduced *while applying the ruling*, which is worth recording.
+
+**1 (high) — a prohibition silently shrank from four predicates to three.**
+`tests/contracts/maps/test_map_contracts.py` banned
+`("hasPatient", "hasSubject", "hasPractitioner", "hasClinician")`. The blanket
+`clinician → practitioner` rename turned the fourth element into a **second copy of the third**,
+so `hasClinician` stopped being forbidden in any target schema. A duplicated `subTest` still
+passes, so nothing failed. This is precisely the "test weakened by a rename into vacuity" the
+mandate forbids, and I did it. The list is now **derived from the SHACL constraint in
+`base.ttl`** at test time, so the schema test and the shape cannot disagree about what is
+banned, and it asserts at least four are found.
+
+**2 (high) — the SHACL shortcut constraint was almost entirely untested.**
+Only `hasPatient` had a negative fixture; `hasSubject` and `hasClinician` never did, and the
+change added a fourth untested disjunct in `hasPractitioner`. Fixtures now exist for all four.
+Each disjunct was neutralised in turn and confirmed to fail **exactly its own test**:
+
+```
+neutralised hasPatient      -> test_a_hasPatient_shortcut_is_caught
+neutralised hasSubject      -> test_a_hasSubject_shortcut_is_caught
+neutralised hasClinician    -> test_a_hasClinician_shortcut_is_caught
+neutralised hasPractitioner -> test_a_hasPractitioner_shortcut_is_caught
+```
+
+A first attempt at this injection reported "0 tests failed" for `hasPatient`. That was wrong:
+the edit had not applied, because `hasPatient` is the first disjunct and carries no leading
+`||`. Nothing was perturbed, so nothing was demonstrated. Recorded because an unapplied
+injection that reports a clean result is the most misleading outcome available.
+
+**3 (medium) — the file a reviewer reads to check node keys still claimed to quote the concept
+note "exactly".** An earlier attempt to fix this searched a `notes` key; the key is
+`node_key_note`, so the edit silently did nothing and I did not verify it. Fixed, and the one
+divergence is named.
+
+**4 (medium) — the rename put an anti-rigid term back onto a person.**
+`tests/integration/graphs/encounter-pro.ttl` had `ex:clinician-c7`, a node typed `ex:Person`.
+The blanket rename made it `ex:practitioner-c7` — a *person* individual named after the very
+anti-rigid property this ruling exists to keep off people, while its patient counterpart was
+`ex:person-p123` throughout. The same asymmetry the ruling was about, reintroduced while fixing
+it. Now `ex:person-c7`; `benchmarks/generator.py` had the same bug and is fixed.
+
+Generalised into `NoPersonIsNamedAfterARole`, which scans every integration graph and every
+expected target graph for a node typed `ex:Person` whose local name carries an anti-rigid term.
+Restoring `ex:practitioner-c7` was confirmed to fail it.
+
+### What this says about the method
+
+A blanket textual rename is not a safe way to apply a semantic ruling. Both defects came from
+the same cause: a term that is correct in one position (the role) and forbidden in another (the
+person, and the banned-predicate list) cannot be rewritten uniformly. The guards added here are
+positional, which is what the ruling actually requires.

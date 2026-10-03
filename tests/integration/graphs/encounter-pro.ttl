@@ -1,8 +1,11 @@
 # Concept note section 6, the PRO encounter target graph.
 #
 # Copied literally EXCEPT for one reviewer-ordered divergence: the note writes
-# ex:ClinicianRole / ex:clinician-role-enc-9 / ex:clinician-c7, and DR-010 renames
-# the role to ex:PractitionerRole on OntoClean grounds. Everything else is verbatim.
+# ex:ClinicianRole / ex:clinician-role-enc-9 / ex:clinician-c7, and DR-010 changes all
+# three: the ROLE becomes ex:PractitionerRole / ex:practitioner-role-enc-9, and the
+# PERSON becomes ex:person-c7 -- a person individual must not be named after an
+# anti-rigid property, which is the whole point of the ruling. Everything else is
+# verbatim.
 #
 # The person and the practitioner are NOT asserted participants here. They become
 # participants only through the SULO property chain
@@ -26,7 +29,7 @@ ex:patient-role-enc-9 a sulo:Role, ex:PatientRole ;
     sulo:isFeatureOf ex:person-p123 .
 
 ex:practitioner-role-enc-9 a sulo:Role, ex:PractitionerRole ;
-    sulo:isFeatureOf ex:practitioner-c7 .
+    sulo:isFeatureOf ex:person-c7 .
 
 ex:interval-enc-9 a sulo:TimeInterval ;
     sulo:hasPart ex:start-enc-9, ex:end-enc-9 .
@@ -47,4 +50,4 @@ ex:end-enc-9 a sulo:EndTime ;
 # reviewer's answer restores the OWL guard. The placeholder is now the
 # answer, and tests/integration/test_reasoning_pro.py checks the maps agree.
 ex:person-p123 a sulo:SpatialObject, ex:Person .
-ex:practitioner-c7 a sulo:SpatialObject, ex:Person .
+ex:person-c7 a sulo:SpatialObject, ex:Person .
