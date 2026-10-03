@@ -216,3 +216,34 @@ A blanket textual rename is not a safe way to apply a semantic ruling. Both defe
 the same cause: a term that is correct in one position (the role) and forbidden in another (the
 person, and the banned-predicate list) cannot be rewritten uniformly. The guards added here are
 positional, which is what the ruling actually requires.
+
+## Second review pass
+
+The reviewer re-checked the fixes against the committed tree rather than taking them on trust,
+and confirmed: `banned_shortcut_predicates()` derives from the SHACL FILTER; all four disjuncts
+have fixtures and tests; `node_key_note` is corrected; `NoPersonIsNamedAfterARole` scans 17
+graphs and 20 `ex:Person` nodes across both `.nt` and `.ttl`, so it works in both
+serialisations. It also confirmed the corrected analysis above is right.
+
+One further finding, fixed: `test_resource_type_is_what_keeps_them_apart` asserted
+`"resource_type" in key_input_fields` — the policy checked against itself, not against
+behaviour. Replaced by `test_resource_type_is_the_only_thing_keeping_them_apart`, which
+compares the key inputs the service actually built for the two requests and requires the
+difference to be **exactly one field**, so a second discriminator appearing (or `entity_kind`
+diverging again) fails rather than passing quietly. Added alongside it:
+`test_entity_kind_no_longer_discriminates`.
+
+### The whole defect, reintroduced
+
+Restoring both halves — `entity_kind_segments["practitioner"]` in the policy and the original
+`services.py` ternary — fails **five** tests across three layers:
+
+```
+contracts/identity/test_ontoclean_rigidity.py::test_policy_declares_only_rigid_entity_kinds
+contracts/identity/test_ontoclean_rigidity.py::test_an_anti_rigid_entity_kind_is_rejected_not_slugified[practitioner]
+contracts/identity/test_key_style_matches_the_record.py::...::test_the_local_name_carries_no_source_identifier
+contracts/maps/test_expected_graphs.py::ExpectedGraphsAreCurrent::test_build_check_reports_no_drift
+contracts/maps/test_order_independence.py::...::test_the_suite_passes_in_a_different_order
+```
+
+Policy declaration, IRI opacity, and emitted-graph drift each catch it independently.

@@ -180,6 +180,47 @@ class ResourceTypeStillPartitionsPeople(unittest.TestCase):
             for term in ANTI_RIGID:
                 self.assertNotIn(term, local.lower())
 
-    def test_resource_type_is_what_keeps_them_apart(self):
-        """Names the load-bearing field, so removing it fails here with a reason."""
-        self.assertIn("resource_type", POLICY["entity_iri"]["key_input_fields"])
+    def _key_inputs(self, resource_type):
+        evidence = ReferenceEvidence(
+            evidence_id="e",
+            kind="literal-reference",
+            source_scope=SourceScope("synthea-pilot-r4", "https://fhir.example/"),
+            resource_type=resource_type,
+            resource_id="c7",
+            canonical_url="https://fhir.example/%s/c7" % resource_type,
+        )
+        outcome = IdentityService().resolve(
+            IdentityRequest("%s/c7" % resource_type, (resource_type,), (evidence,),
+                            entity_kind="person")
+        )
+        return dict(outcome.unwrap().key_inputs)
+
+    def test_resource_type_is_the_only_thing_keeping_them_apart(self):
+        """Behavioural, not a restatement of the policy.
+
+        Review finding: the first version of this asserted
+        ``"resource_type" in key_input_fields``, which checks the policy
+        against itself.  This compares the key inputs the service actually
+        built for the two requests and requires the difference to be exactly
+        one field -- so a second discriminator appearing, or entity_kind
+        diverging again, fails here rather than passing quietly.
+        """
+        patient = self._key_inputs("Patient")
+        practitioner = self._key_inputs("Practitioner")
+        differing = {k for k in set(patient) | set(practitioner)
+                     if patient.get(k) != practitioner.get(k)}
+        self.assertEqual(
+            differing, {"resource_type"},
+            "the key inputs for Patient/c7 and Practitioner/c7 differ in %s. R8b is about "
+            "resource_type alone; another differing field means something else is also "
+            "partitioning people and DR-010's analysis no longer describes the code."
+            % sorted(differing),
+        )
+
+    def test_entity_kind_no_longer_discriminates(self):
+        """DR-010 left entity_kind in key_input_fields as a constant."""
+        self.assertEqual(
+            self._key_inputs("Patient")["entity_kind"],
+            self._key_inputs("Practitioner")["entity_kind"],
+            "entity_kind differs between a Patient and a Practitioner reference again",
+        )
