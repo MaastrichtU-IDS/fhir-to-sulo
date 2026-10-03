@@ -100,6 +100,10 @@ test: contracts engine-tests integration ## Everything runnable without Docker
 .PHONY: test-all
 test-all: test engine-live ## Everything, including the live engine (needs Docker)
 
+.PHONY: verify-clean-clone
+verify-clean-clone: ## Acceptance row "Deployability": clone and run from nothing
+	tools/verify-clean-clone.sh
+
 .PHONY: clean
 clean: ## Remove build artifacts, including out-of-tree bytecode caches
 	find . -name __pycache__ -type d -prune -exec rm -rf {} + 2>/dev/null || true
