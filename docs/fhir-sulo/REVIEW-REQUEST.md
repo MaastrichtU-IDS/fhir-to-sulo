@@ -492,16 +492,53 @@ without ceasing to exist. The patient side already did this correctly (`person-`
 Practitioner entity IRIs moved (`practitioner-75edba7e…` → `person-afd67e8e…`). Patient IRIs are
 unchanged. `tests/contracts/identity/test_ontoclean_rigidity.py` pins all three points.
 
-### R8b — still open, and now the only thing keeping two people apart
+### R8b — still open, and it is the *remainder of the finding*, not a refinement
 
-`resource_type` remains a key input, so `Patient/c7` and `Practitioner/c7` are still **two
-person entities**. That is defensible — `resource_type` is *record provenance*, not a claim
-about the person's nature, and refusing to merge without evidence is **R2b**
-(`accepted_merge_evidence` is empty by design).
+**Corrected 2026-10-03 after independent review.** This section first argued that
+`resource_type` remaining a key input was fine because it is "record provenance, not a claim
+about the person's nature". That argument does not hold, and the correction is the important
+part.
 
-But the R8a ruling sharpens this: both are now the same rigid kind, differing only by which
-record they came from. **No merge rule has been reviewed, so none is implemented.** This is
-not labelled answered.
+`entity_kind` was a **deterministic function of `resource_type`**: `entity_for_reference` has
+four call sites, each passing one literal expected type, and `ID-R5-unexpected-type` rejects
+any mismatch. Removing a key field determined by another key field cannot change the partition
+the key induces. Measured:
+
+```
+Patient/c7      -> person-39be962c396ba29c0b64640d1e5b11df
+Practitioner/c7 -> person-afd67e8e52bcff0eda45d940c797e4e2
+```
+
+Every hash moved; **not one equivalence class did.** And `entity_kind_segments` now has exactly
+one key, so `entity_kind` still sits in `key_input_fields` while contributing no discrimination
+at all.
+
+So the accurate statement of what R8a achieved is:
+
+> The anti-rigid distinction was removed from the entity's **asserted kind** and from its
+> **IRI label**. It is retained, unchanged, in the **key**, through `resource_type`, whose
+> values in this pipeline are exactly `{Patient, Practitioner}`.
+
+Those three gains are real — an `entity_kind` of `practitioner` was a first-class assertion
+that the individual *is* a practitioner, the IRI named a person after a role, and the
+slugify-anything path is now closed. But the rigidity question is not closed by them.
+
+**What we need from you.** One human recorded as both a `Patient` and a `Practitioner` is still
+two person entities. Either:
+
+- **(a)** that is correct — two records, no reviewed evidence they are one person, so no merge
+  (this is R2b's conservatism, and `accepted_merge_evidence` is empty by design); or
+- **(b)** `resource_type` should leave `key_input_fields`, the two should merge, and the
+  evidence standard for doing so needs stating.
+
+**No merge rule is implemented and none is assumed.** Option (b) re-keys every entity IRI and
+is a graph migration, not a configuration change.
+
+This was also **untested** until the review: `test_distinctness` varies `resource_id` with the
+type defaulted to `Patient`, and the Encounter fixtures use `p123` and `c7`, which differ by id
+anyway — so dropping `resource_type` from the key would have failed nothing. Now pinned by
+`tests/contracts/identity/test_ontoclean_rigidity.py::ResourceTypeStillPartitionsPeople`, which
+asserts the behaviour and records that it is unresolved.
 
 ---
 

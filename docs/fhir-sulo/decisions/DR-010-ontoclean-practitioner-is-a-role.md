@@ -64,18 +64,63 @@ It also leaves **R12** clean: if a reviewed participation-type table is added la
 could refine `PractitionerRole` into something more specific, rather than contradicting a
 function we had already asserted.
 
-## What does NOT change, and why
+## What does NOT change — stated accurately
 
-`resource_type` stays a key input, so `Patient/c7` and `Practitioner/c7` remain **two entities**.
+**This section originally overstated the fix.** It argued that `resource_type` remaining a key
+input "is not an OntoClean violation" because it is a provenance discriminator. Independent
+review showed that argument does not hold, and the correction matters more than the original
+claim.
 
-That is not an OntoClean violation: `resource_type` here is a *provenance* discriminator —
-which record this entity was derived from — not a claim about the entity's nature. Keeping two
-records apart absent merge evidence is the conservatism of **R2b**, which records that no merge
-rule exists and that `accepted_merge_evidence` is empty by design.
+### The partition is bit-identical to the pre-change partition
 
-So after this change, one human recorded as both a Patient and a Practitioner is still two
-person entities. That is a **known limitation under R2b**, not a rigidity error, and it should
-be answered there rather than papered over here.
+`entity_for_reference` has exactly four call sites
+(`src/fhir_sulo/pipeline/families.py:82,112,165,176`), each passing a single literal
+`expected_type`, and `ID-R5-unexpected-type` rejects any candidate whose `resource_type` differs
+from it. So for every request that resolved, the old `entity_kind` was a **deterministic
+function of `resource_type`** — a field already in `key_input_fields`.
+
+Removing a key field that is a function of another key field cannot change the equivalence
+relation the key induces. Measured against the live service:
+
+```
+Patient/c7      -> person-39be962c396ba29c0b64640d1e5b11df
+Practitioner/c7 -> person-afd67e8e52bcff0eda45d940c797e4e2
+```
+
+Every hash moved. Not one equivalence class did.
+
+Secondary: `entity_kind_segments` now has exactly one key, so `entity_kind` contributes **zero
+discrimination** while remaining in `key_input_fields` — an identity criterion that is a
+constant.
+
+### So what did this change actually achieve?
+
+Three things, none of them nothing:
+
+1. `EntityIdentity.entity_kind` was a first-class **assertion** that this individual *is a
+   practitioner*. That assertion is gone.
+2. The IRI named the person after an anti-rigid property. That label is gone.
+3. An undeclared kind is now **rejected** rather than slugified, so the path that let this
+   happen is closed.
+
+What it did **not** achieve: `resource_type` is in `key_input_fields`, so it *is* an identity
+criterion, and its values in this pipeline are exactly `{Patient, Practitioner}` — the same
+anti-rigid pair under a provenance-sounding name. Calling it provenance does not change what it
+does to the key.
+
+### The honest statement
+
+> The anti-rigid distinction was removed from the entity's **asserted kind** and from its
+> **IRI label**. It is retained, unchanged, in the **key**, through `resource_type`.
+
+**R8b is therefore not a downstream refinement of this ruling — it is the remainder of the
+original finding.** It is routed to the reviewer, explicitly, rather than closed here. One
+human recorded as both a Patient and a Practitioner is still two person entities, and no merge
+rule has been reviewed (R2b, `accepted_merge_evidence` empty by design).
+
+Pinned by `tests/contracts/identity/test_ontoclean_rigidity.py::ResourceTypeStillPartitionsPeople`,
+which asserts the current behaviour *and* records that it is the unresolved remainder, so a
+future ruling on R8b changes a test that says why rather than silently re-keying the graph.
 
 ## Expected blast radius
 

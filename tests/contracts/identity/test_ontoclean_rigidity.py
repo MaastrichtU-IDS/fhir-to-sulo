@@ -126,3 +126,60 @@ class NoPersonIsNamedAfterARole(unittest.TestCase):
                             % (path.name, local, term),
                         )
         self.assertGreater(checked, 0, "no ex:Person nodes found to check")
+
+
+class ResourceTypeStillPartitionsPeople(unittest.TestCase):
+    """The remainder of the OntoClean finding, pinned rather than papered over.
+
+    DR-010 removed ``practitioner`` as an entity kind.  It did NOT change the
+    partition: ``entity_kind`` was a deterministic function of
+    ``resource_type`` (four call sites, each with one literal expected type,
+    and ID-R5 rejects any mismatch), and ``resource_type`` is itself a key
+    input.  So the same anti-rigid pair {Patient, Practitioner} still splits
+    one human into two entities, under a provenance-sounding name.
+
+    Review finding: nothing exercised this.  ``test_distinctness`` varies
+    ``resource_id`` with the type defaulted to Patient, and the encounter
+    fixtures use ``p123`` and ``c7``, which differ by id anyway -- so dropping
+    ``resource_type`` from ``key_input_fields`` would have failed no test.
+
+    These tests pin the behaviour AND say it is unresolved, so answering R8b
+    changes a test that explains itself rather than silently re-keying graphs.
+    """
+
+    def _iri(self, resource_type):
+        evidence = ReferenceEvidence(
+            evidence_id="e",
+            kind="literal-reference",
+            source_scope=SourceScope("synthea-pilot-r4", "https://fhir.example/"),
+            resource_type=resource_type,
+            resource_id="c7",
+            canonical_url="https://fhir.example/%s/c7" % resource_type,
+        )
+        outcome = IdentityService().resolve(
+            IdentityRequest("%s/c7" % resource_type, (resource_type,), (evidence,),
+                            entity_kind="person")
+        )
+        self.assertTrue(outcome.is_resolved, getattr(outcome, "reason", None))
+        return outcome.unwrap().entity_iri
+
+    def test_resource_type_is_still_an_identity_criterion(self):
+        """R8b, unanswered. If a reviewer rules that these merge, this fails."""
+        self.assertNotEqual(
+            self._iri("Patient"), self._iri("Practitioner"),
+            "Patient/c7 and Practitioner/c7 collapsed to one entity. No cross-record "
+            "merge rule has been reviewed (R2b, accepted_merge_evidence is empty), so "
+            "this is not a merge the pipeline may make on its own."
+        )
+
+    def test_neither_iri_advertises_which_role_the_record_described(self):
+        """What DR-010 DID fix: the distinction is in the key, not on the label."""
+        for resource_type in ("Patient", "Practitioner"):
+            local = self._iri(resource_type).rsplit("/", 1)[-1]
+            self.assertTrue(local.startswith("person-"), local)
+            for term in ANTI_RIGID:
+                self.assertNotIn(term, local.lower())
+
+    def test_resource_type_is_what_keeps_them_apart(self):
+        """Names the load-bearing field, so removing it fails here with a reason."""
+        self.assertIn("resource_type", POLICY["entity_iri"]["key_input_fields"])
