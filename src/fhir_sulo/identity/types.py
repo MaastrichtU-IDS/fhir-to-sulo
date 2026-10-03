@@ -117,6 +117,12 @@ class ReferenceEvidence:
     canonical_url: Optional[str] = None
     resource_version_id: Optional[str] = None
     container_url: Optional[str] = None
+    #: R8b. A FHIR business identifier carried by the reference or the
+    #: contained resource. Only keys the person when ``identifier_system`` is
+    #: on the policy's reviewed allowlist; otherwise it is audit detail and
+    #: the record address keys as before.
+    identifier_system: Optional[str] = None
+    identifier_value: Optional[str] = None
     detail: Mapping[str, str] = field(default_factory=dict)
 
     def is_contained(self) -> bool:
@@ -137,6 +143,8 @@ class ReferenceEvidence:
             "resource_id": self.resource_id,
             "canonical_url": self.canonical_url,
             "resource_version_id": self.resource_version_id,
+            "identifier_system": self.identifier_system,
+            "identifier_value": self.identifier_value,
             "detail": dict(self.detail),
         }
         if self.is_contained():

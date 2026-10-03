@@ -122,6 +122,16 @@ Pinned by `tests/contracts/identity/test_ontoclean_rigidity.py::ResourceTypeStil
 which asserts the current behaviour *and* records that it is the unresolved remainder, so a
 future ruling on R8b changes a test that says why rather than silently re-keying the graph.
 
+**Correction, 2026-10-03.** An earlier version of this record said the behaviour was
+*untested* until that class was added, following a review finding. **That was wrong, and the
+correction is mine to make: I repeated the finding without checking it.**
+`tests/contracts/identity/test_distinctness.py::test_patient_and_practitioner_with_the_same_id_stay_distinct`
+has existed since commit `cc9257b`, resolves `Patient/x1` and `Practitioner/x1` in one scope,
+and asserts distinct IRIs. Verified by injection: removing `resource_type` from
+`key_input_fields` fails that test along with the new ones. The new class is additional
+coverage — it names the *structure* of the key rather than one pair of IRIs — not the first
+coverage.
+
 ## Expected blast radius
 
 Every practitioner IRI moves -- in enc-baseline, `practitioner-75edba7e593927916da32e42c043e881` becomes `person-afd67e8e52bcff0eda45d940c797e4e2` -- because `entity_kind` is

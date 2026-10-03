@@ -85,6 +85,29 @@ def entity_for_reference(svc, ctx, element_path: str, expected_type: str):
             "entity is claimed" % (ev.raw_reference, "; ".join(ev.notes)),
         )
 
+    if ev.kind == "identifier-only" and ev.identifier_system and ev.identifier_value:
+        # R8b. A logical reference has no address, so there is nothing to key on
+        # UNLESS the identifier system is person-identifying. That is a policy
+        # question, so this states the facts and lets the service answer it:
+        # ID-R12 keys on the identifier, ID-R14 rejects if it is not allowlisted.
+        evidence = ReferenceEvidence(
+            evidence_id=element_path,
+            kind=ev.kind,
+            source_scope=SourceScope(SCOPE_ID, FHIR_BASE),
+            resource_type=expected_type,
+            resource_id="",
+            identifier_system=ev.identifier_system,
+            identifier_value=ev.identifier_value,
+        )
+        outcome = svc.resolve(
+            IdentityRequest(ev.raw_reference, (expected_type,), (evidence,),
+                            entity_kind="person",
+                            referring_resource_url=ctx.canonical_url)
+        )
+        if not outcome.is_resolved:
+            raise ReferenceNotAPerson(outcome.reason_code, outcome.reason)
+        return outcome.unwrap()
+
     if ev.resolved_target is None or ev.kind in ("unresolvable", "identifier-only"):
         # Zero candidates: the identity service's own ID-R2 rejection.
         outcome = svc.resolve(IdentityRequest(ev.raw_reference, (expected_type,), ()))

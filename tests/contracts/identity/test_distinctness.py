@@ -45,15 +45,46 @@ def test_same_resource_id_at_two_sources_stays_two_people():
     assert a.identity.source_scope_id != b.identity.source_scope_id
 
 
-def test_no_cross_source_merge_rule_is_approved():
+def test_the_only_merge_rule_is_the_reviewed_one():
+    """R8b was answered on 2026-10-03, so this list is no longer empty.
+
+    It previously asserted ``accepted_merge_evidence == []``.  That assertion
+    was correct until a reviewer answered R8b and is NOT relaxed here: every
+    entry must still carry its reviewer attribution, and an entry nobody can
+    trace to a review is the thing this guards against.
+    """
     svc = IdentityService()
     scope_policy = svc.policy.identity["reference_scope"]
     assert scope_policy["default"] == "source-scoped"
     assert scope_policy["cross_source_merge"] == "requires-recorded-evidence"
-    assert scope_policy["accepted_merge_evidence"] == [], (
-        "a cross-source merge rule has been added to the policy table; that is a "
-        "reviewed decision and needs a decision record"
+
+    accepted = scope_policy["accepted_merge_evidence"]
+    assert len(accepted) == 1, (
+        "a merge rule was added or removed; each one is a reviewed decision and "
+        "needs a decision record: %r" % ([e.get("evidence_id") for e in accepted],)
     )
+    entry = accepted[0]
+    assert entry["evidence_id"] == "person-identifying-business-identifier"
+    assert "R8b" in entry["reviewer_item"], entry
+
+
+def test_the_merge_rule_cannot_actually_fire_yet():
+    """The allowlist is the live switch, and it is empty by design.
+
+    The mechanism is implemented and tested, but which Identifier.system URIs
+    identify a human is a clinical/governance decision.  While this list is
+    empty no merge can occur and behaviour is identical to before R8b.
+    Populating it is a reviewed edit with a measurable consequence: every
+    entity that gains an identifier key changes IRI.
+    """
+    svc = IdentityService()
+    allowed = svc.policy.identity["person_identifying_identifier_systems"]
+    assert allowed == [], (
+        "person-identifying identifier systems have been approved: %r. That re-keys "
+        "every entity carrying one and needs a decision record and a migration note."
+        % (allowed,)
+    )
+    assert svc._person_identifier_allowlist() == frozenset()
 
 
 def test_patient_and_practitioner_with_the_same_id_stay_distinct():

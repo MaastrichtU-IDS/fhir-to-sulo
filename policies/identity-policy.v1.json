@@ -53,8 +53,18 @@
     "default": "source-scoped",
     "rationale": "Concept note section 2 and plan section 7: never merge two references into one person without recorded evidence.",
     "cross_source_merge": "requires-recorded-evidence",
-    "accepted_merge_evidence": [],
-    "accepted_merge_evidence_note": "Empty on purpose. No cross-source merge rule has been reviewed, so no cross-source merge can occur. Adding an entry here is a reviewed decision, not an implementation detail."
+    "accepted_merge_evidence": [
+      {
+        "evidence_id": "person-identifying-business-identifier",
+        "reviewer_item": "R8b, answered 2026-10-03",
+        "when": "A reference carries exactly one FHIR Identifier whose system is listed in person_identifying_identifier_systems.",
+        "then": "The person is keyed on (key_scheme, key_revision, entity_kind, identifier_system, identifier_value) and NOT on source scope or resource address.",
+        "why_this_is_keying_and_not_merging": "A business identifier in an agreed namespace IS an identity criterion for the person -- that is what Identifier.system means. Keying on it directly gives one IRI, deterministically, with no post-hoc graph rewriting, no owl:sameAs between records, and no reasoning needed to collapse two nodes. A Patient reference and a Practitioner reference carrying the same national number arrive at the same IRI because they are the same person, not because a merge pass fused them.",
+        "deliberately_not_source_scoped": "This is the recorded evidence that reference_scope.cross_source_merge requires. A national identifier is global by construction; scoping it per source would defeat the only thing it is for.",
+        "cost_accepted": "An entity keyed on an identifier has a DIFFERENT IRI from the same person keyed on a record address. If a record later starts carrying an allowlisted identifier, that person's IRI moves. That is a re-keying event, visible and deterministic, not a silent drift -- but it is real, and it is why the allowlist is a reviewed list rather than 'any identifier'."
+      }
+    ],
+    "accepted_merge_evidence_note": "No longer empty. R8b was answered on 2026-10-03: a shared person-identifying business identifier merges. The ALLOWLIST below is still empty, so no merge can occur yet; adding a system to it is the reviewed decision, and is what switches this on."
   },
   "contained_reference_scoping": {
     "applies_to_evidence_kind": "contained",
@@ -135,6 +145,26 @@
       "then": "rejected",
       "reason_code": "identity-policy-inconsistent",
       "note": "Deliberately NOT ID-R10. This is a defect in THIS FILE, not in the caller's entity_kind, and recording it as ID-R10 would blame the request in the audit trail for a policy that contradicts itself."
+    },
+    {
+      "rule_id": "ID-R12-identifier-keyed-person",
+      "when": "Exactly one allowlisted person-identifying identifier is present.",
+      "then": "resolved",
+      "note": "Keyed on the identifier, not source-scoped. See accepted_merge_evidence."
+    },
+    {
+      "rule_id": "ID-R13-multiple-person-identifiers",
+      "when": "More than one allowlisted person-identifying identifier is present and they do not all agree on (system, value).",
+      "then": "rejected",
+      "reason_code": "ambiguous-person-identifier",
+      "note": "Deterministic keying cannot choose between them, and picking the first would make identity depend on element order. Resolving this properly needs transitive entity resolution across identifiers, which is stateful, is not a keying rule, and is not in scope for this pilot."
+    },
+    {
+      "rule_id": "ID-R14-identifier-not-person-identifying",
+      "when": "A candidate carries a business identifier, has no resource address, and no carried system is in person_identifying_identifier_systems.",
+      "then": "rejected",
+      "reason_code": "identifier-not-person-identifying",
+      "note": "Distinct from ID-R6 incomplete-key-inputs, which is true of this case but says nothing useful. This names the actual reason and the actual remedy."
     }
   ],
   "ambiguity": {
@@ -146,7 +176,9 @@
     "guessing_permitted": false,
     "api_contract": "Rejection is a distinct return type with no entity IRI attribute. There is no Optional-IRI return anywhere in the identity API.",
     "undeclared_entity_kind": "rejected",
-    "policy_self_contradiction": "rejected"
+    "policy_self_contradiction": "rejected",
+    "multiple_person_identifiers": "rejected",
+    "identifier_not_person_identifying": "rejected"
   },
   "lineage": {
     "retain_source_reference_literal": true,
@@ -208,5 +240,7 @@
     },
     "reviewer": "human clinical/ontology reviewer",
     "reviewed_on": "2026-09-30"
-  }
+  },
+  "person_identifying_identifier_systems": [],
+  "person_identifying_identifier_systems_note": "Identifier.system URIs that identify a PERSON, such as a national person number or a national provider number. EMPTY BY DESIGN and not populated by the implementation: which namespaces identify a person is a clinical/governance decision, not an engineering one. While it is empty the mechanism is fully implemented and tested but can never fire, so behaviour is identical to before R8b was answered. A local MRN does NOT belong here: it identifies a patient record at one organisation, not a human."
 }

@@ -195,6 +195,47 @@ class IdentityService:
                     evidence,
                 )
 
+        # ---- R8b: a person-identifying business identifier keys the person ----
+        # Checked BEFORE the record-address key is built, because when it
+        # applies it replaces the address entirely rather than adding to it.
+        allowlisted = self._allowlisted_person_identifiers(request.candidates)
+        if len(allowlisted) > 1:
+            return self._reject(
+                "ID-R13-multiple-person-identifiers",
+                "ambiguous-person-identifier",
+                "reference %r carries %d discordant person-identifying identifiers (%s). "
+                "Choosing one would make identity depend on element order, and reconciling "
+                "them needs transitive entity resolution, which is not a keying rule."
+                % (request.reference_literal, len(allowlisted),
+                   ", ".join("%s|%s" % pair for pair in allowlisted)),
+                inputs,
+                evidence,
+            )
+        if allowlisted:
+            system, value = allowlisted[0]
+            return self._resolve_on_identifier(
+                request, chosen, system, value, inputs, evidence
+            )
+
+        # A logical reference has no address to key on. If its identifier is not
+        # person-identifying we must say so precisely, rather than let it fall
+        # through to ID-R6 "incomplete key inputs", which is true but unhelpful.
+        if not normalise_text(str(chosen.resource_id or "")):
+            carried = [c for c in request.candidates if getattr(c, "identifier_system", None)]
+            if carried:
+                return self._reject(
+                    "ID-R14-identifier-not-person-identifying",
+                    "identifier-not-person-identifying",
+                    "reference %r carries only business identifier(s) %s, and no listed system "
+                    "is person-identifying, so there is nothing to key the person on. Adding a "
+                    "system to person_identifying_identifier_systems is a reviewed decision."
+                    % (request.reference_literal,
+                       ", ".join(sorted("%s|%s" % (c.identifier_system, c.identifier_value)
+                                        for c in carried))),
+                    inputs,
+                    evidence,
+                )
+
         key_inputs = {
             "key_scheme": _KEY_SCHEME_VERSION,
             # Deliberately the key revision, not the table's semantic version:
@@ -258,6 +299,88 @@ class IdentityService:
         record = DecisionRecord(
             service="identity",
             rule_id=rule_id,
+            status="mapped",
+            inputs=inputs,
+            evidence=evidence,
+            outcome=identity.as_dict(),
+            policy_versions=self.policy_versions,
+        )
+        return IdentityResolved(identity=identity, record=record)
+
+    def _person_identifier_allowlist(self) -> frozenset:
+        """Reviewed Identifier.system URIs that identify a person.
+
+        Empty by design (R8b): which namespaces identify a human is a
+        clinical/governance decision.  While empty, every path below is
+        unreachable and behaviour is identical to before R8b was answered.
+        """
+        return frozenset(
+            normalise_text(sysuri)
+            for sysuri in (self.policy.identity.get("person_identifying_identifier_systems") or ())
+            if sysuri
+        )
+
+    def _allowlisted_person_identifiers(self, candidates) -> list:
+        """Distinct (system, value) pairs from candidates, allowlist-filtered."""
+        allow = self._person_identifier_allowlist()
+        if not allow:
+            return []
+        seen = []
+        for candidate in candidates:
+            system = getattr(candidate, "identifier_system", None)
+            value = getattr(candidate, "identifier_value", None)
+            if not system or not value:
+                continue
+            if normalise_text(system) not in allow:
+                # Present but not person-identifying: audit detail, not a key.
+                continue
+            pair = (normalise_text(system), normalise_text(value))
+            if pair not in seen:
+                seen.append(pair)
+        return sorted(seen)
+
+    def _resolve_on_identifier(self, request, chosen, system, value, inputs, evidence):
+        """Key the person on the identifier, NOT on the record address.
+
+        Deliberately not source-scoped: this is the recorded evidence that
+        ``reference_scope.cross_source_merge`` requires, and a national
+        identifier is global by construction.
+        """
+        key_inputs = {
+            "key_scheme": _KEY_SCHEME_VERSION,
+            "key_revision": str(self._iri["key_revision"]),
+            "entity_kind": request.entity_kind,
+            "identifier_system": system,
+            "identifier_value": value,
+        }
+        try:
+            segment = self._entity_kind_segment(str(request.entity_kind))
+        except PolicyInconsistent as exc:
+            return self._reject("ID-R11-policy-self-contradiction",
+                                "identity-policy-inconsistent", str(exc), inputs, evidence)
+        except ValueError as exc:
+            return self._reject("ID-R10-undeclared-entity-kind",
+                                "undeclared-entity-kind", str(exc), inputs, evidence)
+
+        length = int(self._iri["key_length_hex_chars"])
+        fields = ("key_scheme", "key_revision", "entity_kind",
+                  "identifier_system", "identifier_value")
+        local_name = segment + key_fragment(fields, key_inputs, length=length)
+        identity = EntityIdentity(
+            entity_iri=self._iri["base"] + local_name,
+            entity_kind=request.entity_kind,
+            key_scheme=_KEY_SCHEME_VERSION,
+            source_reference_literal=request.reference_literal,
+            source_canonical_url=chosen.canonical_url,
+            source_scope_id=chosen.source_scope.scope_id,
+            source_resource_type=chosen.resource_type,
+            source_resource_id=chosen.resource_id,
+            key_inputs=key_inputs,
+            rule_id="ID-R12-identifier-keyed-person",
+        )
+        record = DecisionRecord(
+            service="identity",
+            rule_id="ID-R12-identifier-keyed-person",
             status="mapped",
             inputs=inputs,
             evidence=evidence,

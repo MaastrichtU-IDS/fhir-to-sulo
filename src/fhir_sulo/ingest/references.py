@@ -128,6 +128,11 @@ class ReferenceResolver:
                 return ResolvedReference(evidence=ReferenceEvidence(
                     kind="identifier-only", raw_reference=raw, resolved_target=None,
                     source_element=source_element,
+                    # Structured, not only packed into raw_reference: the
+                    # identity service must not have to parse a display string
+                    # to decide identity (R8b).
+                    identifier_system=ident.get("system"),
+                    identifier_value=ident.get("value"),
                     notes=_note("no Reference.reference; only a business identifier",
                                 "the identity service may match on this, the renderer may not"),
                 ))

@@ -46,6 +46,12 @@ class ReferenceEvidence:
     resolved_target: Optional[str]
     source_element: str
     notes: Tuple[str, ...] = ()
+    #: R8b. Set for ``kind == "identifier-only"``: a FHIR logical reference
+    #: carries ``Identifier.system`` + ``Identifier.value`` and no address.
+    #: Still not an identity claim -- the identity service keys on it only
+    #: when the system is on the policy's reviewed allowlist.
+    identifier_system: Optional[str] = None
+    identifier_value: Optional[str] = None
 
 
 @dataclass(frozen=True)
