@@ -90,26 +90,29 @@ def entity_for_reference(svc, ctx, element_path: str, expected_type: str):
         outcome = svc.resolve(IdentityRequest(ev.raw_reference, (expected_type,), ()))
         raise ReferenceNotAPerson(outcome.reason_code, outcome.reason)
 
+    # IR-604: contained-reference scoping used to be applied here, by building
+    # "<scope>|contained|<container url>" into SourceScope.scope_id and
+    # stripping the '#' by hand. The identity service owns that rule now --
+    # it is declared in policies/identity-policy.v1.json under
+    # contained_reference_scoping -- so this caller states the facts and lets
+    # the service derive the scope. The resulting IRIs are unchanged.
     if ev.kind == "contained":
-        # A contained resource has no existence outside its container, so the
-        # identity scope is the containing resource.  Same rule as Agent 2's
-        # proposed MockIdentityService; flagged to Agent 5 as something their
-        # service, not its callers, should own.
-        scope = SourceScope("%s|contained|%s" % (SCOPE_ID, ctx.canonical_url), FHIR_BASE)
-        resource_id = ev.resolved_target.lstrip("#")
+        resource_id = ev.resolved_target
         canonical = None
+        container_url = ctx.canonical_url
     else:
-        scope = SourceScope(SCOPE_ID, FHIR_BASE)
         resource_id = ev.resolved_target.rsplit("/", 1)[-1]
         canonical = ev.resolved_target
+        container_url = None
 
     evidence = ReferenceEvidence(
         evidence_id=element_path,
         kind=ev.kind,
-        source_scope=scope,
+        source_scope=SourceScope(SCOPE_ID, FHIR_BASE),
         resource_type=expected_type,
         resource_id=resource_id,
         canonical_url=canonical,
+        container_url=container_url,
     )
     kind = "person" if expected_type == "Patient" else "practitioner"
     outcome = svc.resolve(

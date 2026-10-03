@@ -40,6 +40,18 @@
     "accepted_merge_evidence": [],
     "accepted_merge_evidence_note": "Empty on purpose. No cross-source merge rule has been reviewed, so no cross-source merge can occur. Adding an entry here is a reviewed decision, not an implementation detail."
   },
+
+  "contained_reference_scoping": {
+    "applies_to_evidence_kind": "contained",
+    "rationale": "A FHIR contained resource has no existence outside the resource that contains it. Two Observations that each carry a contained Patient '#p-inline' describe two different people, and keying them on the dataset scope alone would merge them.",
+    "scope_id_template": "{scope_id}|contained|{container_url}",
+    "strip_leading_hash_from_resource_id": true,
+    "strip_leading_hash_note": "'#p-inline' and 'p-inline' name the same contained resource; normalising here keeps one entity rather than two.",
+    "missing_container_url": "rejected",
+    "missing_container_url_reason_code": "contained-reference-unscoped",
+    "missing_container_url_note": "A contained reference whose container is unknown cannot be scoped. Rejecting is the conservative outcome: silently falling back to the dataset scope is precisely the merge this rule prevents.",
+    "owner_note": "IR-604. This rule used to be applied by each caller - src/fhir_sulo/pipeline/services.py baked it into SourceScope.scope_id, and src/fhir_sulo/ingest/identity_port.py's MockIdentityService had a second, incompatible formula. It is identity policy, so it is declared here and applied by the identity service."
+  },
   "resolution_rules": [
     {
       "rule_id": "ID-R1-single-candidate",
@@ -75,6 +87,18 @@
       "when": "A required key input field is absent or empty after normalisation.",
       "then": "rejected",
       "reason_code": "incomplete-key-inputs"
+    },
+    {
+      "rule_id": "ID-R8-contained-scoped-to-its-container",
+      "when": "A candidate's kind is 'contained' and it carries a container_url.",
+      "then": "resolved",
+      "note": "Keyed in scope '{scope_id}|contained|{container_url}', so '#p-inline' in two containers is two entities. See contained_reference_scoping."
+    },
+    {
+      "rule_id": "ID-R9-contained-without-a-container",
+      "when": "A candidate's kind is 'contained' and it carries no container_url.",
+      "then": "rejected",
+      "reason_code": "contained-reference-unscoped"
     },
     {
       "rule_id": "ID-R7-cross-scope-under-legacy-key",

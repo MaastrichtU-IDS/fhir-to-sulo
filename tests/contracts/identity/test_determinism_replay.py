@@ -75,9 +75,10 @@ def test_replay_in_process_is_also_stable():
 # ---------------------------------------------------------------------------
 
 KEY_PATH_MODULES = (
-    "policy/canonical.py",      # entity + quality keys (Agent 5)
+    "canonical.py",             # IR-602: the ONE canonicaliser; every key goes through it
+    "policy/canonical.py",      # re-export shim, kept so a re-fork here is still scanned
     "policy/record.py",
-    "store/canonical.py",       # graph key canonicalisation (Agent 6)
+    "store/canonical.py",       # re-export shim, same reason
     "store/graph_key.py",       # graph_key / subject_key
     "identity/service.py",
     "terminology/service.py",
@@ -112,8 +113,13 @@ def test_the_declared_key_path_actually_exists():
         "deliberately; do not let the guard silently cover nothing." % missing
     )
     assert len(KEY_PATH_MODULES) >= 4
-    # Both canonicalisers must be covered; they are duplicates that must not
-    # drift (IR-602), and drift is exactly a determinism failure.
+    # IR-602 converged the two canonicalisers into one module. That module is
+    # now the whole project's keying path, so scanning it is mandatory;
+    # scanning the two shims is cheap insurance against someone re-forking one
+    # of them. test_canonicalisers_agree.py is what fails if they do.
+    assert "canonical.py" in KEY_PATH_MODULES, (
+        "the single canonicaliser must be in the declared keying path"
+    )
     assert any(m.endswith("policy/canonical.py") for m in KEY_PATH_MODULES)
     assert any(m.endswith("store/canonical.py") for m in KEY_PATH_MODULES)
 
