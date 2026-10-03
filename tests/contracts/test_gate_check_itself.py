@@ -107,21 +107,65 @@ class GateCheckIsWellFormed(unittest.TestCase):
         self.assertEqual(unmechanised, [],
                          "conditions with no mechanical check: " + "; ".join(unmechanised))
 
-    def test_the_reviewer_signoff_blocks_while_the_review_is_open(self):
-        """The one condition that must never mechanically PASS.
+    def test_the_signoff_passes_because_R7_is_signed(self):
+        """R7 was signed off 2026-10-03.
 
-        It is mechanised -- it parses REVIEW-REQUEST.md -- but while that
-        document is OPEN it must report MANUAL, so no amount of engineering
-        can advance Gate 0 without a human.
+        This previously asserted the condition reported MANUAL while the
+        review was open, which was right until the sign-off arrived. Inverted
+        rather than deleted, and the guarantee it protected -- that the gate
+        cannot pass without R7 -- is asserted below against a synthetic
+        document instead of the shipped one.
         """
         mod = _load_gate_check()
-        signoff = [c for c in mod.CONDITIONS if "Reviewer signs off" in c.text]
-        self.assertEqual(len(signoff), 1, "expected exactly one reviewer sign-off condition")
-        status, detail = signoff[0].evaluate()
-        self.assertEqual(status, mod.MANUAL, f"sign-off reported {status}: {detail}")
-        self.assertIn("not signed off", detail)
+        status, detail = mod.check_review_request_open()
+        self.assertEqual(status, mod.PASS, detail)
+        self.assertIn("R7", detail)
 
+    def test_the_gate_still_blocks_if_R7_is_not_signed(self):
+        """The guarantee the sign-off must not have removed.
 
+        Plan section 4 names the record/fact and PRO/SOLID sign-off as Gate
+        0's condition. If that stopped being checked, Gate 0 would pass on
+        engineering alone, which is the one thing this condition exists to
+        prevent.
+        """
+        import tempfile
+
+        mod = _load_gate_check()
+        real = open(
+            os.path.join(ROOT, "docs", "fhir-sulo", "REVIEW-REQUEST.md"),
+            encoding="utf-8").read()
+        # Un-sign R7 and nothing else.
+        unsigned = real.replace(
+            "## R7 — Record/fact distinction sign-off (explicit Gate 0 condition)"
+            "  \u2705 SIGNED OFF",
+            "## R7 — Record/fact distinction sign-off (explicit Gate 0 condition)")
+        self.assertNotEqual(unsigned, real, "could not un-sign R7; heading changed?")
+
+        handle = tempfile.NamedTemporaryFile(
+            "w", suffix=".md", delete=False, encoding="utf-8")
+        handle.write(unsigned)
+        handle.close()
+
+        status, detail = mod.check_review_request_open(handle.name)
+        self.assertEqual(status, mod.MANUAL, detail)
+        self.assertIn("R7", detail)
+
+    def test_it_refuses_a_request_that_claims_closed_with_items_open(self):
+        import tempfile
+
+        mod = _load_gate_check()
+        real = open(
+            os.path.join(ROOT, "docs", "fhir-sulo", "REVIEW-REQUEST.md"),
+            encoding="utf-8").read()
+        lying = real.replace("**Status:** OPEN", "**Status:** CLOSED", 1)
+        self.assertNotEqual(lying, real)
+        handle = tempfile.NamedTemporaryFile(
+            "w", suffix=".md", delete=False, encoding="utf-8")
+        handle.write(lying)
+        handle.close()
+        status, detail = mod.check_review_request_open(handle.name)
+        self.assertEqual(status, mod.FAIL, detail)
 
     def test_every_pytest_node_id_it_cites_actually_resolves(self):
         """A renamed test class must not quietly hollow out a gate.

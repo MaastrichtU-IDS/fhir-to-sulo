@@ -399,7 +399,30 @@ takes for the person class, and Gate 3's reasoner check depends on it.)
 
 ---
 
-## R7 — Record/fact distinction sign-off (explicit Gate 0 condition)
+## R7 — Record/fact distinction sign-off (explicit Gate 0 condition)  ✅ SIGNED OFF
+
+> **Signed off 2026-10-03 — "yes to all".** All four statements confirmed, each against
+> emitted output rather than intent:
+>
+> 1. **Two-layer representation.** `grep sameAs` across every emitted graph returns nothing.
+>    The FHIR resource and its interpretation are distinct individuals throughout, linked only
+>    by `prov:wasDerivedFrom`.
+> 2. **SOLID quantity pattern.** `ex:egfr-result a sulo:Quantity ; sulo:hasValue "55.0"^^xsd:decimal ;
+>    sulo:hasPart <unit> ; sulo:refersTo <quality> ; sulo:isFeatureOf <person>`, with the quality
+>    `sulo:isFeatureOf` the same person.
+> 3. **PRO role pattern.** `encounter sulo:hasParticipant <role>`, `role sulo:isFeatureOf <holder>`,
+>    for both the patient and the clinician. No `hasPatient` or other shortcut predicate anywhere.
+> 4. **The eGFR result is a reported estimate.** No measurement process, device, specimen or
+>    diagnosis appears in any emitted graph.
+>
+> **This is the condition plan §4 names for Gate 0.** With it signed, Gate 0's stated conditions
+> are met and Gates 1–4 are released from the ordering hold they have been under since they
+> passed their own conditions.
+>
+> R8, R9 and R12 remain open. They are refinements — the practitioner's entity class, blood
+> pressure profiling, and whether a participation type maps to a role class — and none is a
+> Gate 0 condition. Plan §2's other sign-off requirement, "the domain typing and status
+> policies", is covered by R1 and R3, both answered.
 
 Plan Gate 0 pass condition: *"the reviewer signs off on the record/fact distinction and
 PRO/SOLID target patterns."* This is a required sign-off, not a question with options.

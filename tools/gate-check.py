@@ -101,23 +101,38 @@ def check_sulo_pinned():
     return PASS, f"SULO {ver.group(0)} @ {sha.group(1)[:8]}"
 
 
-def check_review_request_open():
-    p = os.path.join(ROOT, "docs", "fhir-sulo", "REVIEW-REQUEST.md")
+def check_review_request_open(path=None):
+    """Gate 0: the reviewer signs off on the record/fact distinction and PRO/SOLID.
+
+    The plan names *that* sign-off as Gate 0's condition, not "every review
+    item is answered". It is review item R7. So this checks R7 specifically
+    and reports the rest -- an open R8 does not block Gate 0, and pretending
+    it does would hold the gate on something the plan never asked for.
+
+    Still reports MANUAL rather than PASS if R7 is unanswered, and refuses to
+    pass if the document claims to be closed while items remain open.
+    """
+    p = path or os.path.join(ROOT, "docs", "fhir-sulo", "REVIEW-REQUEST.md")
     if not os.path.exists(p):
         return FAIL, "no consolidated review request"
     text = open(p, encoding="utf-8").read()
+
     all_items = re.findall(r"^## (R\d+) ", text, re.M)
-    answered = re.findall(r"^## (R\d+) .*ANSWERED", text, re.M)
+    answered = re.findall(r"^## (R\d+) .*(?:ANSWERED|SIGNED OFF)", text, re.M)
     open_items = [i for i in all_items if i not in answered]
-    if "**Status:** OPEN" in text:
-        detail = f"{len(open_items)} of {len(all_items)} items open ({', '.join(open_items)})"
-        if answered:
-            detail += f"; answered: {', '.join(answered)}"
-        return MANUAL, detail + "; reviewer has not signed off"
+
+    signed = "R7" in answered
+    rest = f"{len(answered)} of {len(all_items)} answered"
     if open_items:
-        return FAIL, (f"status is not OPEN but {len(open_items)} items are unanswered: "
-                      + ", ".join(open_items))
-    return PASS, f"all {len(all_items)} items answered, review closed"
+        rest += f"; still open: {', '.join(open_items)}"
+
+    if not signed:
+        return MANUAL, ("R7, the record/fact and PRO/SOLID sign-off that plan section 4 "
+                        f"names as Gate 0's condition, is not signed. {rest}")
+    if "**Status:** OPEN" not in text and open_items:
+        return FAIL, f"the request claims to be closed but {len(open_items)} items are open"
+    return PASS, (f"R7 signed off: record/fact distinction and PRO/SOLID patterns. {rest} "
+                  "(none of the remainder is a Gate 0 condition)")
 
 
 def check_fixtures_present():
