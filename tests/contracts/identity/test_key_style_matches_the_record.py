@@ -69,8 +69,12 @@ class WhatTheChosenStyleGuarantees(unittest.TestCase):
 
         # Derived from the policy, not hardcoded: this list drifted once already.
         # It used to read (person|practitioner|quality), and after DR-010 removed
-        # "practitioner" as an entity kind that alternative silently started
-        # matching the ROLE node ex:practitioner-role-enc-9 instead.
+        # "practitioner" as an entity kind that alternative began matching the
+        # ROLE node ex:practitioner-role-enc-9 instead -- loudly, which is how it
+        # was found: the test failed claiming "role-enc-9" was a non-opaque entity
+        # IRI. The hazard is the reverse one. A hardcoded list goes QUIET when a
+        # prefix is added rather than removed, because the new entity IRIs simply
+        # stop being inspected. Deriving it re-arms the check automatically.
         segments = sorted(
             set(e["entity_kind_segments"].values()) | {e["quality_segment"]},
             key=len, reverse=True)

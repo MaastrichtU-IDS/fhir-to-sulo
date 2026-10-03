@@ -29,6 +29,14 @@ _KEY_SCHEME_VERSION = "fhir-sulo-entity-key/1"
 _QUALITY_KEY_SCHEME_VERSION = "fhir-sulo-quality-key/1"
 
 
+class PolicyInconsistent(ValueError):
+    """The identity policy contradicts itself.
+
+    Distinct from an undeclared entity kind, which is a caller error. This one
+    is a defect in ``policies/identity-policy.v1.json`` and must not be
+    recorded against the request's ``entity_kind``.
+    """
+
 class _UnscopedContained(ValueError):
     """Internal: a contained reference arrived with no container to scope it to.
 
@@ -204,6 +212,17 @@ class IdentityService:
 
         try:
             self._entity_kind_segment(str(request.entity_kind))
+        except PolicyInconsistent as exc:
+            # NOT the caller's fault. Reporting this as ID-R10 would blame the
+            # request's entity_kind, in the audit trail, for a policy that
+            # contradicts itself -- loud, but the wrong diagnosis.
+            return self._reject(
+                "ID-R11-policy-self-contradiction",
+                "identity-policy-inconsistent",
+                str(exc),
+                inputs,
+                evidence,
+            )
         except ValueError as exc:
             return self._reject(
                 "ID-R10-undeclared-entity-kind",
@@ -253,7 +272,7 @@ class IdentityService:
         # The alias is kept for readers that predate the map; disagreement
         # between the two would silently re-key every person IRI.
         if alias is not None and declared.get("person") not in (None, alias):
-            raise ValueError(
+            raise PolicyInconsistent(
                 "identity policy disagrees with itself: person_segment is %r but "
                 "entity_kind_segments['person'] is %r" % (alias, declared["person"])
             )

@@ -128,6 +128,13 @@
       "then": "rejected",
       "reason_code": "undeclared-entity-kind",
       "note": "DR-010. entity_kind is a key input, so it is an identity criterion and must name a rigid property. Anti-rigid terms ('practitioner', 'patient') are roles and belong on a Role individual attached to the person."
+    },
+    {
+      "rule_id": "ID-R11-policy-self-contradiction",
+      "when": "person_segment and entity_kind_segments['person'] disagree.",
+      "then": "rejected",
+      "reason_code": "identity-policy-inconsistent",
+      "note": "Deliberately NOT ID-R10. This is a defect in THIS FILE, not in the caller's entity_kind, and recording it as ID-R10 would blame the request in the audit trail for a policy that contradicts itself."
     }
   ],
   "ambiguity": {
@@ -138,7 +145,8 @@
     "cross_source_without_evidence": "rejected",
     "guessing_permitted": false,
     "api_contract": "Rejection is a distinct return type with no entity IRI attribute. There is no Optional-IRI return anywhere in the identity API.",
-    "undeclared_entity_kind": "rejected"
+    "undeclared_entity_kind": "rejected",
+    "policy_self_contradiction": "rejected"
   },
   "lineage": {
     "retain_source_reference_literal": true,

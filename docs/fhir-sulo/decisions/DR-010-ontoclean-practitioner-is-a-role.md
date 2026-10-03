@@ -247,3 +247,42 @@ contracts/maps/test_order_independence.py::...::test_the_suite_passes_in_a_diffe
 ```
 
 Policy declaration, IRI opacity, and emitted-graph drift each catch it independently.
+
+## Third review pass — C/D/E/F
+
+**C. No bypass.** `_entity_local_name` has one caller, guarded, and itself raises, so a future
+second caller cannot slip past. The quality path never reads `entity_kind`. `MockIdentityService`
+mints IRIs outside the policy but is test-only — `ingest.py:58` defaults to
+`RefusingIdentityService()` and all its call sites are under `tests/contracts/ingest/`.
+
+One real defect found and fixed: `service.py` caught **two different** `ValueError`s and
+reported both as `ID-R10-undeclared-entity-kind`. A policy that contradicts itself was therefore
+blamed, in the audit-trail `DecisionRecord`, on the caller's `entity_kind`. Loud — every request
+fails — but the wrong diagnosis. Now a distinct `PolicyInconsistent` exception and
+`ID-R11-policy-self-contradiction` / `identity-policy-inconsistent`, with two tests asserting
+the codes do not collapse back into one.
+
+**D. No coverage lost: 19 entity IRIs inspected, same 19 as before.** The old hardcoded
+`(person|practitioner|quality)` matched 2 extra strings that were not entity IRIs at all —
+`practitioner-role-enc-9` and `practitioner-role-enc-12`, matched because `practitioner-`
+prefixes `practitioner-role-…` — and those were the source of all 10 non-opaque hits. Same real
+IRIs, 2 false positives dropped, and the alternation now re-arms if a kind is re-declared.
+
+A comment I wrote about this was inaccurate and is corrected: it said the old pattern "silently"
+started matching the role node. It did not — it failed loudly, which is how it was found. The
+real hazard runs the other way: a hardcoded list goes **quiet** when a prefix is *added*,
+because the new entity IRIs simply stop being inspected.
+
+**E. The regenerated graphs are genuine pipeline output.** `fixtures/expected/` copied aside,
+`build.py` re-run, diffed byte-identical; `Practitioner/c7 → person-afd67e8e…` recomputed
+independently and matches `enc-baseline/target.nt`; the patient IRI is unchanged as predicted.
+
+**F. Nothing else weakened.** The two edits that had to change removed a stale alternative
+rather than relaxing an assertion.
+
+One further note, and the reviewer's concern here does **not** reproduce:
+`test_reviewer_decisions.py` guarded with `if key in vocabulary(family)`, which would skip
+rather than fail on a rename. That is loose and is now an explicit per-family expectation. But
+the failure it feared cannot occur: `practitionerSuloClass` is listed by a pass, so renaming it
+raises `ManifestError` from the manifest linter before any test body runs. Defence in depth, not
+a live hole — recorded so the record does not overclaim.

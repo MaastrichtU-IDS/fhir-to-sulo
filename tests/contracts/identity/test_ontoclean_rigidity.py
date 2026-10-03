@@ -224,3 +224,64 @@ class ResourceTypeStillPartitionsPeople(unittest.TestCase):
             self._key_inputs("Practitioner")["entity_kind"],
             "entity_kind differs between a Patient and a Practitioner reference again",
         )
+
+
+class APolicyDefectIsNotBlamedOnTheCaller(unittest.TestCase):
+    """Review finding: both ValueErrors reported as ID-R10.
+
+    ``_entity_kind_segments`` raises when the policy contradicts itself;
+    ``_entity_kind_segment`` raises when the caller passes an undeclared kind.
+    Both were caught as ``ValueError`` and recorded as
+    ``ID-R10-undeclared-entity-kind``, so a self-contradicting policy was
+    blamed on the request's ``entity_kind`` in the audit-trail DecisionRecord.
+    Loud -- every request fails -- but the wrong diagnosis.
+    """
+
+    def _service_with(self, **entity_iri_overrides):
+        import copy
+
+        from fhir_sulo.identity.service import IdentityService as _IS
+
+        svc = _IS()
+        patched = copy.deepcopy(dict(svc._iri))
+        patched.update(entity_iri_overrides)
+        svc._iri = patched
+        return svc
+
+    def _resolve(self, svc):
+        evidence = ReferenceEvidence(
+            evidence_id="e",
+            kind="literal-reference",
+            source_scope=SourceScope("synthea-pilot-r4", "https://fhir.example/"),
+            resource_type="Patient",
+            resource_id="c7",
+            canonical_url="https://fhir.example/Patient/c7",
+        )
+        return svc.resolve(
+            IdentityRequest("Patient/c7", ("Patient",), (evidence,), entity_kind="person")
+        )
+
+    def test_a_self_contradicting_policy_reports_its_own_rule(self):
+        outcome = self._resolve(self._service_with(person_segment="somebody-"))
+        self.assertFalse(outcome.is_resolved)
+        self.assertEqual(outcome.reason_code, "identity-policy-inconsistent")
+        self.assertEqual(outcome.record.rule_id, "ID-R11-policy-self-contradiction")
+
+    def test_an_undeclared_kind_still_reports_the_caller_rule(self):
+        """The two must not collapse back into one code."""
+        svc = self._service_with()
+        evidence = ReferenceEvidence(
+            evidence_id="e",
+            kind="literal-reference",
+            source_scope=SourceScope("synthea-pilot-r4", "https://fhir.example/"),
+            resource_type="Practitioner",
+            resource_id="c7",
+            canonical_url="https://fhir.example/Practitioner/c7",
+        )
+        outcome = svc.resolve(
+            IdentityRequest("Practitioner/c7", ("Practitioner",), (evidence,),
+                            entity_kind="practitioner")
+        )
+        self.assertFalse(outcome.is_resolved)
+        self.assertEqual(outcome.reason_code, "undeclared-entity-kind")
+        self.assertEqual(outcome.record.rule_id, "ID-R10-undeclared-entity-kind")

@@ -83,12 +83,23 @@ class R6PeopleAreSpatialObjects(engine.EngineTestCase):
         cls.enc = encounter_case.run("enc-baseline")
 
     def test_the_run_bindings_say_spatial_object(self):
+        # A per-family expectation, not an "if present" guard: `if key in ...`
+        # meant a future rename would SKIP rather than fail, which is the way a
+        # reviewer decision stops being checked without anyone noticing.
+        expected = {"encounter": ("personSuloClass", "practitionerSuloClass")}
+        checked = 0
         for family in FAMILIES:
-            for key in ("personSuloClass", "practitionerSuloClass"):
-                if key in vocabulary(family):
-                    with self.subTest(family=family, key=key):
-                        self.assertEqual(vocabulary(family)[key]["iri"],
-                                         "https://w3id.org/sulo/SpatialObject")
+            keys = expected.get(family, ("personSuloClass",))
+            for key in keys:
+                with self.subTest(family=family, key=key):
+                    self.assertIn(
+                        key, vocabulary(family),
+                        "%s no longer declares %r. If it was renamed, update this "
+                        "expectation; R6's answer must stay checked." % (family, key))
+                    self.assertEqual(vocabulary(family)[key]["iri"],
+                                     "https://w3id.org/sulo/SpatialObject")
+                    checked += 1
+        self.assertGreater(checked, 0)
 
     def test_the_emitted_person_and_practitioner_are_spatial_objects(self):
         for label, result, keys in (("egfr", self.egfr, ("person",)),
