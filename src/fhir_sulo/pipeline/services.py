@@ -33,6 +33,7 @@ def policy_bundle(quality_mode: Optional[str] = "per-observation"):
     return PolicyBundle(
         identity=identity,
         code_interpretation=bundle.code_interpretation,
+        participation_type=bundle.participation_type,
         unit=bundle.unit,
         source_dir=bundle.source_dir,
     )

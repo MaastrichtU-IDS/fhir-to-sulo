@@ -182,6 +182,16 @@ class Encounter(Family):
             canonicalUrl=canonical_url))
         values["person"] = person.entity_iri
         values["practitioner"] = practitioner.entity_iri
+        # R12. The role class comes from the reviewed participation-type table,
+        # keyed on the code the RESOURCE actually carries -- not from a
+        # constant in the manifest that would merely coincide with it. The
+        # manifest default is overwritten here on purpose; a resource whose
+        # participation type has no reviewed binding raises rather than
+        # emitting an under-specified role.
+        values["participationRoleClass"] = terminology.participation_role_class(
+            lexical(bindings, "participantTypeSystem"),
+            lexical(bindings, "participantType"),
+        )
         return ResolvedValues(values=values, person_iri=person.entity_iri)
 
 

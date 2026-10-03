@@ -1,8 +1,8 @@
 # Consolidated review request — clinical and ontology interpretations
 
-**Status:** OPEN — awaiting the human clinical/ontology reviewer
-**Answered:** R1 · R1b · R1d · R2 · R3 · R4 · R5 · R6 · R7 · R8 · R9 · R10 · R11.
-**1 of 12 remains open:** R12 — R3 is answered bar two residues; R7 is signed off; R8 is fully answered (DR-010 OntoClean, DR-011 identifier keying); R9 is answered and applied (DR-012). R5b closed with nothing to implement; **R5c withdrawn** — its premise was false.
+**Status:** ALL 12 ITEMS ANSWERED as of 2026-10-03. Residues and follow-ups are listed per item; none blocks a gate.
+**Answered:** R1 · R2 · R3 · R4 · R5 · R6 · R7 · R8 · R9 · R10 · R11 · R12.
+**0 of 12 remain open.** R12 answered 2026-10-03 (DR-013). R3 is answered bar two residues; R7 is signed off; R8 is fully answered (DR-010 OntoClean, DR-011 identifier keying); R9 is answered and applied (DR-012). R5b closed with nothing to implement; **R5c withdrawn** — its premise was false.
 R1's namespace `https://w3id.org/ontostart/fhir2sulo/` is applied; R4, R6 and R11 are being
 applied to the maps and shapes.
 **Raised by:** Agent 1 (integration lead)
@@ -687,19 +687,38 @@ about intent, not a decision.
 
 ---
 
-## R12 — Should the FHIR participation type map to a role class?
+## R12 — Should the FHIR participation type map to a role class?  ✅ ANSWERED
 
-**Blocks:** Gate 3 Encounter roles, and any later resource with typed participation.
+**Answered 2026-10-03: BOTH classes on the role node. Applied — see
+[DR-013](decisions/DR-013-r12-participation-type-types-the-role.md).**
 
-`Encounter.participant.type` carries codes such as `PPRF` (primary performer), `SBJ`, `ATND`.
-Currently `PPRF` is **bound and guarded but types nothing** — the clinician role class comes
-from the domain vocabulary (R1) instead, so the FHIR code is retained without being promoted to
-an OWL class assertion, per §2.
+```turtle
+ex:practitioner-role-enc-9  a sulo:Role, ex:PractitionerRole, ex:PrimaryPerformerRole .
+```
 
-**Options** — **A.** keep it source-only (current); **B.** add a reviewed participation-type
-table mapping `PPRF`/`SBJ`/`ATND`/… to role classes.
+A new reviewed table, `policies/participation-type-interpretation.v1.json`, binds
+`PPRF → ex:PrimaryPerformerRole`. `SBJ` and `ATND` are present as `proposed` and type nothing,
+so adding them later is a reviewed edit rather than an invention.
 
-If B, the table itself needs review, in the same way the code interpretation table does.
+**A concern I raised did not survive.** I argued two classes make one node "two roles at once".
+They are not disjoint, and the node sits in their intersection — the role held *qua
+practitioner*, and the primary-performer role in this one encounter. One role, two true things
+about it.
+
+**A concern that does stand, recorded and not re-litigated:** the two classes are not on equal
+evidential footing. `ex:PrimaryPerformerRole` comes from a coded clinical statement via a
+reviewed table; `ex:PractitionerRole` comes from the **FHIR resource type** of the referenced
+resource, which is record metadata. DR-010's defence of that name — "derived from what the
+record states" — was thinner than it sounded. If revisited, the question is whether
+`ex:PractitionerRole` should come off the node entirely.
+
+One default deliberately differs from the observation-code table: an unknown participation type
+is **rejected**, not source-only. The role node is emitted either way, so ignoring a code that
+says what the participation was would assert an under-specified role rather than decline to
+assert one.
+
+`policy_version` gained `+part-1.0.0`: a fourth reviewed table that can change emitted triples
+must appear in what a `RunRecord` carries.
 
 ---
 

@@ -36,6 +36,14 @@
       "note": "The FHIR participation type PPRF (primary performer) is bound by the source schema and guarded to PPRF, but it does not itself type this role. A reviewed participation-type-to-role-class table is the natural home for that mapping and does not exist yet.",
       "reviewer_override": "The ruling is OntoClean: 'practitioner' names an anti-rigid property, so it must be carried by a Role individual rather than by the person. PractitionerRole is preferred over the note's ClinicianRole because Encounter.participant.individual references a Practitioner, so it is derived from what the record states; ClinicianRole names a clinical function the source did not assert. Leaves R12 free to refine it from a reviewed participation-type table."
     },
+    "participationRoleClass": {
+      "iri": "https://w3id.org/ontostart/fhir2sulo/PrimaryPerformerRole",
+      "status": "pilot-provisional",
+      "source": "policies/participation-type-interpretation.v1.json :: PART-V3-PPRF [R12]",
+      "reviewer_item": "R12, answered 2026-10-03: 'Both classes on the role node'",
+      "note": "NOT a second role node. The same encounter-scoped role node carries this AND practitionerRoleClass. The two are not disjoint and the node is in their intersection: the role held qua practitioner, and the primary-performer role in this one encounter.",
+      "derivation": "From a CODED CLINICAL STATEMENT (Encounter.participant.type) via a reviewed table -- unlike practitionerRoleClass, which comes from the FHIR resource type of the referenced resource. See DR-013."
+    },
     "personClass": {
       "iri": "https://w3id.org/ontostart/fhir2sulo/Person",
       "source": "concept note section 4 example graph (ex:Person)",
@@ -131,6 +139,7 @@
       "root": "practitionerRole",
       "vars": [
         "practitionerRoleClass",
+        "participationRoleClass",
         "practitioner"
       ]
     },

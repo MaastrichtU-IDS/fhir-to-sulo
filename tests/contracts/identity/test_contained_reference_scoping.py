@@ -231,6 +231,7 @@ def test_a_policy_that_weakens_the_rule_fails_to_load(mutate, why):
     variant = PolicyBundle(
         identity=identity_policy,
         code_interpretation=bundle.code_interpretation,
+        participation_type=bundle.participation_type,
         unit=bundle.unit,
         source_dir=bundle.source_dir,
     )

@@ -39,6 +39,7 @@ def _variant(mutate):
     return PolicyBundle(
         identity=identity_policy,
         code_interpretation=code,
+        participation_type=bundle.participation_type,
         unit=unit,
         source_dir=bundle.source_dir,
     )

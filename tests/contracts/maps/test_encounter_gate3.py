@@ -75,12 +75,26 @@ class EncounterBaseline(engine.EngineTestCase):
             sorted(["<%s>" % self.values["person"], "<%s>" % self.values["practitioner"]]))
 
     def test_the_two_roles_are_typed_and_held(self):
-        for role, cls, holder in (("patientRole", "PatientRole", "person"),
-                                  ("practitionerRole", "PractitionerRole", "practitioner")):
+        """R12, answered 2026-10-03 as "both": the practitioner role node now
+        carries THREE types, not two.
+
+        Kept as an exact-set assertion rather than a containment one. The
+        point of the check is that nothing strays into a role node, and
+        ``assertIn`` would not notice a fourth type arriving.
+        """
+        expected = {
+            # one role node, two non-disjoint classes plus sulo:Role
+            "practitionerRole": ["<%sRole>" % SULO,
+                                 "<%sPractitionerRole>" % EX,
+                                 "<%sPrimaryPerformerRole>" % EX],
+            "patientRole": ["<%sRole>" % SULO, "<%sPatientRole>" % EX],
+        }
+        for role, holder in (("patientRole", "person"),
+                             ("practitionerRole", "practitioner")):
             with self.subTest(role=role):
                 iri = "<%s>" % self.values[role]
                 self.assertEqual(sorted(graph.types_of(self.triples, iri)),
-                                 sorted(["<%sRole>" % SULO, "<%s%s>" % (EX, cls)]))
+                                 sorted(expected[role]))
                 self.assertEqual(graph.objects_of(self.triples, iri, IS_FEATURE_OF),
                                  ["<%s>" % self.values[holder]])
 

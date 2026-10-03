@@ -7,7 +7,7 @@
     "maps/r4/encounter/encounter-target.v1.shex",
     "maps/r4/encounter/encounter-bindings.v1.json"
   ],
-  "pairing_hash": "f7edac7226206ffcd46040369047e9f7c3c383f41e43710101c536f70f243cfa",
+  "pairing_hash": "8df9bc6aeb2681bee3044d369eb7e8c71e40b7d33e3f2bdf3873c3d090b191f3",
   "pairing_hash_note": "Recomputed and checked by tests/contracts/maps/test_map_contracts.py; written by `python3 maps/r4/rehash.py`.",
   "source_release": "R4",
   "source_profiles": [
@@ -193,6 +193,7 @@
     "encounterClass": "encounter-bindings.v1.json :: vocabulary.encounterClass [R1]",
     "patientRoleClass": "encounter-bindings.v1.json :: vocabulary.patientRoleClass [R1]",
     "practitionerRoleClass": "encounter-bindings.v1.json :: vocabulary.practitionerRoleClass [R1]",
+    "participationRoleClass": "HOST-RESOLVED, not a constant: TerminologyService.participation_role_class(Encounter.participant.type) against the reviewed table policies/participation-type-interpretation.v1.json. Listed among the statics because the engine receives it as a run binding, but the host overwrites the manifest default with the class that table gives for the code the resource actually carries. An unreviewed participation type raises before the engine is called. [R12, DR-013]",
     "personClass": "encounter-bindings.v1.json :: vocabulary.personClass [R1]",
     "personSuloClass": "encounter-bindings.v1.json :: vocabulary.personSuloClass [R6]",
     "practitionerClass": "encounter-bindings.v1.json :: vocabulary.practitionerClass [R8a]",

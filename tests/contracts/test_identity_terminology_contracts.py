@@ -160,6 +160,7 @@ class IdentityContract(unittest.TestCase):
         unset = PolicyBundle(
             identity=identity_policy,
             code_interpretation=bundle.code_interpretation,
+            participation_type=bundle.participation_type,
             unit=bundle.unit,
             source_dir=bundle.source_dir,
         )
@@ -257,6 +258,7 @@ class DeterminismContract(unittest.TestCase):
         variant = PolicyBundle(
             identity=identity_policy,
             code_interpretation=bundle.code_interpretation,
+            participation_type=bundle.participation_type,
             unit=bundle.unit,
             source_dir=bundle.source_dir,
         )

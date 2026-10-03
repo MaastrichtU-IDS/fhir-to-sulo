@@ -96,6 +96,7 @@ def test_a_policy_change_changes_the_bundle_digest():
     variant = PolicyBundle(
         identity=tweaked,
         code_interpretation=bundle.code_interpretation,
+        participation_type=bundle.participation_type,
         unit=bundle.unit,
         source_dir=bundle.source_dir,
     )

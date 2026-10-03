@@ -99,6 +99,7 @@ def test_a_duplicate_table_entry_fails_validation():
     variant = PolicyBundle(
         identity=bundle.identity,
         code_interpretation=codes,
+        participation_type=bundle.participation_type,
         unit=bundle.unit,
         source_dir=bundle.source_dir,
     )
@@ -115,6 +116,7 @@ def test_an_unknown_review_status_fails_validation():
     variant = PolicyBundle(
         identity=bundle.identity,
         code_interpretation=codes,
+        participation_type=bundle.participation_type,
         unit=bundle.unit,
         source_dir=bundle.source_dir,
     )

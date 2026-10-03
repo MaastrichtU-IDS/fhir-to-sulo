@@ -64,9 +64,19 @@ sh:PatientRoleNode {
   sulo:isFeatureOf IRI %Map:{ v:person %}
 }
 
+# R12, answered 2026-10-03 as "both": this ONE encounter-scoped role node
+# carries two classes, not two nodes. They are not disjoint and the node sits
+# in their intersection -- the role held qua practitioner, and the
+# primary-performer role in this one encounter.
+#
+# They are not on equal evidential footing, which DR-013 records:
+# practitionerRoleClass comes from the FHIR RESOURCE TYPE of the referenced
+# resource (record metadata); participationRoleClass comes from a coded
+# clinical statement, Encounter.participant.type, via a reviewed table.
 sh:PractitionerRoleNode {
   rdf:type [sulo:Role] ;
   rdf:type IRI %Map:{ v:practitionerRoleClass %} ;
+  rdf:type IRI %Map:{ v:participationRoleClass %} ;
   sulo:isFeatureOf IRI %Map:{ v:practitioner %}
 }
 

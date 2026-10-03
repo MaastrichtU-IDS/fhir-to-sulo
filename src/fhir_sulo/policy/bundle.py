@@ -32,6 +32,7 @@ POLICY_BUNDLE_NAME = "fhir-sulo-policies"
 _POLICY_VERSION_RE = re.compile(
     r"^(?P<bundle>[a-z0-9-]+)/identity-(?P<identity>[^+]+)"
     r"\+code-(?P<code_interpretation>[^+]+)"
+    r"\+part-(?P<participation_type>[^+]+)"
     r"\+unit-(?P<unit>[^+]+)"
     r"\+sha256\.(?P<digest_prefix>[0-9a-f]{16})$"
 )
@@ -55,6 +56,10 @@ def parse_policy_version(policy_version: str) -> Dict[str, str]:
 _FILES = {
     "identity_policy": "identity-policy.v1.json",
     "code_interpretation": "code-interpretation.v1.json",
+    # R12. A separate reviewed table: a participation type answers a different
+    # question from an observation code -- not what was measured, but what part
+    # a participant played in a process.
+    "participation_type": "participation-type-interpretation.v1.json",
     "unit_policy": "unit-policy.v1.json",
 }
 
@@ -72,6 +77,7 @@ def default_policy_dir() -> Path:
 class PolicyBundle:
     identity: Mapping[str, Any]
     code_interpretation: Mapping[str, Any]
+    participation_type: Mapping[str, Any]
     unit: Mapping[str, Any]
     source_dir: str
 
@@ -96,6 +102,7 @@ class PolicyBundle:
         bundle = cls(
             identity=loaded["identity_policy"],
             code_interpretation=loaded["code_interpretation"],
+            participation_type=loaded["participation_type"],
             unit=loaded["unit_policy"],
             source_dir=str(root),
         )
@@ -117,10 +124,11 @@ class PolicyBundle:
         change the keying answer moves this string while leaving every IRI
         alone. See ``entity_key_revision``.
         """
-        return "%s/identity-%s+code-%s+unit-%s+sha256.%s" % (
+        return "%s/identity-%s+code-%s+part-%s+unit-%s+sha256.%s" % (
             POLICY_BUNDLE_NAME,
             self.identity["version"],
             self.code_interpretation["version"],
+            self.participation_type["version"],
             self.unit["version"],
             self.bundle_digest[:16],
         )
@@ -150,6 +158,7 @@ class PolicyBundle:
             "policy_version": self.policy_version,
             "identity_policy": str(self.identity["version"]),
             "code_interpretation": str(self.code_interpretation["version"]),
+            "participation_type": str(self.participation_type["version"]),
             "unit_policy": str(self.unit["version"]),
             "terminology_snapshot": self.terminology_snapshot,
             "entity_key_revision": self.entity_key_revision,
@@ -164,6 +173,7 @@ class PolicyBundle:
             {
                 "identity_policy": self.identity,
                 "code_interpretation": self.code_interpretation,
+                "participation_type": self.participation_type,
                 "unit_policy": self.unit,
             }
         )
@@ -241,6 +251,7 @@ class PolicyBundle:
 
         for table, entry_key, id_key in (
             (self.code_interpretation, "entries", "entry_id"),
+            (self.participation_type, "entries", "entry_id"),
             (self.unit, "units", "unit_id"),
         ):
             seen = set()

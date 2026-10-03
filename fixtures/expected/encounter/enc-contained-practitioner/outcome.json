@@ -14,5 +14,5 @@
     "engine": "shex@1.0.0-alpha.33 via ThreadedMaterializer"
   },
   "target_graph": "target.nt",
-  "triple_count": 29
+  "triple_count": 30
 }

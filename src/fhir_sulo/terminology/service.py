@@ -23,6 +23,7 @@ from .types import (
     UnitRejected,
     UnitResolved,
     UnitSourceOnly,
+    ParticipationTypeNotInterpretable,
 )
 
 __all__ = ["TerminologyService"]
@@ -34,6 +35,7 @@ class TerminologyService:
     def __init__(self, policy: Optional[PolicyBundle] = None) -> None:
         self.policy = policy if policy is not None else PolicyBundle.load()
         self._codes = self.policy.code_interpretation
+        self._participation = self.policy.participation_type
         self._units = self.policy.unit
         self.assert_offline()
 
@@ -41,6 +43,11 @@ class TerminologyService:
         for entry in self._codes["entries"]:
             key = (normalise_text(entry["system"]), normalise_text(entry["code"]))
             self._code_index[key] = entry
+
+        self._participation_index: Dict[Tuple[str, str], Mapping[str, Any]] = {}
+        for entry in self._participation["entries"]:
+            key = (normalise_text(entry["system"]), normalise_text(entry["code"]))
+            self._participation_index[key] = entry
 
         self._unit_index: Dict[Tuple[str, str], Mapping[str, Any]] = {}
         for unit in self._units["units"]:
@@ -63,6 +70,48 @@ class TerminologyService:
     @property
     def policy_versions(self) -> Dict[str, str]:
         return self.policy.versions
+
+    # -- participation types (R12) -----------------------------------------
+
+    def participation_role_class(self, system: str, code: str) -> str:
+        """The role class a reviewed participation type asserts.
+
+        R12. Concept note section 2 still governs: the code literal alone is
+        not a class assertion -- an entry in
+        ``policies/participation-type-interpretation.v1.json`` is what makes
+        it one.
+
+        Raises rather than returning ``None``. The role node is emitted either
+        way, so a caller that got ``None`` and carried on would assert an
+        under-specified role rather than decline to assert one. The table's
+        ``defaults`` say ``rejected`` for an unknown code, deliberately unlike
+        the observation-code table's ``source-only``.
+        """
+        key = (normalise_text(system), normalise_text(code))
+        entry = self._participation_index.get(key)
+        if entry is None:
+            raise ParticipationTypeNotInterpretable(
+                "participation-type-unreviewed",
+                "participation type %s|%s has no entry in the reviewed table, so there is "
+                "no role class to assert. Adding one is a reviewed decision (R12)."
+                % (system, code),
+            )
+        status = normalise_text(str(entry.get("review_status") or ""))
+        if status not in self._participation["interpretable_statuses"]:
+            raise ParticipationTypeNotInterpretable(
+                "participation-type-not-interpretable",
+                "participation type %s|%s is %r in the reviewed table, which is not an "
+                "interpretable status %s, so it types nothing."
+                % (system, code, status, self._participation["interpretable_statuses"]),
+            )
+        role_class = entry.get("role_class")
+        if not role_class:
+            raise ParticipationTypeNotInterpretable(
+                "participation-type-has-no-class",
+                "participation type %s|%s is interpretable but its entry declares no "
+                "role_class." % (system, code),
+            )
+        return str(role_class)
 
     # -- codes -------------------------------------------------------------
 

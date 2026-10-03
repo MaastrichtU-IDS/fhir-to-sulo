@@ -163,3 +163,17 @@ what the record states rather than from a clinical function the source never ass
 This also diverges from concept note §6, which writes `ex:ClinicianRole` and
 `ex:clinician-role-enc-9`. The divergence is reviewer-ordered and is flagged in
 `maps/r4/encounter/encounter-bindings.v1.json`, whose other local names still match §6 exactly.
+
+
+---
+
+## Addendum — 2026-10-03: a 13th class, `PrimaryPerformerRole` (DR-013)
+
+R12 was answered "both": the encounter-scoped role node carries `ex:PractitionerRole` **and**
+`ex:PrimaryPerformerRole`. The count goes from 12 to **13**.
+
+Unlike the other twelve, this one is not bound from the manifest's static vocabulary alone. It
+comes from a reviewed table, `policies/participation-type-interpretation.v1.json`, keyed on the
+`Encounter.participant.type` code the resource actually carries — so it is the first domain
+class in this pilot derived from a **coded clinical statement** rather than from a position in a
+schema or a FHIR resource type. See [DR-013](DR-013-r12-participation-type-types-the-role.md).

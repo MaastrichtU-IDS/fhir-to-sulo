@@ -268,3 +268,17 @@ class UnitRejected(_UnitOutcomeBase):
 
 
 UnitOutcome = Union[UnitResolved, UnitSourceOnly, UnitRejected]
+
+
+class ParticipationTypeNotInterpretable(Exception):
+    """A participation type has no reviewed role-class binding (R12).
+
+    Deliberately an exception rather than a ``None`` return: the role node is
+    emitted either way, so a caller that silently carried on would assert an
+    under-specified role instead of declining to assert one.
+    """
+
+    def __init__(self, reason_code: str, reason: str):
+        self.reason_code = reason_code
+        self.reason = reason
+        super().__init__(reason)

@@ -31,6 +31,7 @@ def _bundle(mode):
     return PolicyBundle(
         identity=identity_policy,
         code_interpretation=bundle.code_interpretation,
+        participation_type=bundle.participation_type,
         unit=bundle.unit,
         source_dir=bundle.source_dir,
     )

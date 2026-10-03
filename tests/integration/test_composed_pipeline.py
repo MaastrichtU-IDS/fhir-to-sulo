@@ -62,6 +62,30 @@ def fixture(family: str, case: str, name: str) -> Path:
 class TestFhirJsonToTargetGraph(unittest.TestCase):
     """FHIR JSON in, a loadable TransformResult out."""
 
+    def test_an_unreviewed_participation_type_is_refused_by_the_schema(self):
+        """R12's FIRST guard, and the one that fires today.
+
+        The source shape admits only PPRF, so ATND never reaches the host's
+        terminology lookup. The policy table's rejection is the SECOND guard
+        -- currently unreachable through the pipeline, and deliberately kept,
+        because the schema's value set is expected to widen and a code that
+        got past it must still not be given PPRF's role class by default.
+        The same two-guard arrangement as _refuse_unconsulted_participants.
+        """
+        import json
+        import os
+        import tempfile
+
+        from fhir_sulo.engine.driver import SourceValidationFailure
+
+        doc = json.load(open(fixture("encounter", "enc-baseline", "enc-9.json")))
+        doc["participant"][0]["type"][0]["coding"][0]["code"] = "ATND"
+        path = os.path.join(tempfile.mkdtemp(), "enc-atnd.json")
+        with open(path, "w") as handle:
+            json.dump(doc, handle)
+        with self.assertRaises(SourceValidationFailure):
+            pipeline("encounter").run_file(path)
+
     def test_blood_pressure_maps(self):
         out = pipeline("bp").run_file(fixture("bp", "bp-two-panels", "bp-1.json"))
         self.assertIs(out.transform.status, TransformStatus.MAPPED)

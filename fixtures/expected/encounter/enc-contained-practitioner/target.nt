@@ -25,6 +25,7 @@
 <https://w3id.org/ontostart/fhir2sulo/person-4a834c289a44afee93566aff63d96e49> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/sulo/SpatialObject> .
 <https://w3id.org/ontostart/fhir2sulo/person-4a834c289a44afee93566aff63d96e49> <https://w3id.org/sulo/hasFeature> <https://w3id.org/ontostart/fhir2sulo/practitioner-role-enc-12> .
 <https://w3id.org/ontostart/fhir2sulo/practitioner-role-enc-12> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/ontostart/fhir2sulo/PractitionerRole> .
+<https://w3id.org/ontostart/fhir2sulo/practitioner-role-enc-12> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/ontostart/fhir2sulo/PrimaryPerformerRole> .
 <https://w3id.org/ontostart/fhir2sulo/practitioner-role-enc-12> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/sulo/Role> .
 <https://w3id.org/ontostart/fhir2sulo/practitioner-role-enc-12> <https://w3id.org/sulo/isFeatureOf> <https://w3id.org/ontostart/fhir2sulo/person-4a834c289a44afee93566aff63d96e49> .
 <https://w3id.org/ontostart/fhir2sulo/start-enc-12> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/sulo/StartTime> .

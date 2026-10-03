@@ -117,6 +117,7 @@ def test_readable_key_style_still_scopes(tmp_path):
     variant = PolicyBundle(
         identity=identity_policy,
         code_interpretation=bundle.code_interpretation,
+        participation_type=bundle.participation_type,
         unit=bundle.unit,
         source_dir=bundle.source_dir,
     )
@@ -141,6 +142,7 @@ def test_legacy_key_style_rejects_a_second_source_scope():
     variant = PolicyBundle(
         identity=identity_policy,
         code_interpretation=bundle.code_interpretation,
+        participation_type=bundle.participation_type,
         unit=bundle.unit,
         source_dir=bundle.source_dir,
     )
@@ -167,6 +169,7 @@ def test_legacy_key_style_without_a_declared_scope_fails_to_load():
     variant = PolicyBundle(
         identity=identity_policy,
         code_interpretation=bundle.code_interpretation,
+        participation_type=bundle.participation_type,
         unit=bundle.unit,
         source_dir=bundle.source_dir,
     )
