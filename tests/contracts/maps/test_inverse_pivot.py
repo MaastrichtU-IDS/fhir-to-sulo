@@ -212,9 +212,9 @@ class EncounterInverse(engine.EngineTestCase):
         patient = reverse(self.SCHEMA, self.GRAPH, self.v["patientRole"],
                           ENC_SH + "PatientRoleNode", ENC_V)
         self.assertEqual(patient["person"], self.v["person"])
-        clinician = reverse(self.SCHEMA, self.GRAPH, self.v["clinicianRole"],
-                            ENC_SH + "ClinicianRoleNode", ENC_V)
-        self.assertEqual(clinician["clinician"], self.v["clinician"])
+        practitioner = reverse(self.SCHEMA, self.GRAPH, self.v["practitionerRole"],
+                            ENC_SH + "PractitionerRoleNode", ENC_V)
+        self.assertEqual(practitioner["practitioner"], self.v["practitioner"])
 
     def test_the_interval_recovers_both_endpoints(self):
         back = reverse(self.SCHEMA, self.GRAPH, self.v["interval"],

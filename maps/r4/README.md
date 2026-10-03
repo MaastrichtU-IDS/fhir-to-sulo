@@ -48,7 +48,7 @@ from and which review item governs it:
 | R2 quality identity | `identity_provided.*Quality` → `policies/identity-policy.v1.json` |
 | R4 `sulo:Quality` vs `sulo:Feature` | `vocabulary.qualityBranch.iri` |
 | R6 person SULO parent | `vocabulary.personSuloClass.iri` |
-| R8a practitioner entity kind | `vocabulary.clinicianClass.iri` |
+| R8a practitioner entity kind | `vocabulary.practitionerClass.iri` |
 | R9 BP panel typing | `not_emitted.panelClass` |
 
 `tests/contracts/maps/test_map_contracts.py` asserts the manifests mirror the policy tables

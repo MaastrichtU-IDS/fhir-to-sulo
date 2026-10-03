@@ -39,7 +39,7 @@ class EncounterBaseline(engine.EngineTestCase):
         self.assertEqual(
             graph.objects_of(self.triples, process, HAS_PARTICIPANT),
             sorted(["<%s>" % self.values["patientRole"],
-                    "<%s>" % self.values["clinicianRole"]]))
+                    "<%s>" % self.values["practitionerRole"]]))
         self.assertEqual(graph.objects_of(self.triples, process, "<%satTime>" % SULO),
                          ["<%s>" % self.values["interval"]])
 
@@ -58,25 +58,25 @@ class EncounterBaseline(engine.EngineTestCase):
                             "check above proves nothing")
 
     def test_the_patient_role_is_held_by_the_subject_and_not_the_practitioner(self):
-        """A cross-wired target schema -- patientRole isFeatureOf the clinician --
+        """A cross-wired target schema -- patientRole isFeatureOf the practitioner --
         must fail.  The two holders come from two different FHIR references, so
         comparing the emitted arcs to the resolved entities catches a swap."""
-        self.assertNotEqual(self.values["person"], self.values["clinician"])
+        self.assertNotEqual(self.values["person"], self.values["practitioner"])
         self.assertEqual(
             graph.objects_of(self.triples, "<%s>" % self.values["patientRole"], IS_FEATURE_OF),
             ["<%s>" % self.values["person"]])
         self.assertEqual(
-            graph.objects_of(self.triples, "<%s>" % self.values["clinicianRole"], IS_FEATURE_OF),
-            ["<%s>" % self.values["clinician"]])
+            graph.objects_of(self.triples, "<%s>" % self.values["practitionerRole"], IS_FEATURE_OF),
+            ["<%s>" % self.values["practitioner"]])
         entailed = graph.entailed_participants(self.triples)
         process = "<%s>" % self.values["process"]
         self.assertEqual(
             sorted(h for p, h in entailed if p == process),
-            sorted(["<%s>" % self.values["person"], "<%s>" % self.values["clinician"]]))
+            sorted(["<%s>" % self.values["person"], "<%s>" % self.values["practitioner"]]))
 
     def test_the_two_roles_are_typed_and_held(self):
         for role, cls, holder in (("patientRole", "PatientRole", "person"),
-                                  ("clinicianRole", "ClinicianRole", "clinician")):
+                                  ("practitionerRole", "PractitionerRole", "practitioner")):
             with self.subTest(role=role):
                 iri = "<%s>" % self.values[role]
                 self.assertEqual(sorted(graph.types_of(self.triples, iri)),
@@ -107,7 +107,7 @@ class EncounterBaseline(engine.EngineTestCase):
         entailed = graph.entailed_participants(self.triples)
         process = "<%s>" % self.values["process"]
         self.assertIn((process, "<%s>" % self.values["person"]), entailed)
-        self.assertIn((process, "<%s>" % self.values["clinician"]), entailed)
+        self.assertIn((process, "<%s>" % self.values["practitioner"]), entailed)
 
     def test_the_map_does_not_assert_the_entailment_directly(self):
         """If it did, the PRO pattern would be decoration rather than the
@@ -115,7 +115,7 @@ class EncounterBaseline(engine.EngineTestCase):
         process = "<%s>" % self.values["process"]
         asserted = graph.objects_of(self.triples, process, HAS_PARTICIPANT)
         self.assertNotIn("<%s>" % self.values["person"], asserted)
-        self.assertNotIn("<%s>" % self.values["clinician"], asserted)
+        self.assertNotIn("<%s>" % self.values["practitioner"], asserted)
 
     def test_no_hasPatient_and_no_shortcut_predicate(self):
         allowed = {RDF_TYPE, "<http://www.w3.org/ns/prov#wasDerivedFrom>"} | {
@@ -131,7 +131,7 @@ class EncounterBaseline(engine.EngineTestCase):
         """DR-002: sulo:Feature owl:disjointWith sulo:SpatialObject, and Feature
         is a disjoint union of four branches.  A person must not be any of
         them, or the graph is inconsistent."""
-        for holder in ("person", "clinician"):
+        for holder in ("person", "practitioner"):
             with self.subTest(holder=holder):
                 types = graph.types_of(self.triples, "<%s>" % self.values[holder])
                 for branch in ("Feature", "Capability", "InformationObject", "Quality", "Role"):
@@ -164,8 +164,8 @@ class EncounterVariants(engine.EngineTestCase):
         base = encounter_case.run("enc-baseline")
         contained = encounter_case.run("enc-contained-practitioner")
         engine.require_clean(contained)
-        self.assertNotEqual(base["_hostValues"]["clinician"],
-                            contained["_hostValues"]["clinician"])
+        self.assertNotEqual(base["_hostValues"]["practitioner"],
+                            contained["_hostValues"]["practitioner"])
         # but the patient, referenced identically, is the same entity
         self.assertEqual(base["_hostValues"]["person"], contained["_hostValues"]["person"])
 

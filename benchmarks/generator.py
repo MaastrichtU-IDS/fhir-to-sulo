@@ -155,7 +155,7 @@ def _bp(index: int, person: str, rng: random.Random) -> Tuple[List[str], List[st
 def _encounter(index: int, person: str, rng: random.Random) -> Tuple[List[str], List[str]]:
     rid = "enc-%d" % index
     encounter = EX + rid
-    clinician = "%sclinician-c%d" % (EX, rng.randrange(1, 50))
+    practitioner = "%spractitioner-c%d" % (EX, rng.randrange(1, 50))
     interval, start, end = (
         EX + "interval-" + rid, EX + "start-" + rid, EX + "end-" + rid
     )
@@ -176,11 +176,11 @@ def _encounter(index: int, person: str, rng: random.Random) -> Tuple[List[str], 
         _t(end, SULO + "hasValue",
            _lit("2026-09-02T%02d:30:00Z" % hour, XSD + "dateTimeStamp")),
         _t(person, RDF_TYPE, _iri(SULO + "SpatialObject")),
-        _t(clinician, RDF_TYPE, _iri(SULO + "SpatialObject")),
+        _t(practitioner, RDF_TYPE, _iri(SULO + "SpatialObject")),
     ]
     for role_local, holder, role_class in (
         ("patient-role-" + rid, person, "PatientRole"),
-        ("clinician-role-" + rid, clinician, "ClinicianRole"),
+        ("practitioner-role-" + rid, practitioner, "PractitionerRole"),
     ):
         role = EX + role_local
         quads.extend([

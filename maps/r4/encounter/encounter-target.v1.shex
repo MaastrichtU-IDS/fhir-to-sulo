@@ -52,7 +52,7 @@ sh:EncounterProcessNode {
   rdf:type [sulo:Process] ;
   rdf:type IRI %Map:{ v:encounterClass %} ;
   sulo:hasParticipant IRI %Map:{ v:patientRole %} ;
-  sulo:hasParticipant IRI %Map:{ v:clinicianRole %} ;
+  sulo:hasParticipant IRI %Map:{ v:practitionerRole %} ;
   sulo:atTime IRI %Map:{ v:interval %} ;
   prov:wasDerivedFrom IRI %Map:{ v:sourceVersionIri %}
 }
@@ -64,15 +64,15 @@ sh:PatientRoleNode {
   sulo:isFeatureOf IRI %Map:{ v:person %}
 }
 
-sh:ClinicianRoleNode {
+sh:PractitionerRoleNode {
   rdf:type [sulo:Role] ;
-  rdf:type IRI %Map:{ v:clinicianRoleClass %} ;
-  sulo:isFeatureOf IRI %Map:{ v:clinician %}
+  rdf:type IRI %Map:{ v:practitionerRoleClass %} ;
+  sulo:isFeatureOf IRI %Map:{ v:practitioner %}
 }
 
 # --- the two role holders --------------------------------------------------
 # R8 is open: a Practitioner reference currently mints the same entity kind as
-# a Patient, and the two never merge.  v:clinicianClass is separate from
+# a Patient, and the two never merge.  v:practitionerClass is separate from
 # v:personClass so that an answer to R8a is a manifest edit.
 sh:PersonNode {
   rdf:type IRI %Map:{ v:personSuloClass %} ;
@@ -80,10 +80,10 @@ sh:PersonNode {
   sulo:hasFeature IRI %Map:{ v:patientRole %}
 }
 
-sh:ClinicianNode {
-  rdf:type IRI %Map:{ v:clinicianSuloClass %} ;
-  rdf:type IRI %Map:{ v:clinicianClass %} ;
-  sulo:hasFeature IRI %Map:{ v:clinicianRole %}
+sh:PractitionerNode {
+  rdf:type IRI %Map:{ v:practitionerSuloClass %} ;
+  rdf:type IRI %Map:{ v:practitionerClass %} ;
+  sulo:hasFeature IRI %Map:{ v:practitionerRole %}
 }
 
 # --- the time interval -----------------------------------------------------

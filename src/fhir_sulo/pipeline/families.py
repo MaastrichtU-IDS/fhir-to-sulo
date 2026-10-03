@@ -173,7 +173,7 @@ class Encounter(Family):
         # would be resolved by Agent 2 and then never consulted -- silently
         # dropped, which is exactly what the contract promises cannot happen.
         _refuse_unconsulted_participants(context)
-        clinician = entity_for_reference(
+        practitioner = entity_for_reference(
             identity, context, "Encounter.participant[0].individual", "Practitioner")
         values: Dict[str, Any] = dict(manifest.vocabulary)
         values.update(manifest.node_keys(
@@ -181,7 +181,7 @@ class Encounter(Family):
             versionId=lexical(bindings, "versionId"),
             canonicalUrl=canonical_url))
         values["person"] = person.entity_iri
-        values["clinician"] = clinician.entity_iri
+        values["practitioner"] = practitioner.entity_iri
         return ResolvedValues(values=values, person_iri=person.entity_iri)
 
 

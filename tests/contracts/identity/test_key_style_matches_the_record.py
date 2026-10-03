@@ -67,8 +67,16 @@ class WhatTheChosenStyleGuarantees(unittest.TestCase):
                           % e["key_style"])
         import glob
 
+        # Derived from the policy, not hardcoded: this list drifted once already.
+        # It used to read (person|practitioner|quality), and after DR-010 removed
+        # "practitioner" as an entity kind that alternative silently started
+        # matching the ROLE node ex:practitioner-role-enc-9 instead.
+        segments = sorted(
+            set(e["entity_kind_segments"].values()) | {e["quality_segment"]},
+            key=len, reverse=True)
         pattern = re.compile(
-            re.escape(e["base"]) + r"(?:person|practitioner|quality)-([^>\s]+)")
+            re.escape(e["base"])
+            + "(?:" + "|".join(re.escape(seg) for seg in segments) + r")([^>\s]+)")
         seen = 0
         for path in glob.glob(os.path.join(ROOT, "fixtures", "expected",
                                            "*", "*", "target.nt")):

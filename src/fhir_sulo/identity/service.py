@@ -203,6 +203,17 @@ class IdentityService:
         }
 
         try:
+            self._entity_kind_segment(str(request.entity_kind))
+        except ValueError as exc:
+            return self._reject(
+                "ID-R10-undeclared-entity-kind",
+                "undeclared-entity-kind",
+                str(exc),
+                inputs,
+                evidence,
+            )
+
+        try:
             local_name = self._entity_local_name(key_inputs, chosen)
         except (KeyError, ValueError) as exc:
             return self._reject(
@@ -236,13 +247,42 @@ class IdentityService:
         )
         return IdentityResolved(identity=identity, record=record)
 
+    def _entity_kind_segments(self) -> Mapping[str, str]:
+        declared = dict(self._iri.get("entity_kind_segments") or {})
+        alias = self._iri.get("person_segment")
+        # The alias is kept for readers that predate the map; disagreement
+        # between the two would silently re-key every person IRI.
+        if alias is not None and declared.get("person") not in (None, alias):
+            raise ValueError(
+                "identity policy disagrees with itself: person_segment is %r but "
+                "entity_kind_segments['person'] is %r" % (alias, declared["person"])
+            )
+        if alias is not None:
+            declared.setdefault("person", alias)
+        return declared
+
+    def _entity_kind_segment(self, kind: str) -> str:
+        segments = self._entity_kind_segments()
+        try:
+            return segments[kind]
+        except KeyError:
+            raise ValueError(
+                "entity kind %r is not declared in identity policy entity_kind_segments %s. "
+                "An entity kind is an identity criterion, so it must name a rigid property; "
+                "a role such as 'practitioner' or 'patient' belongs on a Role individual, not "
+                "on the person's identity (DR-010)." % (kind, sorted(segments))
+            ) from None
+
     def _entity_local_name(
         self, key_inputs: Mapping[str, Any], chosen: ReferenceEvidence
     ) -> str:
         style = self._iri["key_style"]
-        segment = self._iri["person_segment"] if key_inputs["entity_kind"] == "person" else (
-            slugify(str(key_inputs["entity_kind"])) + "-"
-        )
+        # Declared segments only. This used to slugify ANY kind it was handed,
+        # which is how entity_kind="practitioner" became practitioner-<hash>:
+        # an anti-rigid property acting as an identity criterion (DR-010).
+        # resolve() rejects an undeclared kind before reaching here; this raises
+        # so no other caller can slip past the policy either.
+        segment = self._entity_kind_segment(str(key_inputs["entity_kind"]))
         length = int(self._iri["key_length_hex_chars"])
         fields: Sequence[str] = tuple(self._iri["key_input_fields"])
 

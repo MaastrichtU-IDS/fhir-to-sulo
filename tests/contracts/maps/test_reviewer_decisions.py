@@ -84,15 +84,15 @@ class R6PeopleAreSpatialObjects(engine.EngineTestCase):
 
     def test_the_run_bindings_say_spatial_object(self):
         for family in FAMILIES:
-            for key in ("personSuloClass", "clinicianSuloClass"):
+            for key in ("personSuloClass", "practitionerSuloClass"):
                 if key in vocabulary(family):
                     with self.subTest(family=family, key=key):
                         self.assertEqual(vocabulary(family)[key]["iri"],
                                          "https://w3id.org/sulo/SpatialObject")
 
-    def test_the_emitted_person_and_clinician_are_spatial_objects(self):
+    def test_the_emitted_person_and_practitioner_are_spatial_objects(self):
         for label, result, keys in (("egfr", self.egfr, ("person",)),
-                                    ("encounter", self.enc, ("person", "clinician"))):
+                                    ("encounter", self.enc, ("person", "practitioner"))):
             triples = graph.parse(result["nquads"])
             for key in keys:
                 with self.subTest(map=label, node=key):
@@ -106,7 +106,7 @@ class R6PeopleAreSpatialObjects(engine.EngineTestCase):
         rule. Bare `sulo:Object` could not give it, because
         `Quality subClassOf Feature subClassOf Object`."""
         for label, result, keys in (("egfr", self.egfr, ("person",)),
-                                    ("encounter", self.enc, ("person", "clinician"))):
+                                    ("encounter", self.enc, ("person", "practitioner"))):
             triples = graph.parse(result["nquads"])
             for key in keys:
                 types = graph.types_of(triples, "<%s>" % result["_hostValues"][key])
@@ -127,13 +127,13 @@ class R6PeopleAreSpatialObjects(engine.EngineTestCase):
         self.assertEqual(
             sorted(h for p, h in entailed if p == process),
             sorted(["<%s>" % self.enc["_hostValues"]["person"],
-                    "<%s>" % self.enc["_hostValues"]["clinician"]]))
+                    "<%s>" % self.enc["_hostValues"]["practitioner"]]))
 
     def test_nothing_asserts_a_part_of_a_person(self):
         """`SpatialObject subClassOf (hasPart only SpatialObject)`, so a
         `person hasPart X` with a non-spatial X would be inconsistent."""
         self.assertIn("owl:allValuesFrom sulo:SpatialObject", ontology_block("SpatialObject"))
-        for result, keys in ((self.egfr, ("person",)), (self.enc, ("person", "clinician"))):
+        for result, keys in ((self.egfr, ("person",)), (self.enc, ("person", "practitioner"))):
             triples = graph.parse(result["nquads"])
             for key in keys:
                 with self.subTest(node=key):

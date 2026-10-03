@@ -8,9 +8,9 @@
   ],
   "identity_provided_variables": [
     "person",
-    "clinician"
+    "practitioner"
   ],
-  "identity_note": "Both encounter roles need an identity-service output. Concept note section 6's ex:person-p123 and ex:clinician-c7 are identity outputs, not FHIR references.",
+  "identity_note": "Both encounter roles need an identity-service output. Concept note section 6's ex:person-p123 and ex:practitioner-c7 are identity outputs, not FHIR references.",
   "binding_tree": {
     "shape": "EncounterSet",
     "focus": "encounters",

@@ -46,7 +46,7 @@ def run(fixture_id: str, *, bindings_override: Optional[Mapping[str, Any]] = Non
     ctx = mapjob.source_context(source_json(fixture_id))
     try:
         person = mapjob.entity_for_reference(ident, ctx, "Encounter.subject", "Patient")
-        clinician = mapjob.entity_for_reference(
+        practitioner = mapjob.entity_for_reference(
             ident, ctx, "Encounter.participant[0].individual", "Practitioner")
     except mapjob.ReferenceNotAPerson as exc:
         return {
@@ -64,7 +64,7 @@ def run(fixture_id: str, *, bindings_override: Optional[Mapping[str, Any]] = Non
     values.update(mapjob.node_keys(manifest, encId=enc_id, versionId=version_id,
                                    canonicalUrl=canonical_url))
     values["person"] = person.entity_iri
-    values["clinician"] = clinician.entity_iri
+    values["practitioner"] = practitioner.entity_iri
 
     job = {
         "sourceSchema": engine.cpath("maps/r4/encounter/encounter-source.v1.shex"),

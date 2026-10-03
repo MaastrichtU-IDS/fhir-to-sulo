@@ -657,7 +657,7 @@ CONDITIONS: List[Condition] = [
     Condition(2, "plan Gate 2", "No orphan quantity/unit nodes", check_no_orphan_nodes),
     # ---- Gate 3 -----------------------------------------------------------
     Condition(3, "plan Gate 3", "BP tuple multiset exact in baseline and all permutations", check_bp_tuple_test),
-    Condition(3, "plan Gate 3", "PRO-aware reasoner infers patient and clinician as participants", check_pro_entailment),
+    Condition(3, "plan Gate 3", "PRO-aware reasoner infers patient and practitioner as participants", check_pro_entailment),
     Condition(3, "plan Gate 3", "Graph contains no hasPatient", check_no_has_patient),
     Condition(3, "plan Gate 3", "Inverse map recovers all shared bindings per scope", check_inverse_recovers_pivots),
     # ---- Gate 4 -----------------------------------------------------------

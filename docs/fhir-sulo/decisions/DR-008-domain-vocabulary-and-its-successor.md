@@ -141,3 +141,25 @@ ex:egfr-record-egfr-456 a ex:ObservationRecord, sulo:InformationObject ;
 Both follow their respective sections (§4 and §6) and both are defensible, but they are
 different relations wearing one predicate. This is the same question **R11** asks about the BP
 panel record, and the answers should probably be given together.
+
+---
+
+## Addendum — 2026-10-03: `ClinicianRole` → `PractitionerRole` (DR-010)
+
+The table above is left as written; this records the one class that has since been renamed.
+
+`ClinicianRole` is now **`PractitionerRole`**, on the reviewer's OntoClean ruling answering R8a.
+The count is unchanged at 12.
+
+The rename is not cosmetic in one respect: it accompanied removing `practitioner` as an *entity
+kind*. An entity kind is a key input for an entity IRI, so it was acting as an identity
+criterion, and OntoClean requires those to be rigid. The role now carries the anti-rigid term
+and the person does not. See [DR-010](DR-010-ontoclean-practitioner-is-a-role.md).
+
+`PractitionerRole` rather than keeping `ClinicianRole` because
+`Encounter.participant.individual` references a `Practitioner`, so the name is derived from
+what the record states rather than from a clinical function the source never asserted.
+
+This also diverges from concept note §6, which writes `ex:ClinicianRole` and
+`ex:clinician-role-enc-9`. The divergence is reviewer-ordered and is flagged in
+`maps/r4/encounter/encounter-bindings.v1.json`, whose other local names still match §6 exactly.

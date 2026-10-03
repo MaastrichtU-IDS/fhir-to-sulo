@@ -1,6 +1,10 @@
-# Concept note section 6, the PRO encounter target graph, copied literally.
+# Concept note section 6, the PRO encounter target graph.
 #
-# The person and the clinician are NOT asserted participants here. They become
+# Copied literally EXCEPT for one reviewer-ordered divergence: the note writes
+# ex:ClinicianRole / ex:clinician-role-enc-9 / ex:clinician-c7, and DR-010 renames
+# the role to ex:PractitionerRole on OntoClean grounds. Everything else is verbatim.
+#
+# The person and the practitioner are NOT asserted participants here. They become
 # participants only through the SULO property chain
 #   hasParticipant o inverseOf(hasFeature) -> hasParticipant
 # which is why the participants competency query is marked expects_reasoning
@@ -14,15 +18,15 @@
 @prefix ex:   <https://w3id.org/ontostart/fhir2sulo/> .
 
 ex:encounter-9 a sulo:Process, ex:ClinicalEncounter ;
-    sulo:hasParticipant ex:patient-role-enc-9, ex:clinician-role-enc-9 ;
+    sulo:hasParticipant ex:patient-role-enc-9, ex:practitioner-role-enc-9 ;
     sulo:atTime ex:interval-enc-9 ;
     prov:wasDerivedFrom <https://fhir.example/Encounter/enc-9/_history/1> .
 
 ex:patient-role-enc-9 a sulo:Role, ex:PatientRole ;
     sulo:isFeatureOf ex:person-p123 .
 
-ex:clinician-role-enc-9 a sulo:Role, ex:ClinicianRole ;
-    sulo:isFeatureOf ex:clinician-c7 .
+ex:practitioner-role-enc-9 a sulo:Role, ex:PractitionerRole ;
+    sulo:isFeatureOf ex:practitioner-c7 .
 
 ex:interval-enc-9 a sulo:TimeInterval ;
     sulo:hasPart ex:start-enc-9, ex:end-enc-9 .
@@ -43,4 +47,4 @@ ex:end-enc-9 a sulo:EndTime ;
 # reviewer's answer restores the OWL guard. The placeholder is now the
 # answer, and tests/integration/test_reasoning_pro.py checks the maps agree.
 ex:person-p123 a sulo:SpatialObject, ex:Person .
-ex:clinician-c7 a sulo:SpatialObject, ex:Person .
+ex:practitioner-c7 a sulo:SpatialObject, ex:Person .

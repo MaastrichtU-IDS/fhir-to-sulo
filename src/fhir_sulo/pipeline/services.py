@@ -114,7 +114,12 @@ def entity_for_reference(svc, ctx, element_path: str, expected_type: str):
         canonical_url=canonical,
         container_url=container_url,
     )
-    kind = "person" if expected_type == "Patient" else "practitioner"
+    # Both a Patient and a Practitioner reference denote a PERSON. "patient" and
+    # "practitioner" are anti-rigid roles, and entity_kind is an identity criterion,
+    # so neither may appear here (DR-010). The role is carried by a Role individual.
+    # Patient/c7 and Practitioner/c7 still stay distinct: resource_type is also a
+    # key input, which is record provenance, not a claim about the person's nature.
+    kind = "person"
     outcome = svc.resolve(
         IdentityRequest(ev.raw_reference, (expected_type,), (evidence,), entity_kind=kind,
                         referring_resource_url=ctx.canonical_url)

@@ -76,7 +76,7 @@ repeating constraint per path and roots every map at a single FHIR resource
 (Agent 4, DR-302).
 
 **The person is not in the graph.** `expected-bindings.json` lists
-`identity_provided_variables` — `person`, and for Encounter also `clinician`.
+`identity_provided_variables` — `person`, and for Encounter also `practitioner`.
 Those come from the identity service as run bindings (concept note §4). Binding
 a person straight from `subjectRef` is the record/fact error §2 forbids.
 

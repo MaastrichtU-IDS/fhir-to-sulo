@@ -7,7 +7,7 @@
     "maps/r4/encounter/encounter-target.v1.shex",
     "maps/r4/encounter/encounter-bindings.v1.json"
   ],
-  "pairing_hash": "29525b500da75532a24ca9bfcc5bc26bd41855961889fda790a0e76285bbdee9",
+  "pairing_hash": "8cadfb0511d93c2939df0147d47f94c113301920e3cb78ea9a04c29802b1321e",
   "pairing_hash_note": "Recomputed and checked by tests/contracts/maps/test_map_contracts.py; written by `python3 maps/r4/rehash.py`.",
   "source_release": "R4",
   "source_profiles": [
@@ -79,7 +79,7 @@
       "target_role": "guard only",
       "inverse_covered": false,
       "notes": [
-        "Guarded to v3-ParticipationType PPRF. It does NOT type the clinician role: there is no reviewed participation-type-to-role-class table, which is a new reviewer question."
+        "Guarded to v3-ParticipationType PPRF. It does NOT type the practitioner role: there is no reviewed participation-type-to-role-class table, which is a new reviewer question."
       ]
     },
     {
@@ -98,7 +98,7 @@
       "target_role": "identity service input",
       "inverse_covered": false,
       "notes": [
-        "enc-contained-practitioner resolves '#pr-inline' in the containing resource's scope, so its clinician entity IRI differs from enc-baseline's Practitioner/c7. That is intended: a contained resource has no existence outside its container."
+        "enc-contained-practitioner resolves '#pr-inline' in the containing resource's scope, so its practitioner entity IRI differs from enc-baseline's Practitioner/c7. That is intended: a contained resource has no existence outside its container."
       ]
     },
     {
@@ -145,13 +145,13 @@
     "process": "{domain_namespace}encounter-{encId}",
     "record": "{domain_namespace}encounter-record-{encId}",
     "patientRole": "{domain_namespace}patient-role-{encId}",
-    "clinicianRole": "{domain_namespace}clinician-role-{encId}",
+    "practitionerRole": "{domain_namespace}practitioner-role-{encId}",
     "interval": "{domain_namespace}interval-{encId}",
     "startTime": "{domain_namespace}start-{encId}",
     "endTime": "{domain_namespace}end-{encId}",
     "sourceVersionIri": "{Encounter canonical url}/_history/{versionId}",
     "person": "IdentityService.resolve(Encounter.subject).entity_iri",
-    "clinician": "IdentityService.resolve(Encounter.participant.individual, entity_kind='practitioner').entity_iri",
+    "practitioner": "IdentityService.resolve(Encounter.participant.individual, entity_kind='person').entity_iri  [DR-010]",
     "_roles_are_keyed_by_the_encounter": "Not by the person. Two encounters give two distinct patient-role nodes, because a role is a feature of its holder in the context of one process; merging them would assert one role participating in two processes.",
     "_why": "CD-1: no id() in the pinned engine."
   },
@@ -192,18 +192,18 @@
   "static_variables": {
     "encounterClass": "encounter-bindings.v1.json :: vocabulary.encounterClass [R1]",
     "patientRoleClass": "encounter-bindings.v1.json :: vocabulary.patientRoleClass [R1]",
-    "clinicianRoleClass": "encounter-bindings.v1.json :: vocabulary.clinicianRoleClass [R1]",
+    "practitionerRoleClass": "encounter-bindings.v1.json :: vocabulary.practitionerRoleClass [R1]",
     "personClass": "encounter-bindings.v1.json :: vocabulary.personClass [R1]",
     "personSuloClass": "encounter-bindings.v1.json :: vocabulary.personSuloClass [R6]",
-    "clinicianClass": "encounter-bindings.v1.json :: vocabulary.clinicianClass [R8a]",
-    "clinicianSuloClass": "encounter-bindings.v1.json :: vocabulary.clinicianSuloClass [R6]",
+    "practitionerClass": "encounter-bindings.v1.json :: vocabulary.practitionerClass [R8a]",
+    "practitionerSuloClass": "encounter-bindings.v1.json :: vocabulary.practitionerSuloClass [R6]",
     "recordClass": "encounter-bindings.v1.json :: vocabulary.recordClass [R1]",
     "person": "identity service run binding",
-    "clinician": "identity service run binding [R8]",
+    "practitioner": "identity service run binding [R8]",
     "process": "node_key_rules.process",
     "record": "node_key_rules.record",
     "patientRole": "node_key_rules.patientRole",
-    "clinicianRole": "node_key_rules.clinicianRole",
+    "practitionerRole": "node_key_rules.practitionerRole",
     "interval": "node_key_rules.interval",
     "startTime": "node_key_rules.startTime",
     "endTime": "node_key_rules.endTime",
@@ -216,7 +216,7 @@
   ],
   "entailment": [
     "SULO 0.2.12 asserts sulo:hasParticipant owl:propertyChainAxiom (sulo:hasParticipant [owl:inverseOf sulo:hasFeature]), which is hasParticipant o isFeatureOf -> hasParticipant (DR-002, verified against the axiom).",
-    "So `encounter hasParticipant person` and `encounter hasParticipant clinician` are ENTAILED, not asserted. test_encounter_gate3.py computes the entailment from the emitted triples and asserts the map did not assert either of them directly, and that no hasPatient-style shortcut exists."
+    "So `encounter hasParticipant person` and `encounter hasParticipant practitioner` are ENTAILED, not asserted. test_encounter_gate3.py computes the entailment from the emitted triples and asserts the map did not assert either of them directly, and that no hasPatient-style shortcut exists."
   ],
   "fixture_references": [
     "fixtures/r4/encounter/enc-baseline",

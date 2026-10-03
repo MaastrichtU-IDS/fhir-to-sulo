@@ -502,6 +502,18 @@ class NegativeCasesAreRejected(unittest.TestCase):
             any("shortcut" in m for m in self._messages_for("shortcut-encounter"))
         )
 
+    def test_a_hasClinician_shortcut_is_caught(self):
+        """Renaming the role class to PractitionerRole must not quietly un-forbid
+        the predicate the old name implied (DR-010)."""
+        self.assertTrue(
+            any("shortcut" in m for m in self._messages_for("shortcut-clinician-encounter"))
+        )
+
+    def test_a_hasPractitioner_shortcut_is_caught(self):
+        self.assertTrue(
+            any("shortcut" in m for m in self._messages_for("shortcut-practitioner-encounter"))
+        )
+
     def test_a_quantity_without_a_unit_is_caught(self):
         self.assertTrue(any("Unit part" in m for m in self._messages_for("unitless")))
 

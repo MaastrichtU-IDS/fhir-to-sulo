@@ -4,18 +4,23 @@ A reading order for reviewers. The branch is large because it implements six par
 workstreams from the implementation plan; this page says what to read and in what order,
 and is honest about what does not hold.
 
-**Status in one line:** every gate's engineering conditions pass. Gate 0 awaits human
-clinical/ontology sign-off, and by the plan's own ordering rule every later gate is held
-behind it — **a human decision is the only thing outstanding.**
+**Status in one line:** all five gates pass. Gate 0's sign-off condition (R7, the record/fact
+distinction) was signed on 2026-10-03, which released the ordering hold on Gates 1–4. Three
+review items remain open — R8b, R9, R12 — and none is a gate condition.
 
 ```
 $ FHIR_SULO_REQUIRE_ENGINE=1 FHIR_SULO_ENGINE_TESTS=1 python3 tools/gate-check.py --all
-Gate 0 BLOCKED  (8 pass, 0 fail, 1 manual)   <- reviewer sign-off, 12 open items
-Gate 1 HELD     (6 pass, 0 fail, 0 manual)
-Gate 2 HELD     (5 pass, 0 fail, 0 manual)
-Gate 3 HELD     (4 pass, 0 fail, 0 manual)
-Gate 4 HELD     (5 pass, 0 fail, 0 manual)
+Gate 0 PASSED  (9 pass, 0 fail, 0 manual)
+Gate 1 PASSED  (6 pass, 0 fail, 0 manual)
+Gate 2 PASSED  (5 pass, 0 fail, 0 manual)
+Gate 3 PASSED  (4 pass, 0 fail, 0 manual)
+Gate 4 PASSED  (5 pass, 0 fail, 0 manual)
+
+Gates passing: 5 of 5
 ```
+
+Gate 5 is **not** begun; it is out of scope by instruction. Nothing here is validated for
+clinical use.
 
 ## Read in this order
 
@@ -66,7 +71,7 @@ Gate 4 HELD     (5 pass, 0 fail, 0 manual)
   repetition depth 0 — BP discriminates components by LOINC code rather than position, which is
   a stronger guarantee but a different one from the plan's repetition risk row. See DR-302.
 - **`Encounter.participant` is capped at cardinality 1**, so "who participated in this
-  encounter" answers only for single-clinician encounters. A second participant fails loudly.
+  encounter" answers only for single-practitioner encounters. A second participant fails loudly.
 - **No OWL guard against a person typed as a Role** under the current `sulo:Object` typing —
   SHACL catches it. CD-6, and input to R6.
 - **`Observation.method` is held at reject** rather than resolved: the profile lists it

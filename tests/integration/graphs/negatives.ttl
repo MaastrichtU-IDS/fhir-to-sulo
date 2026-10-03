@@ -35,6 +35,18 @@ ex:shortcut-encounter a sulo:Process ;
     ex:hasPatient ex:person-a .
 ex:some-role a sulo:Role ; sulo:isFeatureOf ex:person-a .
 
+### the same prohibition for the clinician-side shortcuts. hasClinician must stay
+### forbidden even though the role class was renamed (DR-010), and hasPractitioner
+### is forbidden for exactly the same reason: the PRO pattern goes through a typed
+### Role, never straight from the process to the person.
+ex:shortcut-clinician-encounter a sulo:Process ;
+    sulo:hasParticipant ex:some-role ;
+    ex:hasClinician ex:person-a .
+
+ex:shortcut-practitioner-encounter a sulo:Process ;
+    sulo:hasParticipant ex:some-role ;
+    ex:hasPractitioner ex:person-a .
+
 ### quantity with no unit part (DR-002 axiom 2)
 ex:unitless-record a sulo:InformationObject ; sulo:refersTo ex:unitless .
 ex:unitless a sulo:Quantity ;

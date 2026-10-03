@@ -11,6 +11,14 @@
   "entity_iri": {
     "base": "https://w3id.org/ontostart/fhir2sulo/",
     "person_segment": "person-",
+    "entity_kind_segments": {
+      "person": "person-"
+    },
+    "entity_kind_segments_note": "Authoritative map from a permitted entity kind to its IRI segment. person_segment above is kept as the compatibility alias for person and MUST agree with this map; a contract test asserts it.",
+    "permitted_entity_kinds_rule": "OntoClean (DR-010). entity_kind is one of key_input_fields, so it is an IDENTITY CRITERION, and an identity criterion must come from a RIGID property -- one that holds necessarily of its instances. 'practitioner' and 'patient' are ANTI-RIGID: a person can stop being either without ceasing to exist. They are roles, carried by a Role individual attached to the person, never by the person's entity kind or IRI.",
+    "undeclared_entity_kind": "rejected",
+    "undeclared_entity_kind_reason_code": "undeclared-entity-kind",
+    "undeclared_entity_kind_note": "Was NOT rejected before 2026-10-03: the service slugified any kind it was handed into an IRI segment, which is how entity_kind='practitioner' produced practitioner-<hash> without ever being declared here. Rejecting closes that path; adding a kind is now a reviewed edit to entity_kind_segments and needs a rigidity argument.",
     "quality_segment": "quality-",
     "key_style": "scoped-hash",
     "key_style_options": {
@@ -113,6 +121,13 @@
       "then": "rejected",
       "reason_code": "cross-scope-under-unscoped-key",
       "note": "Guards the readable key style against the exact failure it invites."
+    },
+    {
+      "rule_id": "ID-R10-undeclared-entity-kind",
+      "when": "The request's entity_kind is not a key of entity_iri.entity_kind_segments.",
+      "then": "rejected",
+      "reason_code": "undeclared-entity-kind",
+      "note": "DR-010. entity_kind is a key input, so it is an identity criterion and must name a rigid property. Anti-rigid terms ('practitioner', 'patient') are roles and belong on a Role individual attached to the person."
     }
   ],
   "ambiguity": {
@@ -122,7 +137,8 @@
     "incomplete_key_inputs": "rejected",
     "cross_source_without_evidence": "rejected",
     "guessing_permitted": false,
-    "api_contract": "Rejection is a distinct return type with no entity IRI attribute. There is no Optional-IRI return anywhere in the identity API."
+    "api_contract": "Rejection is a distinct return type with no entity IRI attribute. There is no Optional-IRI return anywhere in the identity API.",
+    "undeclared_entity_kind": "rejected"
   },
   "lineage": {
     "retain_source_reference_literal": true,

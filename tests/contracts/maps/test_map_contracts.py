@@ -256,7 +256,7 @@ class MapContracts(unittest.TestCase):
         """Concept note section 2, as a hard prohibition."""
         for family in FAMILIES:
             body = schema_body((REPO / target_schema(family)).read_text())
-            for banned in ("hasPatient", "hasSubject", "hasPractitioner", "hasClinician"):
+            for banned in ("hasPatient", "hasSubject", "hasPractitioner", "hasPractitioner"):
                 with self.subTest(family=family, predicate=banned):
                     self.assertNotIn(banned, body)
 

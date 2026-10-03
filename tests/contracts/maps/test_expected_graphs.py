@@ -33,8 +33,9 @@ TARGET_SCHEMAS = {
     "encounter": REPO / "maps/r4/encounter/encounter-target.v1.shex",
 }
 
+# No "practitioner-": an entity kind is an identity criterion, so it must be
+# rigid, and a practitioner IS a person holding a PractitionerRole (DR-010).
 ENTITY_PREFIXES = ("<https://w3id.org/ontostart/fhir2sulo/person-",
-                   "<https://w3id.org/ontostart/fhir2sulo/practitioner-",
                    "<https://w3id.org/ontostart/fhir2sulo/quality-")
 
 

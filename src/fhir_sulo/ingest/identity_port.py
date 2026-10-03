@@ -29,7 +29,8 @@ Interface, proposed in DR-103 and to be confirmed by Agent 5
   defeated at the identity boundary.
 
 Open point for Agent 5 (recorded in DR-103): whether ``establish`` also returns
-an *entity class* (person vs practitioner vs contained-record-only). Ingestion
+an *entity class* (person vs contained-record-only; never a role such as
+'patient' or 'practitioner' -- see DR-010). Ingestion
 does not need it; Agent 3's target shapes might.
 """
 

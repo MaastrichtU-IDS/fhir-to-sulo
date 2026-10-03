@@ -1,8 +1,8 @@
 # Consolidated review request — clinical and ontology interpretations
 
 **Status:** OPEN — awaiting the human clinical/ontology reviewer
-**Answered:** R1 · R1b · R1d · R2 · R4 · R5 · R6 · R10 · R11.
-**4 of 12 remain open:** R7, R8, R9, R12 — R3 is answered bar two residues. R5b closed with nothing to implement; **R5c withdrawn** — its premise was false.
+**Answered:** R1 · R1b · R1d · R2 · R4 · R5 · R6 · R7 · R8a · R10 · R11.
+**3 of 12 remain open:** R8b, R9, R12 — R3 is answered bar two residues; R7 is signed off; R8a is answered and applied (DR-010, OntoClean), leaving only R8b's merge question. R5b closed with nothing to implement; **R5c withdrawn** — its premise was false.
 R1's namespace `https://w3id.org/ontostart/fhir2sulo/` is applied; R4, R6 and R11 are being
 applied to the maps and shapes.
 **Raised by:** Agent 1 (integration lead)
@@ -446,12 +446,10 @@ What we are asking you to confirm:
 
 ---
 
-## R8 — Does a `Practitioner` reference mint a *person*?
+## R8 — Does a `Practitioner` reference mint a *person*?  ✅ R8a ANSWERED / R8b OPEN
 
 **Blocks:** Gate 3 Encounter roles.
-
-`Encounter.participant.individual = Practitioner/c7` currently mints a **person** entity, the
-same entity kind as a patient. Two sub-questions:
+**R8a: ANSWERED 2026-10-03 (applied). R8b: STILL OPEN.**
 
 - **R8a.** Is a person the right entity kind for a practitioner, or should it be an
   organisational or agent entity distinct from a patient?
@@ -459,8 +457,51 @@ same entity kind as a patient. Two sub-questions:
   currently become **two distinct entities** — there is no merge rule. Correct, or should they
   merge, and on what evidence?
 
-Concept note §6 types the clinician role holder as `ex:clinician-c7` without saying what it is.
-Interacts with **R1** and **R6**.
+### Correction to what this item originally claimed
+
+This section previously read "currently mints a **person** entity, the same entity kind as a
+patient." **That was wrong.** `src/fhir_sulo/pipeline/services.py` read
+`kind = "person" if expected_type == "Patient" else "practitioner"`, so a practitioner was
+minted with entity kind `practitioner` and an IRI `practitioner-<hash>`. The reviewer was asked
+to rule on behaviour the document described inaccurately. Recorded rather than quietly fixed.
+
+### R8a — the ruling
+
+> we need to follow ontoclean semantics here and distinguish between rigid and antirigid
+> properties. the term "practitioner" refers to a role. we should mint a PractitionerRole, and
+> link an individual person to an instance of that role in the process in which they are active
+
+This identified a defect, not a preference. `entity_kind` is one of the six `key_input_fields`
+for an entity IRI, so it was an **identity criterion** — and OntoClean requires identity criteria
+to come from **rigid** properties. "Practitioner" is anti-rigid: a person can stop being one
+without ceasing to exist. The patient side already did this correctly (`person-` IRI +
+`ex:PatientRole`); the practitioner side did not.
+
+**Applied** (DR-010):
+
+1. `entity_kind` is now `person` for both Patient and Practitioner references.
+2. An **undeclared** entity kind is now **rejected** (`ID-R10-undeclared-entity-kind`). The
+   service previously slugified any kind it was handed into an IRI segment, which is how
+   `practitioner-` reached an IRI without ever being declared in the identity policy.
+3. `ex:ClinicianRole` → `ex:PractitionerRole`, diverging from concept note §6 on the reviewer's
+   instruction. Chosen over `ClinicianRole` because `Encounter.participant.individual`
+   references a `Practitioner`, so the role name is derived from what the record states rather
+   than from a clinical function the source never asserted — which also leaves **R12** free to
+   refine it from a reviewed participation-type table.
+
+Practitioner entity IRIs moved (`practitioner-75edba7e…` → `person-afd67e8e…`). Patient IRIs are
+unchanged. `tests/contracts/identity/test_ontoclean_rigidity.py` pins all three points.
+
+### R8b — still open, and now the only thing keeping two people apart
+
+`resource_type` remains a key input, so `Patient/c7` and `Practitioner/c7` are still **two
+person entities**. That is defensible — `resource_type` is *record provenance*, not a claim
+about the person's nature, and refusing to merge without evidence is **R2b**
+(`accepted_merge_evidence` is empty by design).
+
+But the R8a ruling sharpens this: both are now the same rigid kind, differing only by which
+record they came from. **No merge rule has been reviewed, so none is implemented.** This is
+not labelled answered.
 
 ---
 

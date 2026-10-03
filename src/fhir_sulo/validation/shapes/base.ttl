@@ -208,7 +208,7 @@ fs:NoResourceSpecificShortcutShape a sh:NodeShape ;
     sh:targetClass sulo:Process ;
     sh:sparql [
         a sh:SPARQLConstraint ;
-        sh:message "resource-specific shortcut predicate on {$this}: the PRO pattern uses hasParticipant to a typed role, never hasPatient or hasSubject (concept note section 2)" ;
+        sh:message "resource-specific shortcut predicate on {$this}: the PRO pattern uses hasParticipant to a typed role, never hasPatient, hasSubject, hasClinician or hasPractitioner (concept note section 2; DR-010)" ;
         sh:prefixes fs: ;
         sh:select """
             SELECT $this ?value
@@ -216,7 +216,8 @@ fs:NoResourceSpecificShortcutShape a sh:NodeShape ;
                 $this ?p ?value .
                 FILTER (STRENDS(STR(?p), "hasPatient")
                      || STRENDS(STR(?p), "hasSubject")
-                     || STRENDS(STR(?p), "hasClinician"))
+                     || STRENDS(STR(?p), "hasClinician")
+                     || STRENDS(STR(?p), "hasPractitioner"))
             }
         """ ;
     ] .

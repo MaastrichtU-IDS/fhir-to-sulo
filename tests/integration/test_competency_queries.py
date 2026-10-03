@@ -211,10 +211,10 @@ class EncounterParticipantsOnMapOutput(unittest.TestCase):
         holders = {row[1] for row in result.rows}
         roles = {row[2] for row in result.rows}
         self.assertEqual(len(result.rows), 2)
-        self.assertEqual(len(holders), 2, "patient and clinician must be distinct")
+        self.assertEqual(len(holders), 2, "patient and practitioner must be distinct")
         self.assertEqual(
             roles,
-            {mapoutput.EX + "patient-role-enc-9", mapoutput.EX + "clinician-role-enc-9"},
+            {mapoutput.EX + "patient-role-enc-9", mapoutput.EX + "practitioner-role-enc-9"},
         )
 
     def test_the_unreasoned_graph_cannot_answer_it(self):

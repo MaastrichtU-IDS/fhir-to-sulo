@@ -163,7 +163,7 @@ class SeparateParseUnitsLoseTheEntailment(unittest.TestCase):
 class EncounterEntailmentOnRealMapOutput(unittest.TestCase):
     """Gate 3, on the graphs the maps actually emit.
 
-        a PRO-aware reasoner infers the correct patient and clinician as
+        a PRO-aware reasoner infers the correct patient and practitioner as
         participants in the encounter; the graph contains no hasPatient
 
     Review finding M2: this ran on ``tests/integration/graphs/encounter-pro.ttl``,
@@ -238,7 +238,7 @@ class EncounterEntailmentOnRealMapOutput(unittest.TestCase):
                         (encounter, p(self.HAS_PARTICIPANT), holder), asserted
                     )
 
-    def test_the_patient_and_the_clinician_are_distinct_people(self):
+    def test_the_patient_and_the_practitioner_are_distinct_people(self):
         """A chain that collapsed both roles onto one holder would satisfy
         "both inferred" while being badly wrong."""
         for fixture_id, (asserted, _inferred) in self.cases.items():
