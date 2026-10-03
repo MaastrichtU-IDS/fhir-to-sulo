@@ -1,8 +1,13 @@
 # Consolidated review request — clinical and ontology interpretations
 
-**Status:** ALL 12 ITEMS ANSWERED as of 2026-10-03. Residues and follow-ups are listed per item; none blocks a gate.
+**Status:** OPEN — all 12 items now have a reviewer answer, but the request is **not closed**.
+Answered is not signed off: every terminology and vocabulary binding is still
+`pilot-provisional`, nothing is `approved`, and `clinically_signed_off_statuses` is empty of
+members. Three answers also carry live residues — **R2** is explicitly provisional and flagged
+for revisiting against other ULOs, **R8b**'s identifier allowlist is empty so its rule cannot
+fire, and **R9a** enforces a declared subset of `vitalsigns`. None of these blocks a gate.
 **Answered:** R1 · R2 · R3 · R4 · R5 · R6 · R7 · R8 · R9 · R10 · R11 · R12.
-**0 of 12 remain open.** R12 answered 2026-10-03 (DR-013). R3 is answered bar two residues; R7 is signed off; R8 is fully answered (DR-010 OntoClean, DR-011 identifier keying); R9 is answered and applied (DR-012). R5b closed with nothing to implement; **R5c withdrawn** — its premise was false.
+**0 of 12 unanswered.** R12 answered 2026-10-03 (DR-013). R3 is answered bar two residues; R7 is signed off; R8 is fully answered (DR-010 OntoClean, DR-011 identifier keying); R9 is answered and applied (DR-012). R5b closed with nothing to implement; **R5c withdrawn** — its premise was false.
 R1's namespace `https://w3id.org/ontostart/fhir2sulo/` is applied; R4, R6 and R11 are being
 applied to the maps and shapes.
 **Raised by:** Agent 1 (integration lead)

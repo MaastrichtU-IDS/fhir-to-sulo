@@ -151,21 +151,60 @@ class GateCheckIsWellFormed(unittest.TestCase):
         self.assertEqual(status, mod.MANUAL, detail)
         self.assertIn("R7", detail)
 
-    def test_it_refuses_a_request_that_claims_closed_with_items_open(self):
+    def _review_doc(self, status_line, open_item):
+        """A minimal review request, synthesised rather than borrowed.
+
+        This used to mutate the REAL document and relied on it still having an
+        unanswered item. Once every item was answered the mutation could no
+        longer produce the situation under test, and the check quietly stopped
+        checking anything -- the scenario was unconstructible, so the test went
+        from "refuses a lie" to "observes a pass". Synthesising both halves
+        keeps it meaningful no matter how the real review progresses.
+        """
         import tempfile
 
+        body = ["# Consolidated review request", "", status_line, "",
+                "## R7 — Record/fact distinction sign-off  ✅ SIGNED OFF", ""]
+        if open_item:
+            body += ["## R99 — A deliberately unanswered item", ""]
+        handle = tempfile.NamedTemporaryFile(
+            "w", suffix=".md", delete=False, encoding="utf-8")
+        handle.write("\n".join(body))
+        handle.close()
+        return handle.name
+
+    def test_it_refuses_a_request_that_claims_closed_with_items_open(self):
+        mod = _load_gate_check()
+        path = self._review_doc("**Status:** CLOSED", open_item=True)
+        status, detail = mod.check_review_request_open(path)
+        self.assertEqual(status, mod.FAIL, detail)
+
+    def test_it_accepts_an_open_request_with_items_open(self):
+        """The other half: being open about being open is not a failure."""
+        mod = _load_gate_check()
+        path = self._review_doc("**Status:** OPEN", open_item=True)
+        status, detail = mod.check_review_request_open(path)
+        self.assertEqual(status, mod.PASS, detail)
+        self.assertIn("R99", detail)
+
+    def test_the_live_request_is_consistent_about_its_own_status(self):
+        """Guards the real document, which the synthesised cases no longer do.
+
+        All 12 items are answered, so the claims-closed branch is now
+        unreachable from the live file. What still matters is that it does not
+        advertise itself as closed while anything is outstanding.
+        """
         mod = _load_gate_check()
         real = open(
             os.path.join(ROOT, "docs", "fhir-sulo", "REVIEW-REQUEST.md"),
             encoding="utf-8").read()
-        lying = real.replace("**Status:** OPEN", "**Status:** CLOSED", 1)
-        self.assertNotEqual(lying, real)
-        handle = tempfile.NamedTemporaryFile(
-            "w", suffix=".md", delete=False, encoding="utf-8")
-        handle.write(lying)
-        handle.close()
-        status, detail = mod.check_review_request_open(handle.name)
-        self.assertEqual(status, mod.FAIL, detail)
+        status, detail = mod.check_review_request_open()
+        self.assertEqual(status, mod.PASS, detail)
+        if "**Status:** OPEN" not in real:
+            self.fail(
+                "the review request no longer says Status: OPEN. Answered is not "
+                "signed off -- every binding is still pilot-provisional and nothing "
+                "is approved, so the request is not closed.")
 
     def test_every_pytest_node_id_it_cites_actually_resolves(self):
         """A renamed test class must not quietly hollow out a gate.
