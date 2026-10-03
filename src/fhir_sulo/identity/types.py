@@ -98,6 +98,15 @@ class ReferenceEvidence:
 
     ``kind`` is Agent 2's resolution mechanism, e.g. ``"literal-reference"``,
     ``"bundle-entry"``, ``"contained"``, ``"logical-identifier"``.
+
+    IR-604: for ``kind == "contained"`` the caller supplies ``container_url``
+    -- the canonical URL of the resource the ``#local`` reference lives inside
+    -- and the *service* derives the scope from it. Callers used to pre-bake
+    that into ``source_scope.scope_id`` themselves, in two places, with two
+    incompatible formulas. ``source_scope`` is now the plain dataset scope in
+    every case, and a contained reference without a ``container_url`` is
+    rejected rather than keyed, because an unscoped ``#p-inline`` is exactly
+    the merge this rule exists to prevent.
     """
 
     evidence_id: str
@@ -107,13 +116,20 @@ class ReferenceEvidence:
     resource_id: str
     canonical_url: Optional[str] = None
     resource_version_id: Optional[str] = None
+    container_url: Optional[str] = None
     detail: Mapping[str, str] = field(default_factory=dict)
 
-    def key_triple(self) -> Tuple[str, str, str]:
-        return (self.source_scope.scope_id, self.resource_type, self.resource_id)
+    def is_contained(self) -> bool:
+        """Whether this is a ``#local`` reference into the containing resource.
+
+        The scope it keys in is derived by ``IdentityService`` from the policy
+        table, not here: the rule is identity policy, and a dataclass with no
+        policy in hand is exactly where it stopped being reviewable.
+        """
+        return self.kind == "contained"
 
     def as_dict(self) -> Dict[str, Any]:
-        return {
+        out = {
             "evidence_id": self.evidence_id,
             "kind": self.kind,
             "source_scope": self.source_scope.as_dict(),
@@ -123,6 +139,9 @@ class ReferenceEvidence:
             "resource_version_id": self.resource_version_id,
             "detail": dict(self.detail),
         }
+        if self.is_contained():
+            out["container_url"] = self.container_url
+        return out
 
 
 @dataclass(frozen=True)

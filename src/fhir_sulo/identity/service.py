@@ -29,6 +29,15 @@ _KEY_SCHEME_VERSION = "fhir-sulo-entity-key/1"
 _QUALITY_KEY_SCHEME_VERSION = "fhir-sulo-quality-key/1"
 
 
+class _UnscopedContained(ValueError):
+    """Internal: a contained reference arrived with no container to scope it to.
+
+    Never escapes ``resolve()`` -- it is turned into an ``IdentityRejected``
+    before any key is built. It exists so the scoping helper cannot be called
+    on an unscopable candidate and quietly return the dataset scope.
+    """
+
+
 class IdentityService:
     """Maps references to entity IRIs under a loaded, versioned policy."""
 
@@ -36,6 +45,49 @@ class IdentityService:
         self.policy = policy if policy is not None else PolicyBundle.load()
         self._iri = self.policy.identity["entity_iri"]
         self._quality = self.policy.identity["quality_identity"]
+        self._contained = self.policy.identity["contained_reference_scoping"]
+
+    # -- contained-reference scoping (IR-604) -----------------------------
+    #
+    # A FHIR contained resource has no existence outside its container, so
+    # '#p-inline' in two Observations is two people. That rule used to live in
+    # every caller: the pipeline baked it into SourceScope.scope_id and the
+    # ingest mock had a second, incompatible formula. It is identity policy,
+    # so it is declared in policies/identity-policy.v1.json and applied here.
+
+    def _effective_scope_id(self, evidence: ReferenceEvidence) -> str:
+        """The scope this evidence keys in. Raises if a contained one is unscoped."""
+        if not evidence.is_contained():
+            return evidence.source_scope.scope_id
+        if not evidence.container_url:
+            raise _UnscopedContained(
+                "contained reference %r has no container_url, so it cannot be "
+                "scoped to its container; keying it on the dataset scope alone "
+                "would merge every %r in %r into one entity"
+                % (
+                    evidence.resource_id,
+                    evidence.resource_id,
+                    evidence.source_scope.scope_id,
+                )
+            )
+        return str(self._contained["scope_id_template"]).format(
+            scope_id=evidence.source_scope.scope_id,
+            container_url=evidence.container_url,
+        )
+
+    def _effective_resource_id(self, evidence: ReferenceEvidence) -> str:
+        if evidence.is_contained() and self._contained.get(
+            "strip_leading_hash_from_resource_id"
+        ):
+            return evidence.resource_id.lstrip("#")
+        return evidence.resource_id
+
+    def _key_triple(self, evidence: ReferenceEvidence) -> Tuple[str, str, str]:
+        return (
+            self._effective_scope_id(evidence),
+            evidence.resource_type,
+            self._effective_resource_id(evidence),
+        )
 
     # -- versioning -------------------------------------------------------
 
@@ -80,7 +132,24 @@ class IdentityService:
                 evidence,
             )
 
-        triples = {c.key_triple() for c in request.candidates}
+        unscoped = [
+            c for c in request.candidates if c.is_contained() and not c.container_url
+        ]
+        if unscoped:
+            return self._reject(
+                "ID-R9-contained-without-a-container",
+                str(self._contained["missing_container_url_reason_code"]),
+                "reference %r is contained but no container_url was supplied, so it "
+                "cannot be scoped to its container. %s"
+                % (
+                    request.reference_literal,
+                    self._contained["missing_container_url_note"],
+                ),
+                inputs,
+                evidence,
+            )
+
+        triples = {self._key_triple(c) for c in request.candidates}
         if len(triples) > 1:
             return self._reject(
                 "ID-R3-discordant-candidates",
@@ -94,16 +163,19 @@ class IdentityService:
             )
 
         chosen = _sorted_candidates(request.candidates)[0]
-        rule_id = (
-            "ID-R1-single-candidate"
-            if len(request.candidates) == 1
-            else "ID-R4-concordant-candidates"
-        )
+        scope_id = self._effective_scope_id(chosen)
+        resource_id = self._effective_resource_id(chosen)
+        if chosen.is_contained():
+            rule_id = "ID-R8-contained-scoped-to-its-container"
+        elif len(request.candidates) == 1:
+            rule_id = "ID-R1-single-candidate"
+        else:
+            rule_id = "ID-R4-concordant-candidates"
 
         style = self._iri["key_style"]
         if style == "legacy-concept-note":
             permitted = normalise_text(str(self._iri["single_source_scope"]))
-            if normalise_text(chosen.source_scope.scope_id) != permitted:
+            if normalise_text(scope_id) != permitted:
                 return self._reject(
                     "ID-R7-cross-scope-under-legacy-key",
                     "cross-scope-under-unscoped-key",
@@ -122,9 +194,12 @@ class IdentityService:
             # keying answer. See DR-401 section 2.
             "key_revision": str(self._iri["key_revision"]),
             "entity_kind": request.entity_kind,
-            "source_scope_id": chosen.source_scope.scope_id,
+            # Effective, not raw: for a contained reference these carry the
+            # container scoping the service applied (IR-604). The raw values
+            # stay visible in the recorded evidence.
+            "source_scope_id": scope_id,
             "resource_type": chosen.resource_type,
-            "resource_id": chosen.resource_id,
+            "resource_id": resource_id,
         }
 
         try:
@@ -142,9 +217,9 @@ class IdentityService:
             entity_iri=self._iri["base"] + local_name,
             entity_kind=request.entity_kind,
             source_reference_literal=request.reference_literal,
-            source_scope_id=chosen.source_scope.scope_id,
+            source_scope_id=scope_id,
             source_resource_type=chosen.resource_type,
-            source_resource_id=chosen.resource_id,
+            source_resource_id=resource_id,
             source_canonical_url=chosen.canonical_url,
             key_scheme=style,
             key_inputs=key_inputs,
@@ -297,7 +372,14 @@ class IdentityService:
 def _sorted_candidates(
     candidates: Sequence[ReferenceEvidence],
 ) -> List[ReferenceEvidence]:
-    """Total, content-based ordering so candidate order cannot affect output."""
+    """Total, content-based ordering so candidate order cannot affect output.
+
+    Ordered on the raw fields, not the contained-scoped ones: this runs before
+    scoping is applied (an unscoped contained candidate has no effective scope
+    and would raise), and by the time a candidate is chosen the service has
+    already established that every candidate shares one key triple, so any
+    total order picks an equivalent one.
+    """
     return sorted(
         candidates,
         key=lambda c: (
@@ -305,6 +387,7 @@ def _sorted_candidates(
             normalise_text(c.resource_type),
             normalise_text(c.resource_id),
             normalise_text(c.kind),
+            normalise_text(c.container_url or ""),
             normalise_text(c.evidence_id),
         ),
     )

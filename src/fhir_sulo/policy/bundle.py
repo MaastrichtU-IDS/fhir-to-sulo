@@ -199,6 +199,32 @@ class PolicyBundle:
                 "IRIs would move on every unrelated policy edit. Use 'key_revision'."
             )
 
+        contained = self.identity.get("contained_reference_scoping")
+        if not isinstance(contained, dict):
+            raise PolicyError(
+                "identity policy has no contained_reference_scoping block; without "
+                "it the service cannot scope a '#local' reference to its container "
+                "and two containers' '#p-inline' would merge (IR-604)"
+            )
+        template = str(contained.get("scope_id_template", ""))
+        for field in ("{scope_id}", "{container_url}"):
+            if field not in template:
+                raise PolicyError(
+                    "contained_reference_scoping.scope_id_template must interpolate "
+                    "%s; %r does not, so contained resources in different containers "
+                    "would share a scope" % (field, template)
+                )
+        if contained.get("missing_container_url") != "rejected":
+            raise PolicyError(
+                "contained_reference_scoping.missing_container_url must be "
+                "'rejected'; anything else silently falls back to the dataset "
+                "scope, which is the merge this rule exists to prevent"
+            )
+        if not str(contained.get("missing_container_url_reason_code", "")).strip():
+            raise PolicyError(
+                "contained_reference_scoping.missing_container_url_reason_code is required"
+            )
+
         quality = self.identity.get("quality_identity")
         if not isinstance(quality, dict):
             raise PolicyError("identity policy has no quality_identity block")
