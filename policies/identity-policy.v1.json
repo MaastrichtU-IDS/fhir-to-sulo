@@ -31,7 +31,15 @@
       "resource_type",
       "resource_id"
     ],
-    "key_input_normalisation": "Unicode NFC, then canonical JSON (sorted keys, no whitespace, ASCII-escaped), then sha256. No timestamps, no process state, no Python hash()."
+    "key_input_normalisation": "Unicode NFC, then canonical JSON (sorted keys, no whitespace, ASCII-escaped), then sha256. No timestamps, no process state, no Python hash().",
+    "key_style_decision": {
+      "record": "DR-005 section 1, reconsidered 2026-10-03",
+      "style": "scoped-hash",
+      "history": "DR-005 decided scoped-slug on 2026-09-29 for reviewability and it was never applied -- the policy shipped scoped-hash and no test asserted the live value against the record. Found by Agent 5 during IR-602. Applying it on 2026-10-03 surfaced the reason the decision was wrong, and it was reverted the same day.",
+      "why_scoped_hash_wins": "scoped-slug embeds the FHIR resource id in the SEMANTIC individual's IRI: person-synthea-pilot-r4-p123-144658ab. No owl:sameAs is asserted and the two IRIs are distinct, so it does not breach concept note section 2 literally. But it names the person after the record, which invites exactly the conflation section 2 exists to prevent -- a reader seeing 'p123' in a person IRI will treat it as Patient/p123. Opacity is the cheaper guarantee, and the reviewer signed off R7 ('the FHIR resource and its interpretation are distinct individuals') against the opaque form.",
+      "cost_accepted": "Expected graphs carry 32-hex IRIs and are harder for a human to read. That was DR-005's argument for the slug; it is real but it is the lesser concern, and R7 was reviewed successfully in this form.",
+      "guard": "tests/contracts/identity/test_key_style_matches_the_record.py asserts the live key_style equals the recorded decision, which is the fix for the drift that let this sit unnoticed for four days."
+    }
   },
   "reference_scope": {
     "default": "source-scoped",
@@ -40,7 +48,6 @@
     "accepted_merge_evidence": [],
     "accepted_merge_evidence_note": "Empty on purpose. No cross-source merge rule has been reviewed, so no cross-source merge can occur. Adding an entry here is a reviewed decision, not an implementation detail."
   },
-
   "contained_reference_scoping": {
     "applies_to_evidence_kind": "contained",
     "rationale": "A FHIR contained resource has no existence outside the resource that contains it. Two Observations that each carry a contained Patient '#p-inline' describe two different people, and keying them on the dataset scope alone would merge them.",

@@ -4,7 +4,32 @@
 **Date:** 2026-09-29
 **Gate:** 1
 
-## 1. Entity IRI style: `scoped-slug`
+## 1. Entity IRI style: ~~`scoped-slug`~~ → **`scoped-hash`** (reconsidered 2026-10-03)
+
+> **This decision was recorded and never applied, then reconsidered when it was.**
+>
+> DR-005 decided `scoped-slug` on 2026-09-29. The policy shipped `scoped-hash` and stayed that
+> way for four days, because **nothing compared the written decision to the running system** —
+> the decision lived in this file and the behaviour in a JSON file. Found by Agent 5 during
+> IR-602, not by a test.
+>
+> Applying it surfaced the reason it was wrong. `scoped-slug` produces
+> `person-synthea-pilot-r4-p123-144658ab`, which **embeds the FHIR resource id in the semantic
+> individual's IRI**. No `owl:sameAs` is asserted and the two IRIs are distinct, so it does not
+> breach concept note §2 literally — but it *names the person after the record*, and a reader
+> seeing `p123` in a person IRI will treat it as `Patient/p123`. That is the conflation §2
+> exists to prevent. An existing test said so in its docstring, and that argument is better
+> than the readability one below.
+>
+> The reviewer also signed off **R7** — "the FHIR resource and its interpretation are distinct
+> individuals" — against the opaque form, and found it reviewable enough in practice.
+>
+> **Reverted to `scoped-hash` the same day.** The readability cost argued for below is real and
+> is accepted as the lesser concern. The systemic fix is
+> `tests/contracts/identity/test_key_style_matches_the_record.py`, which asserts the live style
+> equals the recorded decision and does not care which one that is.
+
+### The original 2026-09-29 reasoning, kept for the record
 
 Agent 5's identity service offers three key styles. This is an engineering choice about
 fixture readability, not a clinical one — the person IRI is a run binding (concept note §4),
