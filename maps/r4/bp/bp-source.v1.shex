@@ -49,6 +49,13 @@ sh:BPObservation CLOSED {
   fhir:Observation.performer      . * ;
   fhir:Observation.interpretation . * ;
   fhir:Observation.note           . * ;
+  # R9a. The BP family now CLAIMS the vitalsigns profile, which REQUIRES
+  # Observation.category = vital-signs. Tolerated here with a wildcard and no
+  # Map variable, deliberately: profile conformance is FHIR validation, which
+  # the plan keeps in the HOST (src/fhir_sulo/ingest/profile_conformance.py),
+  # not in the schema. And R9b: a category code is not a class assertion, so
+  # it must not reach the target graph.
+  fhir:Observation.category       . * ;
   fhir:Observation.bodySite       . * ;
   fhir:Observation.specimen       . * ;
   fhir:Observation.device         . * ;

@@ -1,8 +1,8 @@
 # Consolidated review request — clinical and ontology interpretations
 
 **Status:** OPEN — awaiting the human clinical/ontology reviewer
-**Answered:** R1 · R1b · R1d · R2 · R4 · R5 · R6 · R7 · R8a · R10 · R11.
-**3 of 12 remain open:** R8b, R9, R12 — R3 is answered bar two residues; R7 is signed off; R8a is answered and applied (DR-010, OntoClean), leaving only R8b's merge question. R5b closed with nothing to implement; **R5c withdrawn** — its premise was false.
+**Answered:** R1 · R1b · R1d · R2 · R3 · R4 · R5 · R6 · R7 · R8 · R9 · R10 · R11.
+**1 of 12 remains open:** R12 — R3 is answered bar two residues; R7 is signed off; R8 is fully answered (DR-010 OntoClean, DR-011 identifier keying); R9 is answered and applied (DR-012). R5b closed with nothing to implement; **R5c withdrawn** — its premise was false.
 R1's namespace `https://w3id.org/ontostart/fhir2sulo/` is applied; R4, R6 and R11 are being
 applied to the maps and shapes.
 **Raised by:** Agent 1 (integration lead)
@@ -542,43 +542,50 @@ asserts the behaviour and records that it is unresolved.
 
 ---
 
-## R9 — Blood pressure profile conformance and panel coding
+## R9 — Blood pressure profile conformance and panel coding  ✅ ANSWERED
 
-**Blocks:** Gate 3 BP target shape and the pinned profile manifest.
+**Answered 2026-10-03. All three applied — see
+[DR-012](decisions/DR-012-r9-vitalsigns-conformance-and-the-panel-code.md).**
 
-Three connected sub-questions, all currently pinned conservatively.
+| Item | Answer |
+| --- | --- |
+| **R9a** | **`vitalsigns`**, claimed *and enforced* |
+| **R9b** | **No** — `85354-9` types nothing; source-only |
+| **R9c** | **`85354-9`** on the parent |
 
-### R9a — Do we claim `vitalsigns` / `bp` profile conformance?
+### R9c turned out to be a defect, not a choice
 
-Both are real R4 profiles (`bp` derives from `vitalsigns`, both 4.0.1). Currently the manifest
-pins **base `Observation` only**, with the other two recorded as `role: "candidate"`.
+All five BP fixtures carried `8480-6` on the parent — the *systolic* code, the same code as
+their own systolic component. HL7's own published BP example, which this project's renderer is
+already validated graph-isomorphically against, uses `85354-9`. Corrected under all options.
 
-Claiming `bp` conformance is not free — it **forces** `Observation.category = vital-signs`,
-**requires** panel code `85354-9`, and **forbids** `Observation.value[x]` on the parent. None of
-that is specified in concept note §5, so claiming it would be us inventing clinical
-conformance requirements rather than implementing the note.
+No quality IRI moved and no target graph changed: quality IRIs key on the **component** codes,
+and the BP source shape already accepted either parent code.
 
-**Options** — **A.** stay on base `Observation`; **B.** claim `vitalsigns`; **C.** claim `bp`
-and accept its three constraints.
+### R9a changed what a conformance claim means here
 
-### R9b — Does the panel code type the panel record node?
+`validated_profiles` used to be `manifest_validated | (declared & known)` — a resource that
+merely **declared** `vitalsigns` was reported as validated with **nothing checking it**. A test
+asserted exactly that, using an eGFR resource. It now asserts the opposite.
 
-LOINC `85354-9` (blood pressure panel) is present on the parent `Observation`. Concept note §5
-describes "the BP panel record" relating to both component results, but does not say whether the
-panel code becomes a class assertion on that node.
+It now means **checked and passed**, against five constraints declared as data in the profile
+manifest (`vs-cat`, `vs-code-loinc`, `vs-subject`, `vs-effective`, `vs-2`), each proven to fail
+when broken. The vital-signs value-set binding, the UCUM unit binding and component slicing are
+**not** enforced and therefore **not** claimed.
 
-**Options** — **A.** the panel code types the panel record node; **B.** the panel record stays an
-untyped `ex:ObservationRecord` and the code is retained only in the source layer.
+Scoped to resources that **declare** the profile, not to every Observation — eGFR is not a
+vital sign. `bp` stays `candidate`: our corrected fixtures would satisfy it, but claiming it
+would assert more than HL7's own example does.
 
-Currently **B** (the entry is marked `proposed` and types nothing), consistent with concept
-note §2: "a FHIR code literal alone is not an OWL class assertion".
+### R9b keeps the panel code out of the semantics
 
-### R9c — The BP parent `Observation.code` is currently a placeholder
+`CODE-LOINC-85354-9` stays `proposed`, `result_class: null`. The panel record remains
+`ex:ObservationRecord`. `Observation.category` is now **required to be present and forbidden to
+be interpreted** — conformance is checked in the host, and the ShEx shape tolerates the element
+with no Map variable so it cannot reach the target graph.
 
-With no reviewed panel code, the parent `Observation.code` in the fixtures is `8480-6` — which
-is really the *systolic* code. That is visibly wrong and is a placeholder, subsumed by R9a: if
-you answer A or B above, tell us what the parent code should be; if C, it becomes `85354-9`
-by profile.
+The proof is that `git diff fixtures/expected/` is empty: a panel code that typed something, or
+a category that leaked, would appear there.
 
 ---
 

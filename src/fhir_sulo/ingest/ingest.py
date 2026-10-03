@@ -16,6 +16,7 @@ from .fhir_rdf import FhirRdfRenderer
 from .identity_port import IdentityService, RefusingIdentityService, SubjectContext
 from .manifest import Manifest, default_manifest
 from .ntriples import serialize
+from .profile_conformance import check_declared_profiles
 from .references import ReferenceResolver
 
 #: Which resource type each reference-valued in-scope element is expected to
@@ -70,7 +71,14 @@ def ingest_resource(resource: Dict[str, Any], json_text: Optional[str] = None,
 
     declared = tuple(str(p) for p in (resource.get("meta", {}).get("profile") or ()))
     known = set(m.known_profiles(rtype))
-    validated = tuple(sorted(set(m.validated_profiles(rtype)) | (set(declared) & known)))
+    # R9a. This used to be `manifest_validated | (declared & known)`, so a
+    # resource could DECLARE vitalsigns and be reported as validated with
+    # nothing checking it. A declared profile now reaches validated_profiles
+    # only by passing its constraints; a non-conformant one raises.
+    conformant = set(check_declared_profiles(m, resource))
+    validated = tuple(sorted(set(m.validated_profiles(rtype)) | conformant))
+    unenforceable_declared = tuple(sorted(
+        (set(declared) & known) - conformant - set(m.validated_profiles(rtype))))
 
     resolver = ReferenceResolver(m)
     raw_refs = resolver.resolve_resource(
@@ -97,6 +105,11 @@ def ingest_resource(resource: Dict[str, Any], json_text: Optional[str] = None,
         [f"renderer options: {sorted(FhirRdfRenderer(m).options.items())}"]
         + ([f"declared profiles not in the pinned set: {list(unknown_declared)}"]
            if unknown_declared else [])
+        # Visible, not silent: the resource claims these and the pilot has no
+        # constraints for them, so it is NOT reporting them as validated.
+        + ([f"declared profiles recognised but not enforced, so not validated: "
+            f"{list(unenforceable_declared)}"]
+           if unenforceable_declared else [])
     )
 
     return SourceContext(

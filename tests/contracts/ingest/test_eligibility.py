@@ -285,15 +285,56 @@ class TestSourceContextContents(unittest.TestCase):
         b = ingest_text(read(base).replace("55.0", "55.1")).source_json_digest
         self.assertNotEqual(a, b)
 
-    def test_declared_profile_is_validated_when_it_is_pinned(self):
+    def test_a_falsely_declared_profile_is_rejected_not_rubber_stamped(self):
+        """R9a. This test previously asserted the OPPOSITE, and was right to fail.
+
+        It took an eGFR resource, wrote ``vitalsigns`` into ``meta.profile``,
+        and asserted the result appeared in ``validated_profiles``.  Nothing
+        checked it: ``validated`` meant "declared and recognised".  An eGFR is
+        not a vital sign and carries no ``category = vital-signs``, so it does
+        not conform, and claiming it did was the rubber stamp R9a removed.
+        """
+        from fhir_sulo.ingest.profile_conformance import ProfileConformanceError
+
         r = jsonio.loads(read(os.path.join(
             FIXTURES, "egfr", "egfr-baseline", "egfr-456.json")))
         r["meta"]["profile"] = ["http://hl7.org/fhir/StructureDefinition/vitalsigns"]
+        with self.assertRaises(ProfileConformanceError) as caught:
+            ingest_text(jsonio.dumps(r))
+        self.assertIn("vs-cat", str(caught.exception))
+
+    def test_a_conformant_declared_profile_is_validated(self):
+        """And the claim is only made after the constraints actually pass."""
+        r = jsonio.loads(read(os.path.join(
+            FIXTURES, "bp", "bp-two-panels", "bp-1.json")))
         ctx = ingest_text(jsonio.dumps(r))
         self.assertIn("http://hl7.org/fhir/StructureDefinition/vitalsigns",
                       ctx.declared_profiles)
         self.assertIn("http://hl7.org/fhir/StructureDefinition/vitalsigns",
                       ctx.validated_profiles)
+
+    def test_each_enforced_constraint_can_actually_fail(self):
+        """A constraint nobody can break is a constraint nobody is checking."""
+        from fhir_sulo.ingest.profile_conformance import ProfileConformanceError
+
+        base = jsonio.loads(read(os.path.join(
+            FIXTURES, "bp", "bp-two-panels", "bp-1.json")))
+        breakages = {
+            "vs-cat": lambda r: r.pop("category"),
+            "vs-subject": lambda r: r.pop("subject"),
+            "vs-effective": lambda r: r.pop("effectiveDateTime"),
+            "vs-code-loinc": lambda r: r["code"]["coding"][0].update(
+                {"system": "http://example.org/not-loinc"}),
+            # vs-2: no component, no hasMember, no value[x], no dataAbsentReason.
+            "vs-2": lambda r: r.pop("component"),
+        }
+        for constraint_id, break_it in breakages.items():
+            with self.subTest(constraint=constraint_id):
+                r = jsonio.loads(jsonio.dumps(base))
+                break_it(r)
+                with self.assertRaises(ProfileConformanceError) as caught:
+                    ingest_text(jsonio.dumps(r))
+                self.assertIn(constraint_id, str(caught.exception))
 
     def test_an_unpinned_declared_profile_is_reported_not_silently_validated(self):
         r = jsonio.loads(read(os.path.join(

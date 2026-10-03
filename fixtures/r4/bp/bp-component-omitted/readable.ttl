@@ -12,10 +12,27 @@
   fhir:Resource.meta [
     fhir:Meta.versionId [
       fhir:value "1"
+    ];
+    fhir:Meta.profile [
+      fhir:value "http://hl7.org/fhir/StructureDefinition/vitalsigns";
+      fhir:link <http://hl7.org/fhir/StructureDefinition/vitalsigns>;
+      fhir:index "0"^^xsd:integer
     ]
   ];
   fhir:Observation.status [
     fhir:value "final"
+  ];
+  fhir:Observation.category [
+    fhir:CodeableConcept.coding [
+      fhir:Coding.system [
+        fhir:value "http://terminology.hl7.org/CodeSystem/observation-category"
+      ];
+      fhir:Coding.code [
+        fhir:value "vital-signs"
+      ];
+      fhir:index "0"^^xsd:integer
+    ];
+    fhir:index "0"^^xsd:integer
   ];
   fhir:Observation.code [
     fhir:CodeableConcept.coding [
@@ -23,7 +40,10 @@
         fhir:value "http://loinc.org"
       ];
       fhir:Coding.code [
-        fhir:value "8480-6"
+        fhir:value "85354-9"
+      ];
+      fhir:Coding.display [
+        fhir:value "Blood pressure panel with all children optional"
       ];
       fhir:index "0"^^xsd:integer
     ]
@@ -77,10 +97,27 @@
   fhir:Resource.meta [
     fhir:Meta.versionId [
       fhir:value "1"
+    ];
+    fhir:Meta.profile [
+      fhir:value "http://hl7.org/fhir/StructureDefinition/vitalsigns";
+      fhir:link <http://hl7.org/fhir/StructureDefinition/vitalsigns>;
+      fhir:index "0"^^xsd:integer
     ]
   ];
   fhir:Observation.status [
     fhir:value "final"
+  ];
+  fhir:Observation.category [
+    fhir:CodeableConcept.coding [
+      fhir:Coding.system [
+        fhir:value "http://terminology.hl7.org/CodeSystem/observation-category"
+      ];
+      fhir:Coding.code [
+        fhir:value "vital-signs"
+      ];
+      fhir:index "0"^^xsd:integer
+    ];
+    fhir:index "0"^^xsd:integer
   ];
   fhir:Observation.code [
     fhir:CodeableConcept.coding [
@@ -88,7 +125,10 @@
         fhir:value "http://loinc.org"
       ];
       fhir:Coding.code [
-        fhir:value "8480-6"
+        fhir:value "85354-9"
+      ];
+      fhir:Coding.display [
+        fhir:value "Blood pressure panel with all children optional"
       ];
       fhir:index "0"^^xsd:integer
     ]

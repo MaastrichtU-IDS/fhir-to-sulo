@@ -55,15 +55,54 @@
         {
           "canonical": "http://hl7.org/fhir/StructureDefinition/vitalsigns",
           "version": "4.0.1",
-          "role": "candidate",
-          "note": "Blocked on reviewer question Q-A2-1. Claiming it forces Observation.category=vital-signs and a panel code on the BP fixtures, neither of which concept note section 5 specifies."
+          "role": "validated",
+          "note": "Claimed and ENFORCED, on the reviewer's answer to R9a. Applies to a resource that DECLARES it in meta.profile, not to every Observation: eGFR is not a vital sign, and forcing category=vital-signs on it would be wrong. That is also what meta.profile means in FHIR. HL7's own published BP example declares this profile.",
+          "reviewer_item": "R9a, answered 2026-10-03",
+          "constraints": [
+            {
+              "id": "vs-cat",
+              "kind": "coding-present",
+              "path": "category",
+              "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+              "code": "vital-signs",
+              "message": "vitalsigns requires Observation.category to include observation-category#vital-signs"
+            },
+            {
+              "id": "vs-code-loinc",
+              "kind": "coding-system-present",
+              "path": "code",
+              "system": "http://loinc.org",
+              "message": "vitalsigns requires a LOINC Observation.code"
+            },
+            {
+              "id": "vs-subject",
+              "kind": "element-present",
+              "path": "subject",
+              "message": "vitalsigns requires Observation.subject (1..1)"
+            },
+            {
+              "id": "vs-effective",
+              "kind": "one-of-present",
+              "paths": [
+                "effectiveDateTime",
+                "effectivePeriod"
+              ],
+              "message": "vitalsigns requires effective[x] as dateTime or Period (1..1)"
+            },
+            {
+              "id": "vs-2",
+              "kind": "value-or-component",
+              "message": "vitalsigns vs-2: with no component and no hasMember, either value[x] or dataAbsentReason must be present"
+            }
+          ],
+          "constraints_are_a_subset": "These five are ENFORCED. Deliberately NOT enforced, and therefore not claimed: the full vital-signs code value-set binding (we check only that the code is LOINC), the UCUM unit binding on value[x], and the component-level slicing rules. Claiming a constraint the pipeline does not check is the failure mode this list exists to prevent -- see validated_profiles_semantics."
         },
         {
           "canonical": "http://hl7.org/fhir/StructureDefinition/bp",
           "version": "4.0.1",
           "base_definition": "http://hl7.org/fhir/StructureDefinition/vitalsigns",
           "role": "candidate",
-          "note": "Blocked on reviewer question Q-A2-1. Would additionally require code 85354-9 on the panel and forbid Observation.value[x] on the parent."
+          "note": "Still `candidate`. R9a answered vitalsigns, not bp. Our corrected BP fixtures would in fact satisfy bp (panel code 85354-9, no parent value[x], both components), but claiming it would assert more than HL7's own published BP example does, which declares vitalsigns only."
         }
       ],
       "in_scope_elements": [
@@ -89,6 +128,7 @@
       "source_only_elements": [
         "Observation.text",
         "Observation.contained",
+        "Observation.category",
         "Observation.identifier",
         "Observation.issued",
         "Observation.performer",
@@ -104,7 +144,11 @@
         "Observation.valueQuantity.unit",
         "Observation.component.valueQuantity.unit"
       ],
-      "source_only_note": "Rendered into FHIR RDF and retained in the source layer, but not bound to a pivot variable. Observation.issued and Observation.meta.lastUpdated are deliberately NOT interchangeable with effective[x] (concept note section 2)."
+      "source_only_note": "Rendered into FHIR RDF and retained in the source layer, but not bound to a pivot variable. Observation.issued and Observation.meta.lastUpdated are deliberately NOT interchangeable with effective[x] (concept note section 2).",
+      "validated_profiles_semantics": "A profile is listed in SourceContext.validated_profiles only if it was CHECKED and PASSED. Before R9a this field meant 'declared and recognised' -- a resource declaring vitalsigns landed in validated_profiles with nothing verifying it. A profile with no `constraints` block cannot be validated and is never reported as validated.",
+      "source_only_elements_notes": {
+        "Observation.category": "R9a/R9b. REQUIRED by the vitalsigns profile the BP family now claims, and still source-only: conformance is checked in the host, and a category code is not a class assertion. Both halves matter -- required to be PRESENT, forbidden to be INTERPRETED."
+      }
     },
     "Encounter": {
       "base_profile": "http://hl7.org/fhir/StructureDefinition/Encounter",
@@ -163,6 +207,11 @@
           "display": "Diastolic blood pressure",
           "role": "BP diastolic component code",
           "concept_note_section": "5"
+        },
+        {
+          "code": "85354-9",
+          "display": "Blood pressure panel with all children optional",
+          "note": "R9c. The BP PANEL code, on the parent Observation. The fixtures previously carried 8480-6 here -- the systolic code, identical to their own systolic component's code -- which is clinically wrong; HL7's own published BP example uses 85354-9. Pinned means RECOGNISED. What it means is a separate question, answered by R9b: code-interpretation.v1.json keeps CODE-LOINC-85354-9 at `proposed` with result_class null, so it types nothing and stays source-only."
         }
       ]
     },
@@ -197,6 +246,15 @@
         {
           "code": "PPRF",
           "display": "primary performer"
+        }
+      ]
+    },
+    "http://terminology.hl7.org/CodeSystem/observation-category": {
+      "pinned_codes": [
+        {
+          "code": "vital-signs",
+          "display": "Vital Signs",
+          "note": "R9a. Required by the vitalsigns profile the BP family now claims. Source-only: a category code is not a class assertion."
         }
       ]
     }
