@@ -190,3 +190,39 @@ is a legitimate clinical convenience. Current answer: conversion disabled.
 run on synthetic data while every outcome carries `clinical_signoff: False`. If the
 reviewer would rather nothing be interpretable before sign-off, say so and the three
 entries drop to `proposed`, which makes the whole eGFR slice `source-only` until review.
+
+---
+
+## Addendum — 2026-10-03: quality-mode migration cost, measured
+
+The lead asked whether the IR-602/IR-604 work makes the R2 quality-mode switch easier or its
+cost more visible. It makes the cost **measurable**, which it was not before.
+
+The fingerprint harness built to verify IR-602 computes every quality IRI across the whole
+fixture set under **both** modes. Over the 114 (fixture, reference slot, observable code)
+triples in `fixtures/r4/`:
+
+| | distinct quality nodes |
+| --- | ---: |
+| `per-observation` (the current provisional answer) | **93** |
+| `persistent-per-person-code` | **27** |
+
+A 3.4x collapse, and **100% of quality IRIs move if the mode flips** — all 114, by
+construction, because the two modes key on different input sets (6 fields vs 9).
+
+This corroborates the lead's amendment measurement mechanically. An amendment that adds only an
+`Observation.note` mints a new quality individual under `per-observation` because the key
+includes `source_resource_version_id`; under `persistent-per-person-code` it cannot, because
+the version is not in the key at all.
+
+Two things follow, neither of which changes the mode — R2's answer is the reviewer's and stays
+`per-observation`:
+
+1. **Switching is a re-key of every quality node, not a config tweak.** It needs a golden-graph
+   regeneration and a store correction pass, so it should be scheduled, not slipped in.
+2. **The reviewer now has a number.** When R2 is revisited, "does one quality per event or one
+   per person-and-code match the intended theory" can be asked against 93 vs 27 nodes for this
+   fixture set, rather than in the abstract.
+
+The caveat in `policies/identity-policy.v1.json` stands unchanged, and the test that fails if
+it is dropped still passes. This addendum records evidence; it does not settle the question.
