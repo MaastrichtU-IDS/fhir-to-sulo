@@ -17,6 +17,8 @@ answers to the engine as ``staticVars``.
 
 from __future__ import annotations
 
+import re
+
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, Mapping, Optional, Tuple
@@ -124,8 +126,35 @@ class Egfr(Family):
         return ResolvedValues(values=values, person_iri=person.entity_iri)
 
 
+_PARTICIPANT_RE = re.compile(r"^Encounter\.participant\[(\d+)\]\.individual$")
+
+
+def _refuse_unconsulted_participants(context) -> None:
+    """Fail loudly if the source carries a participant this family will not read.
+
+    Only ``participant[0]`` is consulted. Any other index present in the
+    resolved references would be dropped without trace, so refuse instead.
+    """
+    extra = sorted(
+        path for path in context.resolved_references
+        if (m := _PARTICIPANT_RE.match(path)) and m.group(1) != "0"
+    )
+    if extra:
+        raise ReferenceNotAPerson(
+            "encounter-multiple-participants",
+            "this Encounter carries %d participant(s) beyond the first (%s). "
+            "Only Encounter.participant[0].individual is mapped (DR-201 "
+            "section 5.1: each participant needs its own role and holder IRI, "
+            "and staticVars are global to a materialization). Mapping the "
+            "first and discarding the rest would silently lose a participant, "
+            "so the resource is refused instead."
+            % (len(extra), ", ".join(extra))
+        )
+
+
 class Encounter(Family):
     """Encounter: two people and no quality, so no quality-identity mode."""
+
 
     name = "encounter"
     resource_type = "Encounter"
@@ -134,6 +163,16 @@ class Encounter(Family):
     def resolve(self, manifest, bindings, context, identity, terminology,
                 canonical_url) -> ResolvedValues:
         person = entity_for_reference(identity, context, "Encounter.subject", "Patient")
+
+        # DR-201 section 5.1 caps Encounter.participant at cardinality 1, and
+        # the ShEx source shape enforces it -- a second participant fails
+        # validation loudly before reaching here. This is the SECOND guard,
+        # and it is the one that matters: the ShEx cap is expected to be
+        # lifted at Gate 5 for MedicationAdministration-style repeated groups,
+        # and if it were lifted without touching this line, participant[1]
+        # would be resolved by Agent 2 and then never consulted -- silently
+        # dropped, which is exactly what the contract promises cannot happen.
+        _refuse_unconsulted_participants(context)
         clinician = entity_for_reference(
             identity, context, "Encounter.participant[0].individual", "Practitioner")
         values: Dict[str, Any] = dict(manifest.vocabulary)
