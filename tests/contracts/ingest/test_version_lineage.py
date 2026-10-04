@@ -269,6 +269,7 @@ class TestGraphKeyShape(unittest.TestCase):
             policy_version="unresolved:R2",
             engine_build="shex@1.0.0-alpha.33",
             renderer_id=ctx.renderer_id,
+            person_index_digest="none",
             contract_version=CONTRACT_VERSION,
         )
 

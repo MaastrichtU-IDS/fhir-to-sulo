@@ -273,7 +273,12 @@ class TestTheStoreSeam(unittest.TestCase):
             "source_canonical_url", "source_version_id", "source_json_digest",
             "map_id", "map_semantic_version", "pairing_hash", "sulo_version",
             "domain_ontology_version", "terminology_snapshot", "policy_version",
-            "engine_build", "renderer_id", "contract_version"]))
+            "engine_build", "renderer_id",
+            # DR-016. Deliberately spelled out rather than derived from
+            # CONTENT_FIELDS: the point of this list is to notice when the
+            # graph key's inputs change, and deriving it would notice nothing.
+            "person_index_digest",
+            "contract_version"]))
 
     def test_a_non_mapped_entry_carries_a_reason_and_no_quads(self):
         """It is written, not skipped: loading it retracts whatever graph the

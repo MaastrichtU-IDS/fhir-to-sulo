@@ -45,6 +45,11 @@ class RunRecord:
     output_digest: str
     validation_report_digest: str
     transform_status: str
+    #: DR-016, contract 0.6.0. The person-identifier index decides which source
+    #: records are one person, so it changes the entity IRIs in the emitted
+    #: graph and belongs in the graph key. ``"none"`` when no index is in use:
+    #: an explicit token, so "no index" and "some index" cannot hash alike.
+    person_index_digest: str = "none"
     superseded_by: Optional[str] = None
     notes: Tuple[str, ...] = ()
 
@@ -57,6 +62,7 @@ class RunRecord:
             "output_graph_key",
             "engine_build",
             "renderer_id",
+            "person_index_digest",
         ):
             if not getattr(self, name):
                 raise ValueError(f"RunRecord.{name} is required and must be non-empty")

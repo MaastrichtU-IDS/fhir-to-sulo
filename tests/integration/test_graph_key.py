@@ -45,6 +45,7 @@ def _inputs(**overrides) -> GraphKeyInputs:
         policy_version="unresolved:R2",
         engine_build="shex@1.0.0-alpha.33",
         renderer_id="fhir_sulo.ingest.fhir_rdf/0.1.0",
+        person_index_digest="none",
         contract_version="0.1.0",
     )
     base.update(overrides)

@@ -93,6 +93,10 @@ class RunInputs:
     policy_version: str
     engine_build: str
     renderer_id: str
+    #: DR-016. ``"none"`` when no person-identifier index is in use; the
+    #: index's digest otherwise. Two indexes give different entity IRIs for
+    #: one source, so they must give different graph keys.
+    person_index_digest: str = "none"
     contract_version: str = CONTRACT_VERSION
 
     def key_inputs(self) -> GraphKeyInputs:
@@ -109,6 +113,7 @@ class RunInputs:
             policy_version=self.policy_version,
             engine_build=self.engine_build,
             renderer_id=self.renderer_id,
+            person_index_digest=self.person_index_digest,
             contract_version=self.contract_version,
         )
 
@@ -144,6 +149,7 @@ def build_run_record(
         terminology_snapshot=inputs.terminology_snapshot,
         engine_build=inputs.engine_build,
         renderer_id=inputs.renderer_id,
+        person_index_digest=inputs.person_index_digest,
         policy_version=inputs.policy_version,
         contract_version=inputs.contract_version,
         output_graph_key=key,

@@ -98,6 +98,7 @@ class CorrectionThroughTheRealPipeline(unittest.TestCase):
             policy_version=self.policy_version,
             engine_build=self.engine_build,
             renderer_id=source.renderer_id,
+            person_index_digest="none",
             contract_version=CONTRACT_VERSION,
         )
         record = build_run_record(

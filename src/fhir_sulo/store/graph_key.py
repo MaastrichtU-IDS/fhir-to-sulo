@@ -97,9 +97,15 @@ __all__ = [
     "subject_key_from_run_record",
 ]
 
-KEY_SPEC_VERSION = "graph-key/1"
+KEY_SPEC_VERSION = "graph-key/2"
 """Bumped only by a decision record. A bump re-keys every graph in the store,
-so it is folded into the hash input explicitly rather than left implicit."""
+so it is folded into the hash input explicitly rather than left implicit.
+
+graph-key/2 (DR-016) adds ``person_index_digest``. Without it, the same source
+under two different person-identifier indexes produced the SAME key for two
+graphs whose entity IRIs differ -- so the store believed it already held the
+graph and never superseded it. A key that does not change when the content
+does is the one failure a content-addressed store cannot tolerate."""
 
 KEY_NAMESPACE = "urn:fhir-sulo"
 """A URN, deliberately. An ``http(s)`` graph IRI would need a project namespace,
@@ -122,6 +128,11 @@ CONTENT_FIELDS = (
     "policy_version",
     "engine_build",
     "renderer_id",     # IR-601: the renderer can change the emitted triples
+    # R8b/DR-016: the person-identifier index decides which source records are
+    # one person, so it changes the entity IRIs in the emitted graph. "none"
+    # when no index is in use -- an explicit token, like every other field
+    # here, so "no index" and "some index" cannot hash alike.
+    "person_index_digest",
     "contract_version",
 )
 
@@ -169,6 +180,7 @@ class GraphKeyInputs:
     policy_version: str
     engine_build: str
     renderer_id: str
+    person_index_digest: str
     contract_version: str
 
     def __post_init__(self) -> None:

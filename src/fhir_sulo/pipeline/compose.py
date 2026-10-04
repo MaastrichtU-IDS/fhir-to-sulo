@@ -121,6 +121,10 @@ class Pipeline:
     engine: EngineImage = field(default_factory=default_image)
     guards: Guards = field(default_factory=Guards)
     quality_mode: Optional[str] = None
+    #: DR-016. "none" when no person-identifier index is in use. It belongs in
+    #: the graph key because the index decides which source records are one
+    #: person, so it changes the entity IRIs in the emitted graph.
+    person_index_digest: str = "none"
     metadata: RunMetadata = field(default_factory=RunMetadata)
 
     @classmethod
@@ -171,6 +175,7 @@ class Pipeline:
             policy_version=self.metadata.policy_version,
             engine_build=self.metadata.engine_build,
             renderer_id=context.renderer_id,
+            person_index_digest=self.person_index_digest,
         )
 
     def run_file(self, fhir_json: Path, rdf: Optional[str] = None) -> PipelineOutcome:

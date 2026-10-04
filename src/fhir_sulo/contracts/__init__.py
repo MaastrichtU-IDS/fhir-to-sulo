@@ -57,7 +57,7 @@ __all__ = [
     "RunRecord",
 ]
 
-CONTRACT_VERSION = "0.5.0"
+CONTRACT_VERSION = "0.6.0"
 """Bumped by the integration lead on any breaking interface change.
 
 0.3.0 - RunRecord gains renderer_id, which joins the graph key's content
