@@ -151,3 +151,67 @@ class TheIndexIsAnAuditableInput(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
+
+
+BSN_URI = "http://fhir.nl/fhir/NamingSystem/bsn"
+BSN_OID = "urn:oid:2.16.840.1.113883.2.4.6.3"
+
+
+def service_allowing_bsn():
+    """A service with BSN promoted, aliases and all.
+
+    The shipped policy keeps BSN at `proposed`, because enabling it is a
+    governance decision. Promoting it here is the only honest way to exercise
+    an aliased system.
+    """
+    import copy
+    import dataclasses
+
+    from fhir_sulo.policy import PolicyBundle
+
+    base = PolicyBundle.load()
+    identity = copy.deepcopy(dict(base.identity))
+    for entry in identity["person_identifying_identifier_systems"]:
+        if entry["system"] == BSN_URI:
+            entry["status"] = "pilot-provisional"
+    return IdentityService(dataclasses.replace(base, identity=identity))
+
+
+class OneSystemHasMoreThanOneSpelling(unittest.TestCase):
+    """BSN is a fhir.nl URI in FHIR-native systems and urn:oid:... in anything
+    derived from HL7 v2 or CDA. Across several healthcare systems both arrive.
+
+    Exact-string matching would index one spelling and miss the other, and an
+    unindexed record does not fail -- it quietly keys on its address. So the
+    two systems would never be reunified and nothing would say so.
+    """
+
+    def _iri(self, svc, scope, base, rid, system):
+        evidence = ReferenceEvidence(
+            evidence_id="e", kind="literal-reference",
+            source_scope=SourceScope(scope, base), resource_type="Patient",
+            resource_id=rid, canonical_url="%sPatient/%s" % (base, rid),
+            identifier_system=system, identifier_value="900001")
+        outcome = svc.resolve(IdentityRequest(
+            "Patient/%s" % rid, ("Patient",), (evidence,), entity_kind="person"))
+        self.assertTrue(outcome.is_resolved, getattr(outcome, "reason", None))
+        return outcome.unwrap().entity_iri
+
+    def test_the_uri_and_the_oid_form_are_one_person(self):
+        svc = service_allowing_bsn()
+        fhir_native = self._iri(svc, *MUMC, "123", BSN_URI)
+        v2_derived = self._iri(svc, *RAD, "987", BSN_OID)
+        self.assertEqual(fhir_native, v2_derived)
+
+    def test_the_key_uses_the_canonical_spelling(self):
+        """Not whichever spelling happened to arrive first."""
+        svc = service_allowing_bsn()
+        canonical = svc._person_identifier_canonical_map()
+        self.assertEqual(canonical[BSN_OID], BSN_URI)
+        self.assertEqual(canonical[BSN_URI], BSN_URI)
+
+    def test_an_alias_of_a_proposed_system_still_types_nothing(self):
+        """Promoting is a decision; an alias must not smuggle one in."""
+        svc = IdentityService()
+        self.assertNotIn(BSN_OID, svc._person_identifier_canonical_map())
+        self.assertNotIn(BSN_URI, svc._person_identifier_canonical_map())

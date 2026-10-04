@@ -149,3 +149,45 @@ class TheMigrationIsVisibleBeforeItHappens(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
+
+
+class AliasedSystemsIndexUnderOneSpelling(unittest.TestCase):
+    """DR-017. The index builder must canonicalise too.
+
+    If it indexed a record under whichever spelling arrived, a hospital
+    sending the urn:oid: form and one sending the fhir.nl URI would land under
+    different keys and never match -- the exact silent miss the aliasing
+    exists to stop, just moved one layer down.
+    """
+
+    URI = "http://fhir.nl/fhir/NamingSystem/bsn"
+    OID = "urn:oid:2.16.840.1.113883.2.4.6.3"
+
+    def _canonical_map(self):
+        return {self.URI: self.URI, self.OID: self.URI}
+
+    def test_both_spellings_index_under_the_canonical_one(self):
+        fhir_native = {"resourceType": "Patient", "id": "123",
+                       "identifier": [{"system": self.URI, "value": "900001"}]}
+        v2_derived = {"resourceType": "Patient", "id": "987",
+                      "identifier": [{"system": self.OID, "value": "900001"}]}
+        a = PersonIdentifierIndex.build([fhir_native], scope_id="mumc",
+                                        allowlist=self._canonical_map())
+        b = PersonIdentifierIndex.build([v2_derived], scope_id="rad",
+                                        allowlist=self._canonical_map())
+        self.assertEqual(a.lookup("mumc", "Patient", "123"),
+                         b.lookup("rad", "Patient", "987"))
+        self.assertEqual(a.lookup("mumc", "Patient", "123")[0], self.URI)
+
+    def test_a_plain_list_allowlist_still_works(self):
+        """The simple form stays valid; aliasing is opt-in per entry."""
+        built = PersonIdentifierIndex.build(
+            [{"resourceType": "Patient", "id": "1",
+              "identifier": [{"system": BSN, "value": "9"}]}],
+            scope_id="s", allowlist=[BSN])
+        self.assertEqual(len(built), 1)
+
+    def test_the_cli_hands_the_builder_a_canonical_map(self):
+        from fhir_sulo.identity.cli import allowlist_from_policy
+
+        self.assertIsInstance(allowlist_from_policy(), dict)

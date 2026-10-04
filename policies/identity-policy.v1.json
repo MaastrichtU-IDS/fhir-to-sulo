@@ -256,15 +256,22 @@
       "system": "http://fhir.nl/fhir/NamingSystem/bsn",
       "status": "proposed",
       "scope": "real-world",
-      "display": "Burgerservicenummer (NL)",
-      "note": "The obvious candidate for a Dutch deployment: a national PERSON number, carried by patients and practitioners alike, which is exactly the shape R8b needs. Types nothing while `proposed`. Turning it on is a GOVERNANCE decision as much as an ontological one -- BSN is legally restricted -- and the canonical system URI should be confirmed against Nictiz rather than taken from this file."
+      "display": "Burgerservicenummer (BSN), NL citizen service number",
+      "note": "A national PERSON number carried by patients and practitioners alike, which is exactly the shape R8b needs. Types nothing while `proposed`. Turning it on is a GOVERNANCE decision as much as an ontological one -- BSN is legally restricted.",
+      "equivalent_systems": [
+        "urn:oid:2.16.840.1.113883.2.4.6.3"
+      ],
+      "verified": "Canonical URI and OID confirmed 2026-10-04 against the Nictiz NamingSystem 'Burgerservicenummer (BSN)' on Simplifier and HL7 NL guidance. It had been written here from memory; it was right, but the check found the alias below, which memory had not."
     },
     {
       "system": "http://hl7.org/fhir/sid/us-ssn",
       "status": "proposed",
       "scope": "real-world",
       "display": "US Social Security Number",
-      "note": "A person number, so structurally eligible. Types nothing while `proposed`."
+      "note": "A person number, so structurally eligible. Types nothing while `proposed`.",
+      "equivalent_systems": [
+        "urn:oid:2.16.840.1.113883.4.1"
+      ]
     }
   ],
   "person_identifying_identifier_systems_note": "Entries, not bare URIs, so each carries a review status like every other table in this bundle. Only `approved` and `pilot-provisional` key a person; `proposed` is present so that enabling it is a reviewed edit rather than an invention. Which real namespaces identify a human is a clinical and governance decision and is NOT made here.",
@@ -282,5 +289,6 @@
       "reason": "Identifies the RESOURCE, not its subject. HL7's own BP example carries exactly this on Observation.identifier."
     }
   ],
-  "person_identifying_identifier_systems_why_this_rarely_fires": "For R8b to merge anything, the Patient-side and Practitioner-side references must carry the SAME Identifier.system. That is a stronger condition than it first appears: a patient typically carries an MRN or a national person number, while a practitioner typically carries a national PROVIDER number (NPI, BIG). Those are different namespaces and will never match. The rule fires only where one national PERSON number is recorded on both -- which is normal in the Netherlands and the Nordics, and unusual in the US."
+  "person_identifying_identifier_systems_why_this_rarely_fires": "For R8b to merge anything, the Patient-side and Practitioner-side references must carry the SAME Identifier.system. That is a stronger condition than it first appears: a patient typically carries an MRN or a national person number, while a practitioner typically carries a national PROVIDER number (NPI, BIG). Those are different namespaces and will never match. The rule fires only where one national PERSON number is recorded on both -- which is normal in the Netherlands and the Nordics, and unusual in the US.",
+  "identifier_system_aliasing": "An identifier system has more than one legitimate spelling. BSN is http://fhir.nl/fhir/NamingSystem/bsn in FHIR-native systems and urn:oid:2.16.840.1.113883.2.4.6.3 in anything derived from HL7 v2 or CDA. Across a variety of healthcare systems BOTH will arrive. Exact-string matching would index one spelling, miss the other, and reunify nobody -- silently, because an unindexed record does not fail, it just keys on its address. So each entry may declare `equivalent_systems`, and every alias is canonicalised to the entry's primary `system` BEFORE keying. Canonicalising is not cosmetic: the system string is a key input, so two spellings left alone would give one person two IRIs."
 }

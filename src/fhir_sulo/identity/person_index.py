@@ -66,7 +66,15 @@ class PersonIdentifierIndex:
         allowlist: Iterable[str],
     ) -> "PersonIdentifierIndex":
         """Index the allowlisted person identifiers on person-typed resources."""
-        allowed = {normalise_text(s) for s in allowlist if s}
+        # ``allowlist`` may be a plain iterable of systems or a mapping from
+        # every accepted spelling to its canonical one. A record carrying an
+        # alias must be indexed under the CANONICAL spelling, or it will never
+        # match a record that arrived spelled the other way (DR-017).
+        if isinstance(allowlist, Mapping):
+            allowed = {normalise_text(k): normalise_text(v)
+                       for k, v in allowlist.items() if k and v}
+        else:
+            allowed = {normalise_text(s): normalise_text(s) for s in allowlist if s}
         out: Dict[Tuple[str, str, str], Tuple[str, str]] = {}
         if not allowed:
             return cls(entries=out)
@@ -84,8 +92,9 @@ class PersonIdentifierIndex:
                     continue
                 system = normalise_text(str(ident.get("system") or ""))
                 value = normalise_text(str(ident.get("value") or ""))
-                if system and value and system in allowed:
-                    found.add((system, value))
+                canonical = allowed.get(system)
+                if canonical and value:
+                    found.add((canonical, value))
             if not found:
                 continue
             if len(found) > 1:

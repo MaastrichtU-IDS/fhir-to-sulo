@@ -324,9 +324,21 @@ class IdentityService:
         clinical/governance decision.  While empty, every path below is
         unreachable and behaviour is identical to before R8b was answered.
         """
+        return frozenset(self._person_identifier_canonical_map())
+
+    def _person_identifier_canonical_map(self) -> Mapping[str, str]:
+        """Every accepted spelling -> the ONE spelling it keys under.
+
+        An identifier system has more than one legitimate spelling: BSN is a
+        fhir.nl URI in FHIR-native systems and urn:oid:... in anything derived
+        from HL7 v2 or CDA. Across several healthcare systems both arrive.
+        Canonicalising is not cosmetic -- the system string is a key input, so
+        two spellings left alone would give one person two IRIs, which is the
+        opposite of what R8b is for.
+        """
         declared = self.policy.identity.get("person_identifying_identifier_systems") or ()
         interpretable = ("approved", "pilot-provisional")
-        out = set()
+        out: Dict[str, str] = {}
         for entry in declared:
             if not isinstance(entry, Mapping):
                 # A bare URI carries no review status, and a system that keys a
@@ -335,16 +347,22 @@ class IdentityService:
                     "person_identifying_identifier_systems entries must be objects with a "
                     "`status`; got a bare %s" % type(entry).__name__
                 )
-            if normalise_text(str(entry.get("status") or "")) in interpretable:
-                system = entry.get("system")
-                if system:
-                    out.add(normalise_text(system))
-        return frozenset(out)
+            if normalise_text(str(entry.get("status") or "")) not in interpretable:
+                continue
+            primary = entry.get("system")
+            if not primary:
+                continue
+            canonical = normalise_text(primary)
+            out[canonical] = canonical
+            for alias in entry.get("equivalent_systems") or ():
+                if alias:
+                    out[normalise_text(alias)] = canonical
+        return out
 
     def _allowlisted_person_identifiers(self, candidates) -> list:
         """Distinct (system, value) pairs from candidates, allowlist-filtered."""
-        allow = self._person_identifier_allowlist()
-        if not allow:
+        canonical_of = self._person_identifier_canonical_map()
+        if not canonical_of:
             return []
         seen = []
         for candidate in candidates:
@@ -362,10 +380,12 @@ class IdentityService:
                 if not indexed:
                     continue
                 system, value = indexed
-            if normalise_text(system) not in allow:
+            canonical = canonical_of.get(normalise_text(system))
+            if canonical is None:
                 # Present but not person-identifying: audit detail, not a key.
                 continue
-            pair = (normalise_text(system), normalise_text(value))
+            # The CANONICAL spelling, never the one that happened to arrive.
+            pair = (canonical, normalise_text(value))
             if pair not in seen:
                 seen.append(pair)
         return sorted(seen)

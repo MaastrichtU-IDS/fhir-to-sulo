@@ -29,13 +29,15 @@ from .rekey_report import plan_rekey
 
 
 def allowlist_from_policy(policy=None):
-    """The reviewed allowlist, so the index cannot drift from the policy."""
-    bundle = policy or PolicyBundle.load()
-    return [
-        entry["system"]
-        for entry in bundle.identity.get("person_identifying_identifier_systems") or ()
-        if entry.get("status") in ("approved", "pilot-provisional") and entry.get("system")
-    ]
+    """Every accepted spelling -> its canonical one, from the reviewed policy.
+
+    A mapping rather than a list, so a record carrying an alias is indexed
+    under the canonical spelling and matches a record that arrived spelled
+    the other way (DR-017).
+    """
+    from .service import IdentityService
+
+    return dict(IdentityService(policy)._person_identifier_canonical_map())
 
 
 def _parse_source(spec: str):
