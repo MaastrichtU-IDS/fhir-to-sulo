@@ -127,6 +127,21 @@ class TheScopeIdIsDefinedInOnePlace(unittest.TestCase):
     and fuse two unrelated corpora that happen to share resource ids.
     """
 
+    #: Files allowed to mention the old name, and why. An EXPLICIT list, not a
+    #: pattern: the first version of this guard banned the string outright and
+    #: then flagged a sibling guard whose whole job is to assert the string is
+    #: absent. A rule that cannot tell "uses the old name" from "guards
+    #: against the old name" is the wrong rule, and loosening it to a
+    #: substring match would have let a real use back in.
+    MAY_MENTION_THE_OLD_NAME = {
+        "src/fhir_sulo/contracts/source_context.py":
+            "one comment explaining the rename, next to the constant it renamed",
+        "tests/contracts/identity/test_multi_source_scoping.py":
+            "this guard",
+        "tests/contracts/test_docs_are_current.py":
+            "asserts the docs do not advertise the old name",
+    }
+
     def test_the_old_name_is_gone_from_code_policy_and_tests(self):
         """Decision records keep it: DR-014 quotes it as the defect."""
         import pathlib
@@ -135,10 +150,24 @@ class TheScopeIdIsDefinedInOnePlace(unittest.TestCase):
         offenders = []
         for path in list(root.glob("src/**/*.py")) + list(root.glob("tests/**/*.py")) \
                 + list(root.glob("policies/*.json")) + list(root.glob("maps/**/*.json")):
-            text = path.read_text(encoding="utf-8")
-            if "synthea" in text and "It was ``synthea-pilot-r4``" not in text:
-                offenders.append(str(path.relative_to(root)))
+            rel = str(path.relative_to(root))
+            if rel in self.MAY_MENTION_THE_OLD_NAME:
+                continue
+            if "synthea" in path.read_text(encoding="utf-8"):
+                offenders.append(rel)
         self.assertEqual(offenders, [], offenders)
+
+    def test_every_exemption_is_still_needed(self):
+        """An exemption nobody needs is a hole nobody is watching."""
+        import pathlib
+
+        root = pathlib.Path(__file__).resolve().parents[3]
+        stale = [
+            rel for rel in self.MAY_MENTION_THE_OLD_NAME
+            if not (root / rel).is_file()
+            or "synthea" not in (root / rel).read_text(encoding="utf-8")
+        ]
+        self.assertEqual(stale, [], "remove these exemptions: %s" % stale)
 
     def test_nothing_hardcodes_a_scope_id_beside_the_constant(self):
         """src/ must read PILOT_SOURCE_SCOPE_ID, never repeat its value.

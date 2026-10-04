@@ -4,8 +4,9 @@
 Answered is not signed off: every terminology and vocabulary binding is still
 `pilot-provisional`, nothing is `approved`, and `clinically_signed_off_statuses` is empty of
 members. Three answers also carry live residues — **R2** is explicitly provisional and flagged
-for revisiting against other ULOs, **R8b**'s identifier allowlist is empty so its rule cannot
-fire, and **R9a** enforces a declared subset of `vitalsigns`. None of these blocks a gate.
+for revisiting against other ULOs, **R8b**'s rule is built and demonstrated but no *real-world*
+identifier system is enabled yet, and **R9a** enforces a declared subset of `vitalsigns`. None
+of these blocks a gate.
 **Answered:** R1 · R2 · R3 · R4 · R5 · R6 · R7 · R8 · R9 · R10 · R11 · R12.
 **0 of 12 unanswered.** R12 answered 2026-10-03 (DR-013). R3 is answered bar two residues; R7 is signed off; R8 is fully answered (DR-010 OntoClean, DR-011 identifier keying); R9 is answered and applied (DR-012). R5b closed with nothing to implement; **R5c withdrawn** — its premise was false.
 R1's namespace `https://w3id.org/ontostart/fhir2sulo/` is applied; R4, R6 and R11 are being
@@ -497,12 +498,14 @@ without ceasing to exist. The patient side already did this correctly (`person-`
 Practitioner entity IRIs moved (`practitioner-75edba7e…` → `person-afd67e8e…`). Patient IRIs are
 unchanged. `tests/contracts/identity/test_ontoclean_rigidity.py` pins all three points.
 
-### R8b — still open, and it is the *remainder of the finding*, not a refinement
+### R8b — answered 2026-10-03, built out 2026-10-04
 
-**Corrected 2026-10-03 after independent review.** This section first argued that
-`resource_type` remaining a key input was fine because it is "record provenance, not a claim
-about the person's nature". That argument does not hold, and the correction is the important
-part.
+**This section has been rewritten.** It previously said R8b was *still open*, offered two
+options, and stated that "no merge rule is implemented and none is assumed". All of that was
+true when written and none of it is now. The analysis below is kept because it is still
+correct and is what the answer rests on.
+
+#### What R8a did and did not achieve
 
 `entity_kind` was a **deterministic function of `resource_type`**: `entity_for_reference` has
 four call sites, each passing one literal expected type, and `ID-R5-unexpected-type` rejects
@@ -514,36 +517,58 @@ Patient/c7      -> person-39be962c396ba29c0b64640d1e5b11df
 Practitioner/c7 -> person-afd67e8e52bcff0eda45d940c797e4e2
 ```
 
-Every hash moved; **not one equivalence class did.** And `entity_kind_segments` now has exactly
-one key, so `entity_kind` still sits in `key_input_fields` while contributing no discrimination
-at all.
-
-So the accurate statement of what R8a achieved is:
+Every hash moved; **not one equivalence class did.**
 
 > The anti-rigid distinction was removed from the entity's **asserted kind** and from its
-> **IRI label**. It is retained, unchanged, in the **key**, through `resource_type`, whose
-> values in this pipeline are exactly `{Patient, Practitioner}`.
+> **IRI label**. It is retained, unchanged, in the **key**, through `resource_type`.
 
-Those three gains are real — an `entity_kind` of `practitioner` was a first-class assertion
-that the individual *is* a practitioner, the IRI named a person after a role, and the
-slugify-anything path is now closed. But the rigidity question is not closed by them.
+#### The answer, and a wrong option I should not have offered
 
-**What we need from you.** One human recorded as both a `Patient` and a `Practitioner` is still
-two person entities. Either:
+> "i do, if there bsn like attributes to uniquely identify"
 
-- **(a)** that is correct — two records, no reviewed evidence they are one person, so no merge
-  (this is R2b's conservatism, and `accepted_merge_evidence` is empty by design); or
-- **(b)** `resource_type` should leave `key_input_fields`, the two should merge, and the
-  evidence standard for doing so needs stating.
+I had framed the choice as *keep `resource_type` in the key* or *drop it and merge*. **The
+second was wrong.** FHIR logical ids are scoped per resource type — the address is
+`[base]/[type]/[id]` — so `Patient/c7` and `Practitioner/c7` share `c7` by coincidence.
+Dropping `resource_type` would not have implemented a merge rule; it would have created a
+**collision** fusing unrelated people.
 
-**No merge rule is implemented and none is assumed.** Option (b) re-keys every entity IRI and
-is a graph migration, not a configuration change.
+So `resource_type` stays, for a reason unrelated to rigidity: it is part of the *address*. That
+is a better defence of the behaviour than the "provenance" argument this section originally
+made, and unlike that one it survives scrutiny.
 
-This was also **untested** until the review: `test_distinctness` varies `resource_id` with the
-type defaulted to `Patient`, and the Encounter fixtures use `p123` and `c7`, which differ by id
-anyway — so dropping `resource_type` from the key would have failed nothing. Now pinned by
-`tests/contracts/identity/test_ontoclean_rigidity.py::ResourceTypeStillPartitionsPeople`, which
-asserts the behaviour and records that it is unresolved.
+#### What is built
+
+Reunification is **conditional** — one person where a person-level identifier says so,
+separate people otherwise. Staying separate is R2b, not a failure mode.
+
+| record | where |
+| --- | --- |
+| identifier-keyed identity, not a merge pass | [DR-011](decisions/DR-011-r8b-identifier-keyed-person-identity.md) |
+| the person-identifier index, because a BSN lives on a resource we never ingest | [DR-015](decisions/DR-015-person-identifier-index.md) |
+| the index belongs in the graph key, and the migration is supersession | [DR-016](decisions/DR-016-the-index-belongs-in-the-graph-key.md) |
+| one system has several spellings; canonicalise before keying | [DR-017](decisions/DR-017-one-identifier-system-has-several-spellings.md) |
+
+`accepted_merge_evidence` now has **one** entry, carrying its reviewer attribution — it is no
+longer empty, and a test requires exactly that one and no more. Demonstrated end to end in
+`fixtures/multi-source/`: two hospitals, two resource ids, one person.
+
+#### A correction to this section's own history
+
+It previously said the behaviour was **untested** until an independent review, following a
+finding I repeated without checking. That was wrong.
+`test_patient_and_practitioner_with_the_same_id_stay_distinct` has existed since `cc9257b` and,
+verified by injection, fails when `resource_type` is dropped from `key_input_fields`.
+
+#### Still outstanding, and it is yours
+
+**No real-world identifier system is enabled.** Only a synthetic namespace is
+`pilot-provisional`; BSN and US SSN are `proposed` and type nothing. Enabling BSN is a
+governance decision as much as an ontological one. Its canonical URI and OID alias are now
+verified against Nictiz rather than written from memory, so the entry itself is ready.
+
+Turning one on **re-keys every entity IRI it covers**.
+`python -m fhir_sulo.identity.cli plan` reports exactly which records move and which become one
+person, before anything changes.
 
 ---
 

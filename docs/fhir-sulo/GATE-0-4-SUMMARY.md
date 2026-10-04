@@ -4,9 +4,13 @@ A reading order for reviewers. The branch is large because it implements six par
 workstreams from the implementation plan; this page says what to read and in what order,
 and is honest about what does not hold.
 
-**Status in one line:** all five gates pass. Gate 0's sign-off condition (R7, the record/fact
-distinction) was signed on 2026-10-03, which released the ordering hold on Gates 1–4. Three
-review items remain open — R8b, R9, R12 — and none is a gate condition.
+**Status in one line:** all five gates pass, and **all 12 review items are answered**. Gate 0's
+sign-off condition (R7, the record/fact distinction) was signed on 2026-10-03, which released
+the ordering hold on Gates 1–4.
+
+Answered is **not** signed off: every terminology and vocabulary binding is still
+`pilot-provisional` and nothing is `approved`, which is why
+[`REVIEW-REQUEST.md`](REVIEW-REQUEST.md) stays `Status: OPEN`.
 
 ```
 $ FHIR_SULO_REQUIRE_ENGINE=1 FHIR_SULO_ENGINE_TESTS=1 python3 tools/gate-check.py --all
@@ -65,6 +69,43 @@ clinical use.
   resident, and the total fell 20.5× with output unchanged — 9,510 mapped, 490 not, 261,236
   triples, identical to the slow run and asserted quad-for-quad against a one-shot engine.
   The target was never moved and the corpus never shrunk.
+
+## After the gates: reviewer decisions and cross-system identity
+
+The gates were met before the reviewer answered. Answering them changed the system rather than
+confirming it, and the four most consequential changes are worth reading before the diff.
+
+**R8a — OntoClean.** `entity_kind` is a key input, so `"practitioner"` was acting as an
+*identity criterion*: an anti-rigid property grounding a person's identity. Both Patient and
+Practitioner references now mint `person` entities and the role moved to `ex:PractitionerRole`.
+An undeclared entity kind is rejected rather than slugified into an IRI segment
+([DR-010](decisions/DR-010-ontoclean-practitioner-is-a-role.md)).
+
+**R9a — a conformance claim nothing checked.** `validated_profiles` meant "declared and
+recognised": a resource could claim `vitalsigns` with nothing verifying it, and a test asserted
+exactly that using an *eGFR* resource. It now means **checked and passed**
+([DR-012](decisions/DR-012-r9-vitalsigns-conformance-and-the-panel-code.md)).
+
+**The source scope was a module constant.** The identity policy promises that two sources
+holding `Patient/p123` get different IRIs. It delivers that; the *pipeline* passed one
+hardcoded scope for every resource, so two hospitals' `Patient/123` became **one person**. Two
+humans fused, nothing reporting it. No test caught it and more of the same would not have —
+every fixture came from one source, and the unfixed code passed 959 tests
+([DR-014](decisions/DR-014-the-source-scope-was-a-module-constant.md)).
+
+**Cross-system reunification, conditional on a person-level identifier.** A BSN lives on
+`Patient.identifier`, which this pipeline never ingests, so a digested **index** supplies it as
+an input ([DR-015](decisions/DR-015-person-identifier-index.md)). The index is part of the
+graph key, because without it one key named two different graphs
+([DR-016](decisions/DR-016-the-index-belongs-in-the-graph-key.md)) — and that fix also removed
+the need for a bespoke migrator, since the *subject* key is unchanged and supersession already
+handles the rest. Identifier systems are canonicalised across spellings, because BSN arrives
+both as a `fhir.nl` URI and as a `urn:oid:`
+([DR-017](decisions/DR-017-one-identifier-system-has-several-spellings.md)).
+
+Demonstrated end to end in `fixtures/multi-source/` — the first corpus here with more than one
+source — where two hospitals' eGFR results attach to one person, a third patient does not
+merge, and a control shows that without the index the same two inputs give two people.
 
 ## What is not proven, stated plainly
 - **Iteration scopes are never exercised by a production map.** All three shipped pairs are
