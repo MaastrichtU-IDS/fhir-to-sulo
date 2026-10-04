@@ -72,16 +72,64 @@ and still the behaviour when no identifier is present.
 Partial coverage is safe: a record absent from the index keys on its address under
 `ID-R1-single-candidate`, so indexing some patients does not disturb the rest.
 
+## Addendum — 2026-10-04: sources, and seeing the migration first
+
+Two of the three open points are now closed.
+
+### Where the index comes from
+
+`from_bundle`, `from_directory`, `save` and `load`, plus an operator CLI:
+
+```
+python -m fhir_sulo.identity.cli build \
+    --source maastricht-umc=/data/mumc \
+    --source radboud-umc=/data/radboud --out person-index.json
+```
+
+A directory is walked **sorted**, so the digest does not depend on filesystem order, and
+Bundles and bare resources are both accepted. The allowlist comes from the policy, so the index
+cannot drift from the reviewed decision — a `proposed` system is not indexed.
+
+Three refusals, each because the failure would otherwise be silent:
+
+- **A file that will not parse raises** rather than being skipped. An under-populated index does
+  not fail; it just stops reunifying people, invisibly.
+- **An index that merges nobody is refused** unless `--allow-empty`. That result usually means
+  the allowlist is wrong, not that the data has no identifiers.
+- **`load()` verifies the digest.** An index decides which records are one person, so an
+  untracked edit silently re-keys entities.
+
+### Seeing the migration before causing it
+
+```
+$ python -m fhir_sulo.identity.cli plan --index person-index.json
+3 record(s) examined; 3 entity IRI(s) move; 2 record(s) collapse into 1 person(s).
+
+Records that would become ONE person -- each line below is a claim that two records
+describe one human, and is the part to review:
+
+  .../person-39e69ed5...
+    maastricht-umc           Patient/123
+    radboud-umc              Patient/987
+```
+
+`plan_rekey` resolves every indexed record twice, with and without the index, under one policy —
+so the diff is attributable to the index and nothing else.
+
+Note that **3 move but only 2 collapse**. A record indexed under its own, unshared identifier
+keys on that identifier rather than on its address, so its IRI changes even though it reunifies
+with nobody. Worth knowing before reading a migration plan: *moved* and *merged* are different
+counts, and only the second is a clinical claim.
+
 ## Still to decide
 
-1. **Which real-world systems.** Only a synthetic namespace is allowlisted. BSN and US SSN sit
-   at `proposed`. Enabling BSN is a governance decision as much as an ontological one, and its
-   canonical system URI should be confirmed against Nictiz rather than taken from this repo.
-2. **Where the index comes from in a real run.** The builder exists and is tested; nothing yet
-   wires it to a corpus of Patient resources, because that depends on how the sources deliver
-   them (Bundles, per-resource exports, a flat directory).
-3. **Re-keying.** Turning an identifier system on **moves** every entity IRI it covers. That is
-   a graph migration, not a configuration change.
+**Which real-world systems.** Only a synthetic namespace is allowlisted; BSN and US SSN sit at
+`proposed`. Enabling BSN is a governance decision as much as an ontological one, and its
+canonical system URI should be confirmed against Nictiz rather than taken from this repo — it
+was written here from memory.
+
+Nothing migrates existing graphs. `plan` says what would change; applying it is a separate,
+unwritten step.
 
 ## Verification
 

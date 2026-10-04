@@ -413,3 +413,85 @@ rather than failing, so the contract tests still run on a bare interpreter.
 | SULO pin and axioms | [DR-002](decisions/DR-002-sulo-pin-and-axioms.md) |
 | Engineering deviations | [CONTRACT-DEVIATIONS.md](CONTRACT-DEVIATIONS.md) |
 | Open clinical/ontology items | [REVIEW-REQUEST.md](REVIEW-REQUEST.md) |
+
+---
+
+## Running against several healthcare systems
+
+### Tell the pipeline which system a resource came from
+
+An entity IRI is keyed on the source, so this is not optional metadata:
+
+```python
+ingest_file(path, source_scope_id="maastricht-umc")
+```
+
+Two systems that each hold `Patient/123` must give **two different people**. If the scope is
+wrong, nothing fails — two humans are silently fused, which is worse than a missed merge
+because a false merge attributes one person's findings to another. The default
+`synthea-pilot-r4` is correct only for this repo's single-source fixtures. A context carrying
+no scope is rejected rather than defaulted (DR-014).
+
+### Reuniting one human across systems
+
+A person recorded at five systems is **five entities** unless something says otherwise. The
+only thing that says otherwise is a person-level identifier — a BSN-style number recorded at
+each site. A local MRN will not do: it identifies a record at one organisation, not a human.
+
+That identifier lives on `Patient.identifier`, and the pipeline never ingests Patient
+resources, so it is supplied as an index:
+
+```
+python -m fhir_sulo.identity.cli build \
+    --source maastricht-umc=/data/mumc \
+    --source radboud-umc=/data/radboud \
+    --out person-index.json
+```
+
+Each `--source` is one system: its scope id and a directory of FHIR JSON resources or Bundles.
+The scope id is not cosmetic — it keys the entries, and two systems sharing one would merge
+their patients. Only systems that are `approved` or `pilot-provisional` in
+`person_identifying_identifier_systems` are indexed, so the index cannot drift from the
+reviewed policy.
+
+Then pass it in:
+
+```python
+IdentityService(person_index=PersonIdentifierIndex.load("person-index.json"))
+```
+
+**Record the digest the build prints.** Two indexes give different entity IRIs for the same
+input, and a run that cannot say which index produced it cannot be reproduced. `load()` refuses
+an index edited since it was written.
+
+### Before you enable it: see the migration
+
+Turning on an identifier system **moves** every entity IRI it covers. Graphs already written
+keep the old ones.
+
+```
+python -m fhir_sulo.identity.cli plan --index person-index.json
+```
+
+```
+3 record(s) examined; 3 entity IRI(s) move; 2 record(s) collapse into 1 person(s).
+
+Records that would become ONE person — each line below is a claim that two records
+describe one human, and is the part to review:
+
+  …/person-39e69ed5…
+    maastricht-umc           Patient/123
+    radboud-umc              Patient/987
+```
+
+Read the collapse list as clinical assertions, because that is what they are. Note that a
+record can **move without merging**: once indexed it keys on its identifier rather than its
+address, so the IRI changes even where no reunification happens.
+
+### What is not automatic
+
+- No real-world identifier system is enabled. Only a synthetic namespace is; BSN and US SSN are
+  `proposed`. Enabling one is a reviewed decision and, for BSN, a governance one.
+- The US NPI is **excluded on purpose**: one system URI covers both individual and
+  organisational NPIs, so allowlisting it would merge an organisation into a person.
+- Nothing migrates existing graphs. `plan` tells you what would change; applying it is yours.
