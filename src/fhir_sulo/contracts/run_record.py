@@ -21,6 +21,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Optional, Tuple
 
+from .source_context import PILOT_SOURCE_SCOPE_ID
+
 
 @dataclass(frozen=True)
 class RunRecord:
@@ -50,6 +52,9 @@ class RunRecord:
     #: graph and belongs in the graph key. ``"none"`` when no index is in use:
     #: an explicit token, so "no index" and "some index" cannot hash alike.
     person_index_digest: str = "none"
+    #: DR-019. Which source the resource came from; part of the graph key and
+    #: of the replacement slot, so the key recomputes from the record alone.
+    source_scope_id: str = PILOT_SOURCE_SCOPE_ID
     superseded_by: Optional[str] = None
     notes: Tuple[str, ...] = ()
 

@@ -58,8 +58,9 @@ class TheIndexIsAKeyInput(unittest.TestCase):
 
     def test_the_key_spec_was_bumped(self):
         """Adding a content field re-keys every graph in the store, which is a
-        decision record, not an implementation detail."""
-        self.assertEqual(KEY_SPEC_VERSION, "graph-key/2")
+        decision record, not an implementation detail. graph-key/3 is DR-019,
+        which added source_scope_id to the content AND subject fields."""
+        self.assertEqual(KEY_SPEC_VERSION, "graph-key/3")
 
 
 class TheMigrationUsesSupersessionNotABespokeTool(unittest.TestCase):
@@ -88,3 +89,51 @@ class TheMigrationUsesSupersessionNotABespokeTool(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
+
+
+class TheSourceScopeIsAKeyInputToo(unittest.TestCase):
+    """DR-019. The same defect as DR-016, with the scope in place of the index.
+
+    Two hospitals' ``Observation/1`` produced one canonical URL (it comes
+    from the pinned manifest, not the source), one graph key, and -- worse --
+    one **subject** key, so they shared a replacement slot and the second
+    loaded superseded the first. A correction that was not a correction.
+
+    The entity IRIs inside those two graphs differ, because the scope IS an
+    entity key input. So one key named two different graphs.
+    """
+
+    def _inputs(self, scope_id):
+        return RunInputs(**dict(BASE, source_scope_id=scope_id))
+
+    def test_two_sources_give_two_graph_keys(self):
+        self.assertNotEqual(self._inputs("mumc-r4").graph_key,
+                            self._inputs("radboud-r4").graph_key)
+
+    def test_two_sources_give_two_replacement_slots(self):
+        """Not just different graphs -- different SLOTS, or one supersedes
+        the other and a hospital's data silently disappears."""
+        self.assertNotEqual(subject_key(self._inputs("mumc-r4").key_inputs()),
+                            subject_key(self._inputs("radboud-r4").key_inputs()))
+
+    def test_one_source_twice_is_one_slot(self):
+        """The converse: scoping must not break ordinary supersession."""
+        self.assertEqual(subject_key(self._inputs("mumc-r4").key_inputs()),
+                         subject_key(self._inputs("mumc-r4").key_inputs()))
+
+    def test_it_is_declared_in_both_field_sets(self):
+        from fhir_sulo.store.graph_key import SUBJECT_FIELDS
+
+        self.assertIn("source_scope_id", CONTENT_FIELDS)
+        self.assertIn("source_scope_id", SUBJECT_FIELDS)
+
+    def test_the_key_recomputes_from_the_run_record(self):
+        from fhir_sulo.contracts import TransformStatus
+        from fhir_sulo.provenance.run_records import build_run_record
+        from fhir_sulo.store.graph_key import graph_key_from_run_record
+
+        inputs = self._inputs("radboud-r4")
+        record = build_run_record(inputs, status=TransformStatus.MAPPED,
+                                  quads=("<a> <b> <c> .",))
+        self.assertEqual(record.source_scope_id, "radboud-r4")
+        self.assertEqual(graph_key_from_run_record(record), inputs.graph_key)

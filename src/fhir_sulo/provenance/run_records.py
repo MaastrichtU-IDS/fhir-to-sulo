@@ -25,7 +25,7 @@ import datetime
 from dataclasses import dataclass
 from typing import Any, Iterable, Mapping, Optional, Sequence, Tuple
 
-from ..contracts import CONTRACT_VERSION, QuadLineage, RunRecord, TransformResult, TransformStatus
+from ..contracts import PILOT_SOURCE_SCOPE_ID,  CONTRACT_VERSION, QuadLineage, RunRecord, TransformResult, TransformStatus
 from ..store.canonical import digest
 from ..store.graph_key import GraphKeyInputs, graph_key
 from .lineage import EngineLineagePayload, build_lineage, lineage_report
@@ -97,10 +97,14 @@ class RunInputs:
     #: index's digest otherwise. Two indexes give different entity IRIs for
     #: one source, so they must give different graph keys.
     person_index_digest: str = "none"
+    #: DR-019. Which source the resource came from. Defaults to the
+    #: single-source pilot value so a one-source run need not state it.
+    source_scope_id: str = PILOT_SOURCE_SCOPE_ID
     contract_version: str = CONTRACT_VERSION
 
     def key_inputs(self) -> GraphKeyInputs:
         return GraphKeyInputs(
+            source_scope_id=self.source_scope_id,
             source_canonical_url=self.source_canonical_url,
             source_version_id=self.source_version_id,
             source_json_digest=self.source_json_digest,
@@ -149,6 +153,7 @@ def build_run_record(
         terminology_snapshot=inputs.terminology_snapshot,
         engine_build=inputs.engine_build,
         renderer_id=inputs.renderer_id,
+        source_scope_id=inputs.source_scope_id,
         person_index_digest=inputs.person_index_digest,
         policy_version=inputs.policy_version,
         contract_version=inputs.contract_version,

@@ -198,6 +198,7 @@ class Pipeline:
             engine_build=self.metadata.engine_build,
             renderer_id=context.renderer_id,
             person_index_digest=self.person_index_digest,
+            source_scope_id=context.source_scope_id,
         )
 
     def run_file(self, fhir_json: Path, rdf: Optional[str] = None) -> PipelineOutcome:

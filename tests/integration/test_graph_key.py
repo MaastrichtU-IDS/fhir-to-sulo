@@ -35,6 +35,7 @@ def _inputs(**overrides) -> GraphKeyInputs:
     base = dict(
         source_canonical_url="https://fhir.example/Observation/egfr-456",
         source_version_id="1",
+        source_scope_id="fhir-sulo-fixtures-r4",
         source_json_digest="sha256:v1",
         map_id="egfr-r4",
         map_semantic_version="0.1.0",

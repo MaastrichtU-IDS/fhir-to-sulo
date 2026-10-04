@@ -27,6 +27,7 @@ ACTIVITY_1 = "2026-09-29T12:00:00Z"
 ACTIVITY_2 = "2026-09-29T13:00:00Z"
 
 BASE_INPUTS = {
+    "source_scope_id": "fhir-sulo-fixtures-r4",
     "source_canonical_url": "https://fhir.example/Observation/egfr-1",
     "source_version_id": "1",
     "source_json_digest": "sha256:v1",

@@ -274,6 +274,8 @@ class TestTheStoreSeam(unittest.TestCase):
             "map_id", "map_semantic_version", "pairing_hash", "sulo_version",
             "domain_ontology_version", "terminology_snapshot", "policy_version",
             "engine_build", "renderer_id",
+            # DR-019. Which source the resource came from.
+            "source_scope_id",
             # DR-016. Deliberately spelled out rather than derived from
             # CONTENT_FIELDS: the point of this list is to notice when the
             # graph key's inputs change, and deriving it would notice nothing.

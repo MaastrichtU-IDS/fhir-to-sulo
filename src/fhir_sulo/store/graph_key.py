@@ -97,9 +97,15 @@ __all__ = [
     "subject_key_from_run_record",
 ]
 
-KEY_SPEC_VERSION = "graph-key/2"
+KEY_SPEC_VERSION = "graph-key/3"
 """Bumped only by a decision record. A bump re-keys every graph in the store,
 so it is folded into the hash input explicitly rather than left implicit.
+
+graph-key/3 (DR-019) adds ``source_scope_id``, to BOTH the content and the
+subject fields. Two hospitals' ``Observation/1`` produced one canonical URL,
+one graph key and -- worse -- one *subject* key, so they shared a replacement
+slot and one superseded the other. Which source a resource came from is part
+of which resource it is.
 
 graph-key/2 (DR-016) adds ``person_index_digest``. Without it, the same source
 under two different person-identifier indexes produced the SAME key for two
@@ -116,6 +122,10 @@ SUBJECT_LENGTH = 24   # 96 bits
 CONTENT_LENGTH = 40   # 160 bits
 
 CONTENT_FIELDS = (
+    # DR-019. Which source this came from. It changes the entity IRIs in the
+    # emitted graph (it is an entity key input), so a key that ignores it
+    # names two different graphs.
+    "source_scope_id",
     "source_canonical_url",
     "source_version_id",
     "source_json_digest",
@@ -137,6 +147,10 @@ CONTENT_FIELDS = (
 )
 
 SUBJECT_FIELDS = (
+    # DR-019. The replacement slot is per (SOURCE, resource, map). Without
+    # the scope, two hospitals' Observation/1 shared one slot and the second
+    # loaded superseded the first -- a correction that was not a correction.
+    "source_scope_id",
     "source_canonical_url",
     "map_id",
 )
@@ -168,6 +182,7 @@ class GraphKeyInputs:
     the run that belongs in the key.
     """
 
+    source_scope_id: str
     source_canonical_url: str
     source_version_id: str
     source_json_digest: str

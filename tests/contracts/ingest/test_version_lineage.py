@@ -259,6 +259,7 @@ class TestGraphKeyShape(unittest.TestCase):
         return GraphKeyInputs(
             source_canonical_url=ctx.canonical_url,
             source_version_id=ctx.version_id,
+            source_scope_id=ctx.source_scope_id,
             source_json_digest=ctx.source_json_digest,
             map_id="egfr-r4",
             map_semantic_version="0.1.0",
