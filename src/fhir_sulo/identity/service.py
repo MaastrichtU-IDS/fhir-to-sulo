@@ -369,6 +369,15 @@ class IdentityService:
             system = getattr(candidate, "identifier_system", None)
             value = getattr(candidate, "identifier_value", None)
             if not system or not value:
+                if candidate.is_contained():
+                    # DR-020. A contained resource has no existence outside
+                    # the resource containing it, so it cannot be the record
+                    # the index describes. Looking it up matched a TOP-LEVEL
+                    # Patient of the same id and fused the two -- on a
+                    # coincidence of ids, not on evidence. The index is keyed
+                    # on top-level records; a contained resource's own
+                    # identifiers are a separate path and are not read at all.
+                    continue
                 # Not on the reference itself. A BSN-style number lives on the
                 # Patient RESOURCE, which this pipeline never sees, so the
                 # index is how it gets here at all (R8b, DR-015).

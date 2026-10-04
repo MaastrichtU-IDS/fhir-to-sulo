@@ -120,6 +120,7 @@ def _run_files(
     family: str, files: Sequence[Path], repo: Path, image: EngineImage,
     quality_mode: Optional[str], metadata: Optional["RunMetadata"] = None,
     source_scope_id: Optional[str] = None, person_index_path: Optional[str] = None,
+    fhir_base_url: Optional[str] = None,
 ) -> List[PipelineOutcome]:
     person_index = None
     if person_index_path:
@@ -129,6 +130,7 @@ def _run_files(
     pipeline = Pipeline.for_family(family, repo, engine=image,
                                    quality_mode=quality_mode, metadata=metadata,
                                    source_scope_id=source_scope_id,
+                                   fhir_base_url=fhir_base_url,
                                    person_index=person_index)
     return [pipeline.run_file(path) for path in files]
 
@@ -138,7 +140,8 @@ def cmd_map(args) -> int:
     outcomes = _run_files(args.family, [Path(p) for p in args.files],
                           Path(args.repo), image, args.quality_mode,
                           source_scope_id=args.source_scope,
-                          person_index_path=args.person_index)
+                          person_index_path=args.person_index,
+                          fhir_base_url=args.fhir_base)
     for outcome in outcomes:
         print(f"{outcome.source.canonical_url}  {outcome.transform.status.value}"
               f"  {len(outcome.ntriples)} quad(s)"
@@ -160,7 +163,8 @@ def cmd_batch(args) -> int:
                               sulo_version=args.sulo_version,
                               domain_ontology_version=args.domain_ontology_version),
                           source_scope_id=args.source_scope,
-                          person_index_path=args.person_index)
+                          person_index_path=args.person_index,
+                          fhir_base_url=args.fhir_base)
     out = Path(args.out)
     with out.open("w", encoding="utf-8") as handle:
         for outcome in outcomes:
@@ -205,6 +209,10 @@ def build_parser() -> argparse.ArgumentParser:
                             "keyed on it, so two systems that each hold Patient/123 must "
                             "pass different values or their patients are fused (DR-014). "
                             "Omitted means the single-source default.")
+        p.add_argument("--fhir-base", default=None, metavar="URL",
+                       help="the FHIR base of the source these resources came from. The "
+                            "recorded canonical URL is built from it, and that URL is a "
+                            "graph key input, so leaving it wrong is not cosmetic.")
         p.add_argument("--person-index", default=None, metavar="FILE",
                        help="person-identifier index from `python -m "
                             "fhir_sulo.identity.cli build`. Without it nothing reunifies "

@@ -129,6 +129,10 @@ class Pipeline:
     #: Carried here because ``run_file`` ingests for itself, so DR-014's fix
     #: reached ``run_context`` and stopped short of the path operators use.
     source_scope_id: Optional[str] = None
+    #: DR-020. The FHIR base of the source these resources came from, so the
+    #: recorded canonical URL is the resource's real address rather than the
+    #: pinned manifest's. It is a graph key input, so it is not cosmetic.
+    fhir_base_url: Optional[str] = None
     metadata: RunMetadata = field(default_factory=RunMetadata)
 
     @property
@@ -155,6 +159,7 @@ class Pipeline:
         metadata: Optional["RunMetadata"] = None,
         person_index: Optional[Any] = None,
         source_scope_id: Optional[str] = None,
+        fhir_base_url: Optional[str] = None,
     ) -> "Pipeline":
         families = {f.family: f for f in discover(repo_root / "maps")}
         if name not in families:
@@ -177,6 +182,7 @@ class Pipeline:
             metadata=meta,
             person_index=person_index,
             source_scope_id=source_scope_id,
+            fhir_base_url=fhir_base_url,
         )
 
     # -- the path -----------------------------------------------------------
@@ -203,7 +209,9 @@ class Pipeline:
 
     def run_file(self, fhir_json: Path, rdf: Optional[str] = None) -> PipelineOutcome:
         """Ingest one FHIR JSON resource and map it."""
-        context = source_context(Path(fhir_json), source_scope_id=self.source_scope_id)
+        context = source_context(Path(fhir_json),
+                                 source_scope_id=self.source_scope_id,
+                                 fhir_base_url=self.fhir_base_url)
         return self.run_context(context, rdf=rdf)
 
     def run_context(

@@ -41,12 +41,14 @@ def _expected_for(path: str) -> Optional[str]:
 def ingest_text(json_text: str, manifest: Optional[Manifest] = None,
                 identity: Optional[IdentityService] = None,
                 dataset_id: str = "synthetic/pilot",
-                source_scope_id: str = PILOT_SOURCE_SCOPE_ID) -> SourceContext:
+                source_scope_id: str = PILOT_SOURCE_SCOPE_ID,
+                fhir_base_url: Optional[str] = None) -> SourceContext:
     m = manifest or default_manifest()
     resource = jsonio.loads(json_text)
     return ingest_resource(resource, json_text=json_text, manifest=m,
                            identity=identity, dataset_id=dataset_id,
-                           source_scope_id=source_scope_id)
+                           source_scope_id=source_scope_id,
+                           fhir_base_url=fhir_base_url)
 
 
 def ingest_file(path: str, **kwargs) -> SourceContext:
@@ -58,7 +60,8 @@ def ingest_resource(resource: Dict[str, Any], json_text: Optional[str] = None,
                     manifest: Optional[Manifest] = None,
                     identity: Optional[IdentityService] = None,
                     dataset_id: str = "synthetic/pilot",
-                    source_scope_id: str = PILOT_SOURCE_SCOPE_ID) -> SourceContext:
+                    source_scope_id: str = PILOT_SOURCE_SCOPE_ID,
+                    fhir_base_url: Optional[str] = None) -> SourceContext:
     m = manifest or default_manifest()
     identity = identity or RefusingIdentityService()
     if json_text is None:
@@ -95,7 +98,11 @@ def ingest_resource(resource: Dict[str, Any], json_text: Optional[str] = None,
     )
 
     version_id = str(resource.get("meta", {}).get("versionId") or "")
-    canonical_url = m.server_base + rtype + "/" + str(resource["id"])
+    # DR-020. The resource's address at the source it came FROM, not at the
+    # pinned manifest's server. Two hospitals both produced
+    # https://fhir.example/Observation/1 for their own Observation/1, so the
+    # recorded canonical URL was wrong for every source but the pinned one.
+    canonical_url = (fhir_base_url or m.server_base) + rtype + "/" + str(resource["id"])
     subject_ctx = SubjectContext(
         source_server_base=m.server_base, dataset_id=dataset_id,
         source_resource_iri=canonical_url, source_version_id=version_id,
@@ -129,7 +136,7 @@ def ingest_resource(resource: Dict[str, Any], json_text: Optional[str] = None,
         resolved_references=refs,
         terminology_snapshot=m.terminology_snapshot,
         source_scope_id=source_scope_id,
-        fhir_base_url=m.server_base,
+        fhir_base_url=fhir_base_url or m.server_base,
         eligibility=verdict.outcome,
         eligibility_reason=verdict.reason_text,
         unsupported_modifier_extensions=verdict.unsupported_modifier_extensions,

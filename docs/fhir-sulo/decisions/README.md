@@ -1,6 +1,6 @@
 # Decision records
 
-43 records. The numbering is by owner, not by date: **DR-0xx** integration and reviewer
+44 records. The numbering is by owner, not by date: **DR-0xx** integration and reviewer
 rulings, **DR-1xx** ingestion, **DR-2xx** maps, **DR-3xx** engine, **DR-4xx** identity and
 terminology, **DR-6xx** provenance, validation and operations.
 
@@ -30,6 +30,7 @@ held.
 | ★ | [DR-017](DR-017-one-identifier-system-has-several-spellings.md) | BSN arrives as a URI *and* as a `urn:oid:`; exact matching missed one |
 | ★ | [DR-018](DR-018-the-key-triple-came-from-string-surgery.md) | **three false merges: a versioned reference named the wrong patient** |
 | ★ | [DR-019](DR-019-the-source-scope-was-in-no-key-field.md) | two hospitals shared one replacement slot, so one superseded the other |
+| ★ | [DR-020](DR-020-contained-fusion-alias-shadowing-and-the-canonical-url.md) | a contained resource fused with a top-level patient; two smaller holes |
 
 ## Ingestion (DR-1xx)
 

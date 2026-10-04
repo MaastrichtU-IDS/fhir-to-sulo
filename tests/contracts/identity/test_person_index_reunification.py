@@ -215,3 +215,43 @@ class OneSystemHasMoreThanOneSpelling(unittest.TestCase):
         svc = IdentityService()
         self.assertNotIn(BSN_OID, svc._person_identifier_canonical_map())
         self.assertNotIn(BSN_URI, svc._person_identifier_canonical_map())
+
+
+class AliasShadowingIsRefusedByPolicyValidation(unittest.TestCase):
+    """DR-020. Aliasing resolves by walking entries in order, so if entry B
+    listed entry A's primary system among its ``equivalent_systems`` then
+    A's canonical form depended on which entry came first -- deterministic
+    for a given file, silently wrong, and it merges two namespaces into one
+    person."""
+
+    def test_the_shipped_policy_has_no_shadowing(self):
+        from fhir_sulo.policy import PolicyBundle
+
+        PolicyBundle.load().validate()
+
+    def test_one_entry_claiming_anothers_system_is_refused(self):
+        import copy
+        import dataclasses
+
+        from fhir_sulo.policy import PolicyBundle, PolicyError
+
+        base = PolicyBundle.load()
+        identity = copy.deepcopy(dict(base.identity))
+        systems = identity["person_identifying_identifier_systems"]
+        systems[-1]["equivalent_systems"] = [systems[0]["system"]]
+        with self.assertRaises(PolicyError) as caught:
+            dataclasses.replace(base, identity=identity).validate()
+        self.assertIn("claimed by two entries", str(caught.exception))
+
+    def test_an_entry_may_still_repeat_its_own_primary(self):
+        """Harmless redundancy must not be mistaken for a conflict."""
+        import copy
+        import dataclasses
+
+        from fhir_sulo.policy import PolicyBundle
+
+        base = PolicyBundle.load()
+        identity = copy.deepcopy(dict(base.identity))
+        entry = identity["person_identifying_identifier_systems"][0]
+        entry["equivalent_systems"] = [entry["system"]]
+        dataclasses.replace(base, identity=identity).validate()

@@ -129,3 +129,86 @@ class RunFileHonoursThePipelinesScope(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
+
+
+class ContainedResourcesAreNotLookedUpInTheIndex(unittest.TestCase):
+    """DR-020. A contained resource has no existence outside its container.
+
+    The index lookup used the raw scope and raw resource id, not the
+    effective container-scoped key the service uses everywhere else, so a
+    contained ``#p-inline`` matched a TOP-LEVEL ``Patient/p-inline`` and the
+    two fused -- on a coincidence of ids, not on evidence.
+    """
+
+    SYN = "https://w3id.org/ontostart/fhir2sulo/synthetic/person-number"
+
+    def _service(self):
+        from fhir_sulo.identity.person_index import PersonIdentifierIndex
+
+        index = PersonIdentifierIndex.build(
+            [{"resourceType": "Patient", "id": "p-inline",
+              "identifier": [{"system": self.SYN, "value": "900001"}]}],
+            scope_id="mumc", allowlist=[self.SYN])
+        return IdentityService(person_index=index)
+
+    def _resolve(self, kind, container=None):
+        from fhir_sulo.identity import IdentityRequest, ReferenceEvidence, SourceScope
+
+        evidence = ReferenceEvidence(
+            evidence_id="e", kind=kind,
+            source_scope=SourceScope("mumc", "https://mumc.example/fhir/"),
+            resource_type="Patient", resource_id="p-inline", container_url=container)
+        outcome = self._service().resolve(
+            IdentityRequest("ref", ("Patient",), (evidence,), entity_kind="person"))
+        self.assertTrue(outcome.is_resolved, getattr(outcome, "reason", None))
+        return outcome.unwrap()
+
+    def test_a_contained_resource_does_not_fuse_with_a_top_level_record(self):
+        top = self._resolve("literal-reference")
+        contained = self._resolve("contained", "https://mumc.example/fhir/Observation/o1")
+        self.assertNotEqual(top.entity_iri, contained.entity_iri)
+
+    def test_the_contained_one_keys_under_its_container(self):
+        contained = self._resolve("contained", "https://mumc.example/fhir/Observation/o1")
+        self.assertEqual(contained.rule_id, "ID-R8-contained-scoped-to-its-container")
+
+    def test_the_top_level_one_still_keys_on_the_identifier(self):
+        """The fix must not switch the index off for records it does cover."""
+        self.assertEqual(self._resolve("literal-reference").rule_id,
+                         "ID-R12-identifier-keyed-person")
+
+
+class TheCanonicalUrlNamesTheSourceItCameFrom(unittest.TestCase):
+    """DR-020. It was built from the PINNED manifest's base, so every source
+    produced the same URL for one resource id -- and that URL is a graph key
+    input and the replacement slot."""
+
+    def _url(self, path, **kw):
+        return ingest_file(path, **kw).canonical_url
+
+    def test_two_sources_give_two_canonical_urls(self):
+        a = self._url("fixtures/multi-source/mumc-r4/Observation-egfr-a.json",
+                      source_scope_id="mumc-r4", fhir_base_url="https://mumc.example/fhir/")
+        b = self._url("fixtures/multi-source/radboud-r4/Observation-egfr-b.json",
+                      source_scope_id="radboud-r4",
+                      fhir_base_url="https://radboud.example/fhir/")
+        self.assertNotEqual(a, b)
+        self.assertTrue(a.startswith("https://mumc.example/fhir/"), a)
+
+    def test_the_default_is_the_pinned_base_so_nothing_re_keys(self):
+        self.assertTrue(
+            self._url("fixtures/multi-source/mumc-r4/Observation-egfr-a.json")
+            .startswith("https://fhir.example/"))
+
+    def test_the_operator_cli_can_set_it(self):
+        import contextlib
+        import io
+
+        from fhir_sulo.pipeline.cli import main
+
+        for sub in ("map", "batch"):
+            with self.subTest(subcommand=sub):
+                buf = io.StringIO()
+                with contextlib.redirect_stdout(buf), contextlib.suppress(SystemExit):
+                    main([sub, "--help"])
+                self.assertIn("--fhir-base", buf.getvalue())

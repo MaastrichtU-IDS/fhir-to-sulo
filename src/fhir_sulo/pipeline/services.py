@@ -64,7 +64,8 @@ class ReferenceNotAPerson(RuntimeError):
         self.reason = reason
 
 
-def source_context(json_path: Path, source_scope_id: Optional[str] = None):
+def source_context(json_path: Path, source_scope_id: Optional[str] = None,
+                   fhir_base_url: Optional[str] = None):
     """Agent 2's ``SourceContext``: rendered RDF, resolved references, eligibility.
 
     ``source_scope_id`` is which source the resource came from. Leaving it
@@ -73,9 +74,12 @@ def source_context(json_path: Path, source_scope_id: Optional[str] = None):
     """
     from fhir_sulo.ingest import ingest_file
 
-    if source_scope_id is None:
-        return ingest_file(str(json_path))
-    return ingest_file(str(json_path), source_scope_id=source_scope_id)
+    kwargs = {}
+    if source_scope_id is not None:
+        kwargs["source_scope_id"] = source_scope_id
+    if fhir_base_url is not None:
+        kwargs["fhir_base_url"] = fhir_base_url
+    return ingest_file(str(json_path), **kwargs)
 
 
 def _scope_of(ctx) -> "SourceScope":

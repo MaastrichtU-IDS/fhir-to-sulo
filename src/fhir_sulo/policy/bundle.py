@@ -17,7 +17,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, Mapping
 
-from .canonical import digest
+from .canonical import digest, normalise_text
 
 __all__ = [
     "PolicyBundle",
@@ -184,6 +184,40 @@ class PolicyBundle:
 
     # -- internal consistency --------------------------------------------
 
+
+    def _validate_person_identifier_systems(self) -> None:
+        """Each accepted spelling must canonicalise to exactly one system.
+
+        DR-020. Aliasing is resolved by walking the entries in order, so if
+        entry B listed entry A's primary system among its ``equivalent_systems``
+        the canonical form of A depended on which entry came first. Deterministic
+        for a given file and silently wrong, and it would merge two different
+        identifier namespaces into one person.
+        """
+        entries = self.identity.get("person_identifying_identifier_systems") or ()
+        owner: Dict[str, str] = {}
+        for entry in entries:
+            if not isinstance(entry, dict):
+                raise PolicyError(
+                    "person_identifying_identifier_systems entries must be objects "
+                    "carrying a `status`; got a bare %s" % type(entry).__name__)
+            primary = normalise_text(str(entry.get("system") or ""))
+            if not primary:
+                raise PolicyError(
+                    "a person_identifying_identifier_systems entry has no `system`")
+            spellings = [primary] + [
+                normalise_text(str(a)) for a in (entry.get("equivalent_systems") or ()) if a
+            ]
+            for spelling in spellings:
+                claimed_by = owner.get(spelling)
+                if claimed_by is not None and claimed_by != primary:
+                    raise PolicyError(
+                        "identifier system %r is claimed by two entries (%r and %r). "
+                        "Which one it canonicalises to would depend on entry order, and "
+                        "the two namespaces would merge into one person."
+                        % (spelling, claimed_by, primary))
+                owner[spelling] = primary
+
     def validate(self) -> None:
         iri = self.identity.get("entity_iri")
         if not isinstance(iri, dict):
@@ -203,6 +237,7 @@ class PolicyBundle:
             raise PolicyError("only sha256 is supported for entity keys")
         if not str(iri.get("key_revision", "")).strip():
             raise PolicyError("entity_iri.key_revision is required")
+        self._validate_person_identifier_systems()
         if "policy_version" in iri.get("key_input_fields", []):
             raise PolicyError(
                 "entity_iri.key_input_fields must not contain 'policy_version': entity "
