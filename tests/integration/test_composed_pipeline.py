@@ -62,6 +62,44 @@ def fixture(family: str, case: str, name: str) -> Path:
 class TestFhirJsonToTargetGraph(unittest.TestCase):
     """FHIR JSON in, a loadable TransformResult out."""
 
+    def test_r8b_cannot_fire_through_any_shipped_map(self):
+        """Pins a KNOWN GAP, so closing it flips a test rather than going unnoticed.
+
+        R8b is answered and implemented: a person-identifying business
+        identifier keys the person, and
+        tests/contracts/identity/test_r8b_identifier_keying.py exercises it
+        against the identity service.  It cannot be reached through the
+        pipeline, because every shipped source schema requires
+        ``Reference.reference`` and a FHIR *logical* reference carries only
+        ``Reference.identifier``.
+
+        DR-011 originally claimed the rule fired on logical references and on
+        contained resources' identifiers. Both were wrong: the first fails
+        source validation here, and contained resources' own identifier
+        fields are never read -- only ``Reference.identifier`` is.
+
+        Closing this means widening three source contracts, which is a scope
+        decision, not a fix. Until then the gap is asserted rather than
+        described.
+        """
+        import json
+        import os
+        import tempfile
+
+        from fhir_sulo.engine.driver import SourceValidationFailure
+
+        syn = "https://w3id.org/ontostart/fhir2sulo/synthetic/person-number"
+        doc = json.load(open(fixture("encounter", "enc-baseline", "enc-9.json")))
+        # One human recorded as both the subject and the practitioner.
+        doc["subject"] = {"identifier": {"system": syn, "value": "900001"}}
+        doc["participant"][0]["individual"] = {
+            "identifier": {"system": syn, "value": "900001"}}
+        path = os.path.join(tempfile.mkdtemp(), "enc-logical.json")
+        with open(path, "w") as handle:
+            json.dump(doc, handle)
+        with self.assertRaises(SourceValidationFailure):
+            pipeline("encounter").run_file(path)
+
     def test_an_unreviewed_participation_type_is_refused_by_the_schema(self):
         """R12's FIRST guard, and the one that fires today.
 

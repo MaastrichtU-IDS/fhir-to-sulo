@@ -39,7 +39,10 @@ def service_allowing(*systems):
 
     base = IdentityService()
     patched = copy.deepcopy(dict(base.policy.identity))
-    patched["person_identifying_identifier_systems"] = list(systems)
+    patched["person_identifying_identifier_systems"] = [
+        {"system": sysuri, "status": "pilot-provisional", "scope": "synthetic"}
+        for sysuri in systems
+    ]
     return IdentityService(policy=dataclasses.replace(base.policy, identity=patched))
 
 
@@ -61,10 +64,40 @@ def resolve(svc, ev, resource_type):
     )
 
 
-class TheShippedPolicyCannotMerge(unittest.TestCase):
-    def test_the_allowlist_is_empty_so_nothing_merges(self):
+class TheShippedPolicyMergesOnlySyntheticIdentifiers(unittest.TestCase):
+    """The shipped allowlist is no longer empty, but it is still inert in the
+    only sense that matters: nothing a real register issues can merge anyone.
+
+    This class previously asserted the list was empty. That became the wrong
+    assertion once a SYNTHETIC namespace was listed to make the mechanism
+    reachable, so it now asserts the property that was actually being
+    protected.
+    """
+
+    def test_only_synthetic_namespaces_are_interpretable(self):
         svc = IdentityService()
-        self.assertEqual(svc.policy.identity["person_identifying_identifier_systems"], [])
+        for entry in svc.policy.identity["person_identifying_identifier_systems"]:
+            if entry["status"] in ("approved", "pilot-provisional"):
+                with self.subTest(system=entry["system"]):
+                    self.assertEqual(entry["scope"], "synthetic")
+
+    def test_the_real_world_candidates_are_present_but_type_nothing(self):
+        """BSN and SSN are listed so enabling one is a reviewed edit rather
+        than an invention. Listed is not enabled."""
+        svc = IdentityService()
+        proposed = {e["system"] for e in
+                    svc.policy.identity["person_identifying_identifier_systems"]
+                    if e["status"] == "proposed"}
+        self.assertIn("http://fhir.nl/fhir/NamingSystem/bsn", proposed)
+        self.assertFalse(proposed & svc._person_identifier_allowlist())
+
+    def test_the_us_npi_is_explicitly_excluded_with_a_reason(self):
+        """One system URI covers individual AND organisational NPIs."""
+        svc = IdentityService()
+        excluded = {e["system"]: e["reason"] for e in
+                    svc.policy.identity["person_identifying_identifier_systems_excluded"]}
+        self.assertIn("http://hl7.org/fhir/sid/us-npi", excluded)
+        self.assertIn("Type 2", excluded["http://hl7.org/fhir/sid/us-npi"])
 
     def test_a_logical_reference_is_rejected_with_a_useful_reason(self):
         """Not ID-R6 'incomplete key inputs', which is true but unhelpful."""

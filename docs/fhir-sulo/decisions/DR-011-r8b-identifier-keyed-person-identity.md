@@ -48,19 +48,42 @@ the `Patient` or `Practitioner` resource, and Bundles are out of scope
 (`src/fhir_sulo/ingest/references.py`). So **`Patient.identifier` and `Practitioner.identifier`
 are not available to it.**
 
-The rule therefore fires only on evidence that exists today:
+**Correction, 2026-10-04.** This section originally claimed the rule "fires only on evidence
+that exists today: `Reference.identifier` … and a contained resource's own identifiers."
+**Both limbs were wrong, and the rule currently fires nowhere through the pipeline.**
 
-- **`Reference.identifier`** — a FHIR *logical reference*, carrying `system` + `value` and no
-  address. Previously classified `identifier-only` and **rejected outright**
-  (`pipeline/services.py`); now routed to the identity service.
-- A **contained** resource's own identifiers, since a contained resource is inline.
+- **`Reference.identifier`** is routed to the identity service by
+  `pipeline/services.py`, but it never gets there: every shipped source schema requires
+  `fhir:Reference.reference`, and a logical reference does not have one, so the resource fails
+  **source validation** first. Verified —
+  `test_r8b_cannot_fire_through_any_shipped_map` asserts the `SourceValidationFailure`.
+- **Contained resources' own identifiers are never read.** `ingest/references.py` extracts an
+  identifier only from `Reference.identifier`; resolving `#p-inline` to a contained resource
+  does not look at that resource's `identifier` array at all.
 
-Making it fire on ordinary inputs requires ingest to accept Bundles or referenced resources.
-That is a scope expansion and was **not** taken on here; it is the natural successor task.
+So R8b is **implemented and unit-tested at the identity-service API, and unreachable through
+all three shipped maps.** That gap is now pinned by a test rather than described in prose, so
+closing it flips a test instead of going unnoticed.
 
-## The allowlist is empty, and that is the point
+Closing it means either widening three source contracts to accept a logical reference, or
+ingesting Bundles so the `Patient`/`Practitioner` resources themselves are visible. Both are
+scope decisions rather than fixes, and neither was taken on unprompted.
 
-`person_identifying_identifier_systems: []`.
+## The allowlist — restructured 2026-10-04
+
+Entries, not bare URIs, so each carries a review status like every other table in this bundle.
+Only `approved` and `pilot-provisional` key a person.
+
+| system | status | scope |
+| --- | --- | --- |
+| `…/fhir2sulo/synthetic/person-number` | `pilot-provisional` | synthetic |
+| `http://fhir.nl/fhir/NamingSystem/bsn` | `proposed` | real-world |
+| `http://hl7.org/fhir/sid/us-ssn` | `proposed` | real-world |
+
+A **synthetic** namespace is allowlisted so the mechanism is live and testable rather than
+implemented-but-switched-off. It identifies nobody; no register issues it. **No real-world
+namespace is interpretable**, and a test enforces exactly that rather than the weaker,
+soon-obsolete "the list is empty".
 
 Which `Identifier.system` URIs identify a *human* is a clinical and governance decision, not an
 engineering one, so the implementation does not populate it. **While it is empty the mechanism
@@ -129,3 +152,34 @@ the live switch.
 ## Still open
 
 Which identifier systems are person-identifying. Until that is answered the rule cannot fire.
+
+---
+
+## Addendum — 2026-10-04: exclusions, and why the rule rarely fires anyway
+
+### Explicitly excluded, with reasons
+
+- **`http://hl7.org/fhir/sid/us-npi`.** One system URI covers both Type 1 (individual provider)
+  and Type 2 (organisation) NPIs. Allowlisting it would merge an **organisation** into a person
+  entity whenever a Type 2 NPI appeared — a category error, not a near miss, because
+  `entity_kind` here is `person`. It could only be admitted alongside a rule that first
+  established the NPI is Type 1, which cannot be done from the identifier alone.
+- **Any local MRN.** Identifies a *patient record at one organisation*, not a human. Two
+  organisations reuse MRN values freely, and a practitioner has none, so it can neither merge
+  correctly nor merge usefully.
+- **Resource-level identifiers** such as `urn:ietf:rfc:3986` UUIDs. They identify the
+  *resource*, not its subject. HL7's own BP example carries exactly this on
+  `Observation.identifier`, which is the only `identifier` anywhere in this repo's corpus.
+
+### Why this rule would rarely fire even once it is reachable
+
+For R8b to merge anything, the Patient-side and Practitioner-side references must carry the
+**same** `Identifier.system`. That is a stronger condition than it first appears: a patient
+typically carries an MRN or a national **person** number, while a practitioner typically
+carries a national **provider** number (NPI, BIG). Those are different namespaces and will
+never match.
+
+The rule fires only where one national **person** number is recorded on both — normal in the
+Netherlands and the Nordics, unusual in the US. This is worth knowing before anyone treats R8b
+as general-purpose patient/practitioner reconciliation. It is not; it is exact-match keying on
+one agreed namespace.

@@ -241,6 +241,43 @@
     "reviewer": "human clinical/ontology reviewer",
     "reviewed_on": "2026-09-30"
   },
-  "person_identifying_identifier_systems": [],
-  "person_identifying_identifier_systems_note": "Identifier.system URIs that identify a PERSON, such as a national person number or a national provider number. EMPTY BY DESIGN and not populated by the implementation: which namespaces identify a person is a clinical/governance decision, not an engineering one. While it is empty the mechanism is fully implemented and tested but can never fire, so behaviour is identical to before R8b was answered. A local MRN does NOT belong here: it identifies a patient record at one organisation, not a human."
+  "person_identifying_identifier_systems": [
+    {
+      "system": "https://w3id.org/ontostart/fhir2sulo/synthetic/person-number",
+      "status": "pilot-provisional",
+      "scope": "synthetic",
+      "display": "Synthetic national person number (pilot only)",
+      "note": "A namespace this project controls, used so the R8b mechanism is LIVE and testable end to end rather than implemented-but-unreachable. It identifies nobody: no real register issues it. Allowlisting it blesses no real-world namespace, which is why it is `scope: synthetic` and why a test requires every interpretable entry to be."
+    },
+    {
+      "system": "http://fhir.nl/fhir/NamingSystem/bsn",
+      "status": "proposed",
+      "scope": "real-world",
+      "display": "Burgerservicenummer (NL)",
+      "note": "The obvious candidate for a Dutch deployment: a national PERSON number, carried by patients and practitioners alike, which is exactly the shape R8b needs. Types nothing while `proposed`. Turning it on is a GOVERNANCE decision as much as an ontological one -- BSN is legally restricted -- and the canonical system URI should be confirmed against Nictiz rather than taken from this file."
+    },
+    {
+      "system": "http://hl7.org/fhir/sid/us-ssn",
+      "status": "proposed",
+      "scope": "real-world",
+      "display": "US Social Security Number",
+      "note": "A person number, so structurally eligible. Types nothing while `proposed`."
+    }
+  ],
+  "person_identifying_identifier_systems_note": "Entries, not bare URIs, so each carries a review status like every other table in this bundle. Only `approved` and `pilot-provisional` key a person; `proposed` is present so that enabling it is a reviewed edit rather than an invention. Which real namespaces identify a human is a clinical and governance decision and is NOT made here.",
+  "person_identifying_identifier_systems_excluded": [
+    {
+      "system": "http://hl7.org/fhir/sid/us-npi",
+      "reason": "ONE system URI covers both Type 1 (individual provider) and Type 2 (organisation) NPIs. Allowlisting it would merge an ORGANISATION into a person entity whenever a Type 2 NPI appeared -- a category error, not a near miss, because entity_kind here is `person`. It could only be admitted with a rule that first established the NPI is Type 1, which this pilot cannot do from the identifier alone."
+    },
+    {
+      "system": "<any local medical record number>",
+      "reason": "An MRN identifies a PATIENT RECORD at one organisation, not a human. Two organisations reuse MRN values freely, and a practitioner does not have one at all, so it can neither merge correctly nor merge usefully."
+    },
+    {
+      "system": "<any resource-level identifier, e.g. urn:ietf:rfc:3986 UUIDs>",
+      "reason": "Identifies the RESOURCE, not its subject. HL7's own BP example carries exactly this on Observation.identifier."
+    }
+  ],
+  "person_identifying_identifier_systems_why_this_rarely_fires": "For R8b to merge anything, the Patient-side and Practitioner-side references must carry the SAME Identifier.system. That is a stronger condition than it first appears: a patient typically carries an MRN or a national person number, while a practitioner typically carries a national PROVIDER number (NPI, BIG). Those are different namespaces and will never match. The rule fires only where one national PERSON number is recorded on both -- which is normal in the Netherlands and the Nordics, and unusual in the US."
 }

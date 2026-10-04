@@ -68,23 +68,51 @@ def test_the_only_merge_rule_is_the_reviewed_one():
     assert "R8b" in entry["reviewer_item"], entry
 
 
-def test_the_merge_rule_cannot_actually_fire_yet():
-    """The allowlist is the live switch, and it is empty by design.
+def test_no_real_world_identifier_system_can_merge_people():
+    """The guard that replaced "the allowlist is empty".
 
-    The mechanism is implemented and tested, but which Identifier.system URIs
-    identify a human is a clinical/governance decision.  While this list is
-    empty no merge can occur and behaviour is identical to before R8b.
-    Populating it is a reviewed edit with a measurable consequence: every
-    entity that gains an identifier key changes IRI.
+    It used to assert ``allowed == []``.  That was right while nothing was
+    listed, but it would have had to be deleted the moment anything was -- and
+    deleting it would have removed the only check on WHAT gets listed.  The
+    property actually worth protecting is not emptiness: it is that no
+    real-world namespace can merge two people without a reviewed decision.
+
+    A synthetic namespace is allowlisted so the R8b mechanism is live and
+    testable end to end.  It identifies nobody.
     """
     svc = IdentityService()
-    allowed = svc.policy.identity["person_identifying_identifier_systems"]
-    assert allowed == [], (
-        "person-identifying identifier systems have been approved: %r. That re-keys "
-        "every entity carrying one and needs a decision record and a migration note."
-        % (allowed,)
+    entries = svc.policy.identity["person_identifying_identifier_systems"]
+    interpretable = [e for e in entries
+                     if e["status"] in ("approved", "pilot-provisional")]
+    assert interpretable, "nothing is interpretable; the mechanism is unreachable again"
+    offenders = [e["system"] for e in interpretable if e.get("scope") != "synthetic"]
+    assert not offenders, (
+        "real-world identifier system(s) %r now merge people. That re-keys every entity "
+        "carrying one, and needs a decision record, a governance sign-off and a migration "
+        "note -- not a policy edit." % (offenders,)
     )
-    assert svc._person_identifier_allowlist() == frozenset()
+    assert svc._person_identifier_allowlist() == frozenset(
+        e["system"] for e in interpretable)
+
+
+def test_nothing_is_clinically_signed_off_as_person_identifying():
+    svc = IdentityService()
+    for entry in svc.policy.identity["person_identifying_identifier_systems"]:
+        assert entry["status"] != "approved", entry
+
+
+def test_a_bare_uri_is_refused_because_it_carries_no_review_status():
+    import copy
+    import dataclasses
+
+    import pytest
+
+    base = IdentityService()
+    table = copy.deepcopy(dict(base.policy.identity))
+    table["person_identifying_identifier_systems"] = ["http://example.org/sneaky"]
+    svc = IdentityService(dataclasses.replace(base.policy, identity=table))
+    with pytest.raises(Exception):
+        svc._person_identifier_allowlist()
 
 
 def test_patient_and_practitioner_with_the_same_id_stay_distinct():

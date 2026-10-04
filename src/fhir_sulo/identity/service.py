@@ -314,11 +314,22 @@ class IdentityService:
         clinical/governance decision.  While empty, every path below is
         unreachable and behaviour is identical to before R8b was answered.
         """
-        return frozenset(
-            normalise_text(sysuri)
-            for sysuri in (self.policy.identity.get("person_identifying_identifier_systems") or ())
-            if sysuri
-        )
+        declared = self.policy.identity.get("person_identifying_identifier_systems") or ()
+        interpretable = ("approved", "pilot-provisional")
+        out = set()
+        for entry in declared:
+            if not isinstance(entry, Mapping):
+                # A bare URI carries no review status, and a system that keys a
+                # person must be reviewable like every other binding here.
+                raise PolicyInconsistent(
+                    "person_identifying_identifier_systems entries must be objects with a "
+                    "`status`; got a bare %s" % type(entry).__name__
+                )
+            if normalise_text(str(entry.get("status") or "")) in interpretable:
+                system = entry.get("system")
+                if system:
+                    out.add(normalise_text(system))
+        return frozenset(out)
 
     def _allowlisted_person_identifiers(self, candidates) -> list:
         """Distinct (system, value) pairs from candidates, allowlist-filtered."""
