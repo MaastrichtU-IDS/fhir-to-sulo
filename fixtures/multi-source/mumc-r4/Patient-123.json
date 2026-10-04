@@ -1,0 +1,25 @@
+{
+  "resourceType": "Patient",
+  "id": "123",
+  "meta": {
+    "versionId": "1"
+  },
+  "identifier": [
+    {
+      "system": "http://mumc.example/mrn",
+      "value": "MRN-123"
+    },
+    {
+      "system": "https://w3id.org/ontostart/fhir2sulo/synthetic/person-number",
+      "value": "900001"
+    }
+  ],
+  "name": [
+    {
+      "family": "Mumc",
+      "given": [
+        "Pat"
+      ]
+    }
+  ]
+}

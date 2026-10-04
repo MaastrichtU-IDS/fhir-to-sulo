@@ -121,11 +121,24 @@ class Pipeline:
     engine: EngineImage = field(default_factory=default_image)
     guards: Guards = field(default_factory=Guards)
     quality_mode: Optional[str] = None
-    #: DR-016. "none" when no person-identifier index is in use. It belongs in
-    #: the graph key because the index decides which source records are one
-    #: person, so it changes the entity IRIs in the emitted graph.
-    person_index_digest: str = "none"
+    #: R8b. The person-identifier index this run resolves identity under, or
+    #: None for the conservative default where nothing reunifies.
+    person_index: Optional[Any] = None
     metadata: RunMetadata = field(default_factory=RunMetadata)
+
+    @property
+    def person_index_digest(self) -> str:
+        """DR-016. DERIVED, never set beside the index.
+
+        It belongs in the graph key because the index decides which source
+        records are one person, so it changes the entity IRIs in the emitted
+        graph. Holding it as its own field would let the digest disagree with
+        the index actually in use -- a graph key that lies about its graph,
+        which is worse than having no key at all.
+        """
+        if self.person_index is None or not len(self.person_index):
+            return "none"
+        return self.person_index.digest
 
     @classmethod
     def for_family(
@@ -135,6 +148,7 @@ class Pipeline:
         engine: Optional[EngineImage] = None,
         quality_mode: Optional[str] = None,
         metadata: Optional["RunMetadata"] = None,
+        person_index: Optional[Any] = None,
     ) -> "Pipeline":
         families = {f.family: f for f in discover(repo_root / "maps")}
         if name not in families:
@@ -155,6 +169,7 @@ class Pipeline:
             engine=image,
             quality_mode=mode,
             metadata=meta,
+            person_index=person_index,
         )
 
     # -- the path -----------------------------------------------------------
@@ -224,7 +239,8 @@ class Pipeline:
         try:
             resolved = self.family.resolve(
                 manifest, bindings, context,
-                IdentityService(policy), TerminologyService(policy), canonical_url)
+                IdentityService(policy, person_index=self.person_index),
+                TerminologyService(policy), canonical_url)
         except ReferenceNotAPerson as exc:
             # Not an error: the identity service declining is a designed
             # outcome, and inventing a subject to get a graph would be the
