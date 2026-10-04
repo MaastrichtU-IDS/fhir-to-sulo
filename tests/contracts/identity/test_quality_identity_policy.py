@@ -20,7 +20,7 @@ from fhir_sulo.identity import (
 )
 from fhir_sulo.policy import PolicyBundle
 
-SCOPE = SourceScope("synthea-pilot-r4", "https://fhir.example/")
+SCOPE = SourceScope("fhir-sulo-fixtures-r4", "https://fhir.example/")
 QUALITY_CLASS = "https://w3id.org/ontostart/fhir2sulo/RenalFiltrationQuality"
 
 

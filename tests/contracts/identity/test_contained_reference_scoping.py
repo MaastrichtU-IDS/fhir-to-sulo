@@ -26,7 +26,7 @@ from fhir_sulo.identity import (
 )
 from fhir_sulo.policy import PolicyBundle, PolicyError
 
-SCOPE = SourceScope("synthea-pilot-r4", "https://fhir.example/")
+SCOPE = SourceScope("fhir-sulo-fixtures-r4", "https://fhir.example/")
 OBS_1 = "https://fhir.example/Observation/egfr-456"
 OBS_2 = "https://fhir.example/Observation/egfr-789"
 
@@ -82,7 +82,7 @@ def test_the_caller_no_longer_has_to_pre_scope_anything(svc):
     assert outcome.is_resolved
     assert outcome.identity.rule_id == "ID-R8-contained-scoped-to-its-container"
     # The service, not the caller, put the container into the scope.
-    assert outcome.identity.source_scope_id == "synthea-pilot-r4|contained|" + OBS_1
+    assert outcome.identity.source_scope_id == "fhir-sulo-fixtures-r4|contained|" + OBS_1
     assert outcome.identity.key_inputs["source_scope_id"].endswith(OBS_1)
 
 
@@ -171,7 +171,7 @@ def test_candidate_order_does_not_change_the_contained_result(svc):
 def test_the_record_shows_both_the_raw_and_the_derived_scope(svc):
     record = svc.resolve(_request(OBS_1)).record.to_dict()
     evidence = record["evidence"][0]
-    assert evidence["source_scope"]["scope_id"] == "synthea-pilot-r4"   # raw
+    assert evidence["source_scope"]["scope_id"] == "fhir-sulo-fixtures-r4"   # raw
     assert evidence["container_url"] == OBS_1
     assert record["outcome"]["source_scope_id"].endswith(OBS_1)         # derived
     assert record["rule_id"] == "ID-R8-contained-scoped-to-its-container"
@@ -185,7 +185,7 @@ def test_non_contained_evidence_is_untouched(svc):
     )
     outcome = svc.resolve(IdentityRequest("Patient/p123", ("Patient",), (evidence,)))
     assert outcome.is_resolved
-    assert outcome.identity.source_scope_id == "synthea-pilot-r4"
+    assert outcome.identity.source_scope_id == "fhir-sulo-fixtures-r4"
     assert "container_url" not in evidence.as_dict()
     assert outcome.identity.rule_id == "ID-R1-single-candidate"
 

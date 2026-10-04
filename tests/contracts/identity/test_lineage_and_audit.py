@@ -17,7 +17,7 @@ from fhir_sulo.identity import (
 )
 from fhir_sulo.policy import PolicyBundle
 
-SCOPE = SourceScope("synthea-pilot-r4", "https://fhir.example/")
+SCOPE = SourceScope("fhir-sulo-fixtures-r4", "https://fhir.example/")
 EVIDENCE = ReferenceEvidence(
     evidence_id="e1",
     kind="literal-reference",
@@ -41,7 +41,7 @@ def test_fhir_reference_is_retained_as_lineage():
     lineage = outcome.identity.lineage()
     assert lineage["source_reference_literal"] == "Patient/p123"
     assert lineage["source_canonical_url"] == "https://fhir.example/Patient/p123"
-    assert lineage["source_scope_id"] == "synthea-pilot-r4"
+    assert lineage["source_scope_id"] == "fhir-sulo-fixtures-r4"
     assert lineage["entity_iri"].startswith("https://w3id.org/ontostart/fhir2sulo/person-")
     assert lineage["entity_iri"] != lineage["source_canonical_url"]
 

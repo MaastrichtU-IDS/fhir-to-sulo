@@ -22,7 +22,7 @@ from fhir_sulo.identity import (
 )
 from fhir_sulo.policy import PolicyBundle, PolicyError, parse_policy_version
 
-SCOPE = SourceScope("synthea-pilot-r4", "https://fhir.example/")
+SCOPE = SourceScope("fhir-sulo-fixtures-r4", "https://fhir.example/")
 REQUEST = IdentityRequest(
     "Patient/p123",
     ("Patient",),

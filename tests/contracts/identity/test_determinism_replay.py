@@ -157,7 +157,7 @@ def test_no_builtin_hash_anywhere_in_src():
 def test_candidate_order_does_not_affect_the_key():
     from fhir_sulo.identity import IdentityRequest, IdentityService, ReferenceEvidence, SourceScope
 
-    scope = SourceScope("synthea-pilot-r4", "https://fhir.example/")
+    scope = SourceScope("fhir-sulo-fixtures-r4", "https://fhir.example/")
     a = ReferenceEvidence("a", "literal-reference", scope, "Patient", "p123")
     b = ReferenceEvidence("b", "bundle-entry", scope, "Patient", "p123")
     svc = IdentityService()
@@ -174,7 +174,7 @@ def test_repeated_reference_resolves_to_one_person():
     """Plan section 2: 'repeated references resolve to one intended person'."""
     from fhir_sulo.identity import IdentityRequest, IdentityService, ReferenceEvidence, SourceScope
 
-    scope = SourceScope("synthea-pilot-r4", "https://fhir.example/")
+    scope = SourceScope("fhir-sulo-fixtures-r4", "https://fhir.example/")
     svc = IdentityService()
     iris = set()
     for i in range(25):
@@ -205,7 +205,7 @@ def test_unicode_equivalent_ids_do_not_split_one_person():
 
     iris = set()
     for resource_id in (composed, decomposed):
-        scope = SourceScope("synthea-pilot-r4", "https://fhir.example/")
+        scope = SourceScope("fhir-sulo-fixtures-r4", "https://fhir.example/")
         evidence = ReferenceEvidence("e", "literal-reference", scope, "Patient", resource_id)
         outcome = svc.resolve(IdentityRequest("Patient/x", ("Patient",), (evidence,)))
         assert outcome.is_resolved

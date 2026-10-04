@@ -11,7 +11,7 @@ say the same thing.
 
 (The discrepancy, when finally investigated, resolved in favour of
 `scoped-hash`: `scoped-slug` embeds the FHIR resource id in the semantic
-individual's IRI -- `person-synthea-pilot-r4-p123-144658ab` -- which names
+individual's IRI -- `person-fhir-sulo-fixtures-r4-p123-144658ab` -- which names
 the person after the record and invites the conflation concept note §2
 exists to prevent. The reasoning is in the policy's `key_style_decision`.)
 """

@@ -42,7 +42,7 @@ from fhir_sulo.identity import (  # noqa: E402
 from fhir_sulo.policy import PolicyBundle, parse_policy_version  # noqa: E402
 from fhir_sulo.terminology import Coding, TerminologyService, UnitRef  # noqa: E402
 
-SITE_A = SourceScope("synthea-pilot-r4", "https://fhir.example/")
+SITE_A = SourceScope("fhir-sulo-fixtures-r4", "https://fhir.example/")
 SITE_B = SourceScope("other-site-r4", "https://other.example/")
 PROBE = REPO_ROOT / "tests" / "contracts" / "identity" / "replay_probe.py"
 

@@ -29,7 +29,7 @@ from fhir_sulo.identity import (  # noqa: E402
 from fhir_sulo.policy import PolicyBundle, canonical_json  # noqa: E402
 from fhir_sulo.terminology import Coding, TerminologyService, UnitRef  # noqa: E402
 
-SCOPE_A = SourceScope("synthea-pilot-r4", "https://fhir.example/")
+SCOPE_A = SourceScope("fhir-sulo-fixtures-r4", "https://fhir.example/")
 SCOPE_B = SourceScope("other-site-r4", "https://other.example/")
 
 

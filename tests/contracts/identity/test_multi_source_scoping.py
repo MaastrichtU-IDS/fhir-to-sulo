@@ -8,7 +8,7 @@ The identity policy has always promised this:
 The policy delivered it. **The pipeline did not call it correctly.**
 ``pipeline/services.py`` held
 
-    SCOPE_ID = "synthea-pilot-r4"
+    SCOPE_ID = "fhir-sulo-fixtures-r4"
     FHIR_BASE = "https://fhir.example/"
 
 as module constants and passed them for every resource, so every source keyed
@@ -115,3 +115,45 @@ class ThePipelineHonoursItEndToEnd(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
+
+
+class TheScopeIdIsDefinedInOnePlace(unittest.TestCase):
+    """Renamed 2026-10-04 from ``synthea-pilot-r4``.
+
+    That name described a generator this project does not use -- there is no
+    Synthea data here and never was. Harmless while the scope was a constant
+    nobody could set. Not harmless once scope ids key identity: a plausible
+    name invites someone to point a real Synthea export at the same scope id
+    and fuse two unrelated corpora that happen to share resource ids.
+    """
+
+    def test_the_old_name_is_gone_from_code_policy_and_tests(self):
+        """Decision records keep it: DR-014 quotes it as the defect."""
+        import pathlib
+
+        root = pathlib.Path(__file__).resolve().parents[3]
+        offenders = []
+        for path in list(root.glob("src/**/*.py")) + list(root.glob("tests/**/*.py")) \
+                + list(root.glob("policies/*.json")) + list(root.glob("maps/**/*.json")):
+            text = path.read_text(encoding="utf-8")
+            if "synthea" in text and "It was ``synthea-pilot-r4``" not in text:
+                offenders.append(str(path.relative_to(root)))
+        self.assertEqual(offenders, [], offenders)
+
+    def test_nothing_hardcodes_a_scope_id_beside_the_constant(self):
+        """src/ must read PILOT_SOURCE_SCOPE_ID, never repeat its value.
+
+        A second literal is how the constant and the thing callers actually
+        use drift apart, which is the shape of DR-014 all over again.
+        """
+        import pathlib
+
+        root = pathlib.Path(__file__).resolve().parents[3]
+        literal = '"%s"' % PILOT_SOURCE_SCOPE_ID
+        offenders = [
+            str(path.relative_to(root))
+            for path in root.glob("src/**/*.py")
+            if literal in path.read_text(encoding="utf-8")
+            and path.name != "source_context.py"
+        ]
+        self.assertEqual(offenders, [], offenders)

@@ -29,7 +29,7 @@ from fhir_sulo.identity import (
 NATIONAL = "http://example.org/national-person-number"
 LOCAL_MRN = "http://hospital.example/mrn"
 
-SITE_A = SourceScope("synthea-pilot-r4", "https://fhir.example/")
+SITE_A = SourceScope("fhir-sulo-fixtures-r4", "https://fhir.example/")
 SITE_B = SourceScope("other-site-r4", "https://other.example/")
 
 

@@ -94,3 +94,36 @@ point of the deployment.
 - the pilot default equals the old constant, so adopting the fix re-keyed nothing;
 - a source-level guard that `entity_for_reference` no longer builds a `SourceScope` from module
   constants — the *shape* of the bug, not only its symptom.
+
+---
+
+## Addendum — 2026-10-04: the pilot scope is renamed, and every entity IRI moved
+
+`PILOT_SOURCE_SCOPE_ID` was **`synthea-pilot-r4`**. It is now **`fhir-sulo-fixtures-r4`**.
+
+That name described a generator this project does not use. Grepping for `synthea` found it only
+inside the scope-id string itself: no Synthea tooling, no download, no generated corpus. The
+fixtures are hand-written.
+
+Harmless while the scope was a constant nobody could set. **Not harmless now that scope ids key
+identity** — a plausible name invites someone to point a real Synthea export at the same scope
+id, and two unrelated corpora that share resource ids would be fused. The defect this record is
+about, reintroduced by a misleading name instead of a hardcoded one.
+
+### Cost, paid deliberately
+
+**Every entity IRI in the repo moved.** `source_scope_id` is a key input, so changing it re-keys
+every person and every quality. Eleven expected target graphs regenerated; 174 lines changed.
+Nothing else did — the graphs are the same shape with different hashes, which is what a scope
+change should look like.
+
+Done **after** the multi-source fixtures rather than before, at the reviewer's direction, so the
+new fixtures re-keyed twice. That cost one extra `build.py` run.
+
+### Guards
+
+- The old name is gone from `src/`, `tests/`, `policies/` and `maps/`. Decision records keep it,
+  because this one quotes it **as the defect** and rewriting history would remove the evidence.
+- No module under `src/` may repeat the scope-id literal; it must read the constant. A second
+  literal is how the constant and the value callers actually use drift apart — the shape of this
+  very defect, one layer along.

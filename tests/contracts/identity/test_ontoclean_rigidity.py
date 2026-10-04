@@ -55,7 +55,7 @@ def _request(kind):
             ReferenceEvidence(
                 evidence_id="Encounter.participant[0].individual",
                 kind="literal-reference",
-                source_scope=SourceScope("synthea-pilot-r4", "http://example.org/fhir/"),
+                source_scope=SourceScope("fhir-sulo-fixtures-r4", "http://example.org/fhir/"),
                 resource_type="Practitioner",
                 resource_id="c7",
                 canonical_url="http://example.org/fhir/Practitioner/c7",
@@ -151,7 +151,7 @@ class ResourceTypeStillPartitionsPeople(unittest.TestCase):
         evidence = ReferenceEvidence(
             evidence_id="e",
             kind="literal-reference",
-            source_scope=SourceScope("synthea-pilot-r4", "https://fhir.example/"),
+            source_scope=SourceScope("fhir-sulo-fixtures-r4", "https://fhir.example/"),
             resource_type=resource_type,
             resource_id="c7",
             canonical_url="https://fhir.example/%s/c7" % resource_type,
@@ -184,7 +184,7 @@ class ResourceTypeStillPartitionsPeople(unittest.TestCase):
         evidence = ReferenceEvidence(
             evidence_id="e",
             kind="literal-reference",
-            source_scope=SourceScope("synthea-pilot-r4", "https://fhir.example/"),
+            source_scope=SourceScope("fhir-sulo-fixtures-r4", "https://fhir.example/"),
             resource_type=resource_type,
             resource_id="c7",
             canonical_url="https://fhir.example/%s/c7" % resource_type,
@@ -252,7 +252,7 @@ class APolicyDefectIsNotBlamedOnTheCaller(unittest.TestCase):
         evidence = ReferenceEvidence(
             evidence_id="e",
             kind="literal-reference",
-            source_scope=SourceScope("synthea-pilot-r4", "https://fhir.example/"),
+            source_scope=SourceScope("fhir-sulo-fixtures-r4", "https://fhir.example/"),
             resource_type="Patient",
             resource_id="c7",
             canonical_url="https://fhir.example/Patient/c7",
@@ -273,7 +273,7 @@ class APolicyDefectIsNotBlamedOnTheCaller(unittest.TestCase):
         evidence = ReferenceEvidence(
             evidence_id="e",
             kind="literal-reference",
-            source_scope=SourceScope("synthea-pilot-r4", "https://fhir.example/"),
+            source_scope=SourceScope("fhir-sulo-fixtures-r4", "https://fhir.example/"),
             resource_type="Practitioner",
             resource_id="c7",
             canonical_url="https://fhir.example/Practitioner/c7",

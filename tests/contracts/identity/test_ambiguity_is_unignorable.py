@@ -20,7 +20,7 @@ from fhir_sulo.identity import (
     require_identity,
 )
 
-SCOPE = SourceScope("synthea-pilot-r4", "https://fhir.example/")
+SCOPE = SourceScope("fhir-sulo-fixtures-r4", "https://fhir.example/")
 
 
 def _ev(evidence_id, resource_id, resource_type="Patient", scope=SCOPE):

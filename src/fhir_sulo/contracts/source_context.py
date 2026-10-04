@@ -98,11 +98,18 @@ class UnresolvedReferenceError(RuntimeError):
     """Raised when an unresolved reference is used as though it were resolved."""
 
 
-#: The single source this pilot's fixtures come from. A DEFAULT, not a
-#: constant: a deployment reading from several healthcare systems must pass
-#: its own per-source value, and ``identity-policy.v1.json`` records that
+#: The single source this repo's hand-written fixtures come from. A DEFAULT,
+#: not a constant: a deployment reading from several healthcare systems must
+#: pass its own per-source value, and ``identity-policy.v1.json`` records that
 #: under ``reference_scope.deployment_mode``.
-PILOT_SOURCE_SCOPE_ID = "synthea-pilot-r4"
+#:
+#: Named for what it is. It was ``synthea-pilot-r4`` until 2026-10-04, which
+#: named a generator this project does not use -- there is no Synthea data
+#: here and never was. Harmless while the scope was a constant nobody could
+#: set; not harmless once scope ids key identity, because a plausible name
+#: invites someone to point a real Synthea export at the same scope and fuse
+#: two unrelated corpora that share resource ids.
+PILOT_SOURCE_SCOPE_ID = "fhir-sulo-fixtures-r4"
 PILOT_FHIR_BASE_URL = "https://fhir.example/"
 
 

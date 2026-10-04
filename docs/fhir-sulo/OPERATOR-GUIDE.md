@@ -429,7 +429,7 @@ ingest_file(path, source_scope_id="maastricht-umc")
 Two systems that each hold `Patient/123` must give **two different people**. If the scope is
 wrong, nothing fails — two humans are silently fused, which is worse than a missed merge
 because a false merge attributes one person's findings to another. The default
-`synthea-pilot-r4` is correct only for this repo's single-source fixtures. A context carrying
+`fhir-sulo-fixtures-r4` is correct only for this repo's single-source fixtures. A context carrying
 no scope is rejected rather than defaulted (DR-014).
 
 ### Reuniting one human across systems

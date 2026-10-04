@@ -9,7 +9,7 @@ from fhir_sulo.identity import (
     SourceScope,
 )
 
-SITE_A = SourceScope("synthea-pilot-r4", "https://fhir.example/")
+SITE_A = SourceScope("fhir-sulo-fixtures-r4", "https://fhir.example/")
 SITE_B = SourceScope("other-site-r4", "https://other.example/")
 
 
@@ -154,7 +154,7 @@ def test_readable_key_style_still_scopes(tmp_path):
     b = _resolve(svc, SITE_B, "p123")
     assert a.identity.entity_iri != b.identity.entity_iri
     assert "p123" in a.identity.entity_iri  # readable
-    assert "synthea-pilot-r4" in a.identity.entity_iri
+    assert "fhir-sulo-fixtures-r4" in a.identity.entity_iri
 
 
 def test_legacy_key_style_rejects_a_second_source_scope():
@@ -166,7 +166,7 @@ def test_legacy_key_style_rejects_a_second_source_scope():
     bundle = PolicyBundle.load()
     identity_policy = copy.deepcopy(dict(bundle.identity))
     identity_policy["entity_iri"]["key_style"] = "legacy-concept-note"
-    identity_policy["entity_iri"]["single_source_scope"] = "synthea-pilot-r4"
+    identity_policy["entity_iri"]["single_source_scope"] = "fhir-sulo-fixtures-r4"
     variant = PolicyBundle(
         identity=identity_policy,
         code_interpretation=bundle.code_interpretation,
