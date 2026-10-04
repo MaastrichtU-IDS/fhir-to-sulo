@@ -1,0 +1,165 @@
+# Blood-pressure source schema -- FHIR R4 Observation, concept note section 5.
+#
+# Rooted at exactly ONE Observation resource (DR-302).  Concept note section 5's
+# "two blood-pressure panels" are two separate Observation resources, so each
+# run sees one panel and the two panels never share a binding context.
+#
+# COMPONENTS ARE SELECTED BY LOINC CODE, NOT BY POSITION.
+# `fhir:Observation.component` carries two triple constraints, one per
+# component shape, each discriminated by its Coding.code value set.  Neither is
+# a repeating constraint (both are max 1), so the repetition depth on every
+# path from the root is 0 -- strictly inside DR-302.
+#
+# This is what makes the concept note's requirement structural rather than
+# hopeful.  `(bp-1,120,80)` cannot become `(bp-1,120,70)`: 70 lives in a
+# different resource and therefore a different engine run.  `(bp-1,120,80)`
+# cannot become `(bp-1,80,120)`: 80 is bound by v:diaValue because its
+# component's code is 8462-4, whatever order the triples arrive in and whatever
+# fhir:index says.  The `bp-reordered-serialisation` fixture, whose
+# components-reversed variant genuinely moves fhir:index, is the evidence.
+#
+# The diastolic component is OPTIONAL: `bp-component-omitted` requires the
+# diastolic slot to stay empty rather than borrow its neighbour's value.
+
+PREFIX fhir: <http://hl7.org/fhir/>
+PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX xsd:  <http://www.w3.org/2001/XMLSchema#>
+PREFIX Map:  <http://shex.io/extensions/Map/#>
+PREFIX v:    <https://w3id.org/fhir-sulo/map/bp/var#>
+PREFIX sh:   <https://w3id.org/fhir-sulo/map/bp/shape#>
+
+start = @sh:BPObservation
+
+sh:BPObservation CLOSED {
+  rdf:type       [fhir:Observation] ;
+  fhir:nodeRole  [fhir:treeRoot] ;
+  # TOLERATED AND NEVER MAPPED -- `source_only_elements` in
+  # profiles/fhir-r4-pilot.json. A CLOSED shape must list them or it rejects
+  # the resource outright; HL7's own observation-example-f205-egfr carries
+  # `issued`, `identifier`, `interpretation`, `note`, `performer` and `text`.
+  # None of these qualifies the numeric claim, so retaining them in the source
+  # layer while asserting the quantity is exactly what section 2 permits.
+  # The value expression is the wildcard `.`, so there is no sub-shape beneath
+  # any of them and no Map variable on any of them: depth stays 1 (DR-302) and
+  # nothing here can reach the target graph.
+  fhir:DomainResource.text        . * ;
+  fhir:DomainResource.contained   . * ;
+  fhir:Observation.identifier     . * ;
+  fhir:Observation.issued         . * ;
+  fhir:Observation.performer      . * ;
+  fhir:Observation.interpretation . * ;
+  fhir:Observation.note           . * ;
+  # R9a. The BP family now CLAIMS the vitalsigns profile, which REQUIRES
+  # Observation.category = vital-signs. Tolerated here with a wildcard and no
+  # Map variable, deliberately: profile conformance is FHIR validation, which
+  # the plan keeps in the HOST (src/fhir_sulo/ingest/profile_conformance.py),
+  # not in the schema. And R9b: a category code is not a class assertion, so
+  # it must not reach the target graph.
+  fhir:Observation.category       . * ;
+  fhir:Observation.bodySite       . * ;
+  fhir:Observation.specimen       . * ;
+  fhir:Observation.device         . * ;
+  #
+  # DELIBERATELY ABSENT: fhir:Observation.method. It is listed in
+  # source_only_elements, but concept note section 2 names `method` among the
+  # things that must never be dropped "while claiming an unqualified numeric
+  # result" -- a creatinine-based and a cystatin-C-based eGFR are not the same
+  # measurement. Retaining it in the source layer does not make the unqualified
+  # quantity in the semantic layer correct. So a resource carrying `method`
+  # fails here, loudly, and the conflict between the two documents is reported
+  # rather than resolved unilaterally (DR-205).
+  #
+  # Also absent: fhir:Observation.valueString and .valueCodeableConcept. A
+  # resource carrying one INSTEAD of valueQuantity already fails, because
+  # valueQuantity is required; one carrying both is invalid FHIR and should
+  # fail rather than have the string silently dropped.
+  fhir:Resource.id   { fhir:value xsd:string %Map:{ v:panel %} } ;
+  fhir:Resource.meta { fhir:Meta.versionId { fhir:value xsd:string %Map:{ v:versionId %} } } ;
+  # R3, answered 2026-10-01: `amended` and `corrected` are ELIGIBLE.
+  #
+  # FHIR's `status` conflates two independent axes. VERIFICATION runs
+  # registered -> preliminary -> final; REVISION runs final -> amended /
+  # corrected. A position on the revision axis is post-final and has been
+  # revisited, so it does not reduce reliability. Holding it at source-only
+  # applied the verification axis's caution to the wrong axis, and it meant a
+  # correction never reached the semantic layer at all: v2 replaced v1's
+  # graph and then asserted nothing, so the erroneous value was removed and
+  # the corrected one never arrived.
+  #
+  # Still NOT eligible, and the distinction is the point of the answer:
+  # `preliminary` and `registered` are verification states, and
+  # `entered-in-error` is a retraction rather than a revision.
+  fhir:Observation.status  { fhir:value ["final" "amended" "corrected"]
+                             %Map:{ v:status %} } ;
+  fhir:Observation.code    @sh:PanelCode ;
+  fhir:Observation.subject @sh:SubjectReference ;
+  fhir:Observation.effectiveDateTime { fhir:value xsd:dateTime %Map:{ v:effective %} } ;
+  fhir:Observation.component @sh:SystolicComponent ;
+  fhir:Observation.component @sh:DiastolicComponent ?
+}
+
+# Q-A2-1 / Q-A2-4 are open: the pilot has not decided whether the BP family
+# claims `vitalsigns`/`bp` conformance, so the panel code is a value SET rather
+# than a single pinned code.  8480-6 is Agent 2's current placeholder parent
+# code; 85354-9 is the real panel code the reviewer may move it to.  Whichever
+# it is, it is bound and never silently ignored, and R9 governs whether it may
+# type the panel record node (currently it may not).
+sh:PanelCode CLOSED {
+  fhir:CodeableConcept.coding @sh:PanelCoding
+}
+sh:PanelCoding CLOSED {
+  fhir:index . ? ;
+  fhir:Coding.system  { fhir:value ["http://loinc.org"] %Map:{ v:panelCodeSystem %} } ;
+  fhir:Coding.code    { fhir:value ["8480-6" "85354-9"] %Map:{ v:panelCode %} } ;
+  fhir:Coding.display { fhir:value xsd:string } ?
+}
+
+sh:SubjectReference CLOSED {
+  fhir:Reference.reference { fhir:value xsd:string %Map:{ v:subjectRef %} } ;
+  fhir:link . ?
+}
+
+sh:SystolicComponent CLOSED {
+  fhir:Observation.component.interpretation . * ;   # tolerated, never mapped
+  fhir:index . ? ;
+  fhir:Observation.component.code @sh:SystolicCode ;
+  fhir:Observation.component.valueQuantity @sh:SystolicQuantity
+}
+sh:SystolicCode CLOSED {
+  fhir:CodeableConcept.coding @sh:SystolicCoding
+}
+sh:SystolicCoding CLOSED {
+  fhir:index . ? ;
+  fhir:Coding.system  { fhir:value ["http://loinc.org"] } ;
+  fhir:Coding.code    { fhir:value ["8480-6"] %Map:{ v:sysCode %} } ;
+  fhir:Coding.display { fhir:value xsd:string } ?
+}
+# CLOSED with no fhir:Quantity.comparator constraint: a comparator fails here.
+sh:SystolicQuantity CLOSED {
+  fhir:Quantity.value  { fhir:value xsd:decimal %Map:{ v:sysValue %} } ;
+  fhir:Quantity.unit   { fhir:value xsd:string %Map:{ v:sysUnitText %} } ? ;
+  fhir:Quantity.system { fhir:value ["http://unitsofmeasure.org"] } ;
+  fhir:Quantity.code   { fhir:value ["mm[Hg]"] %Map:{ v:sysUnit %} }
+}
+
+sh:DiastolicComponent CLOSED {
+  fhir:Observation.component.interpretation . * ;   # tolerated, never mapped
+  fhir:index . ? ;
+  fhir:Observation.component.code @sh:DiastolicCode ;
+  fhir:Observation.component.valueQuantity @sh:DiastolicQuantity
+}
+sh:DiastolicCode CLOSED {
+  fhir:CodeableConcept.coding @sh:DiastolicCoding
+}
+sh:DiastolicCoding CLOSED {
+  fhir:index . ? ;
+  fhir:Coding.system  { fhir:value ["http://loinc.org"] } ;
+  fhir:Coding.code    { fhir:value ["8462-4"] %Map:{ v:diaCode %} } ;
+  fhir:Coding.display { fhir:value xsd:string } ?
+}
+sh:DiastolicQuantity CLOSED {
+  fhir:Quantity.value  { fhir:value xsd:decimal %Map:{ v:diaValue %} } ;
+  fhir:Quantity.unit   { fhir:value xsd:string %Map:{ v:diaUnitText %} } ? ;
+  fhir:Quantity.system { fhir:value ["http://unitsofmeasure.org"] } ;
+  fhir:Quantity.code   { fhir:value ["mm[Hg]"] %Map:{ v:diaUnit %} }
+}

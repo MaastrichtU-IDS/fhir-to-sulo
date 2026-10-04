@@ -1,0 +1,30 @@
+{
+  "fixture_id": "bp-reordered-serialisation",
+  "family": "bp",
+  "concept_note_section": "5",
+  "synthetic": true,
+  "description": "Serialisation-order and array-order perturbations of bp-two-panels. bp-1.json and bp-2.json are identical to the baseline; canonical-reordered.nt holds exactly the same triples in a different line order; the *-components-reversed.json pair swaps the component array order, which legitimately changes fhir:index and therefore the graph, while leaving the clinical content the same.",
+  "sources": [
+    "bp-1.json",
+    "bp-2.json"
+  ],
+  "expected": {
+    "eligibility": "eligible",
+    "eligibility_reason_contains": [],
+    "references": {}
+  },
+  "variants": {
+    "same_graph_different_serialisation": {
+      "rdf": "canonical-reordered.nt",
+      "assert": "parses to exactly the same triple set as canonical.nt, and the extracted tuple multiset is unchanged"
+    },
+    "different_graph_same_clinical_content": {
+      "sources": [
+        "bp-1-components-reversed.json",
+        "bp-2-components-reversed.json"
+      ],
+      "rdf": "canonical-components-reversed.nt",
+      "assert": "the triple set DIFFERS from canonical.nt (fhir:index moves), and the extracted tuple multiset is nevertheless unchanged, because the components are selected by LOINC code and not by position"
+    }
+  }
+}

@@ -1,0 +1,192 @@
+{
+  "format": "fhir-sulo/expected-bindings/0.1.0",
+  "fixture_id": "enc-baseline",
+  "family": "encounter",
+  "concept_note_section": "6",
+  "notes": [
+    "Both endpoints are bound with their datatype, so a lost timezone or a date-only downgrade changes the tuple."
+  ],
+  "identity_provided_variables": [
+    "person",
+    "practitioner"
+  ],
+  "identity_note": "Both encounter roles need an identity-service output. Concept note section 6's ex:person-p123 and ex:practitioner-c7 are identity outputs, not FHIR references.",
+  "binding_tree": {
+    "shape": "EncounterSet",
+    "focus": "encounters",
+    "bindings": {},
+    "children": [
+      {
+        "shape": "ClinicalEncounter",
+        "focus": "enc-9",
+        "scope": "encounter",
+        "iteration_key": [
+          "enc-9"
+        ],
+        "bindings": {
+          "encId": "enc-9",
+          "status": "finished",
+          "classCode": "AMB",
+          "subjectRef": "Patient/p123",
+          "participantRef": "Practitioner/c7",
+          "participantType": "PPRF",
+          "start": "2026-09-02T14:00:00Z^^http://www.w3.org/2001/XMLSchema#dateTime",
+          "end": "2026-09-02T14:30:00Z^^http://www.w3.org/2001/XMLSchema#dateTime"
+        }
+      }
+    ]
+  },
+  "assertions": {
+    "scope_tuples": [
+      {
+        "scope": "encounter",
+        "variables": [
+          "encId",
+          "status",
+          "subjectRef",
+          "participantRef",
+          "start",
+          "end"
+        ],
+        "expected_multiset": [
+          [
+            "enc-9",
+            "finished",
+            "Patient/p123",
+            "Practitioner/c7",
+            "2026-09-02T14:00:00Z^^http://www.w3.org/2001/XMLSchema#dateTime",
+            "2026-09-02T14:30:00Z^^http://www.w3.org/2001/XMLSchema#dateTime"
+          ]
+        ],
+        "must_not_contain": []
+      }
+    ]
+  },
+  "extraction": {
+    "scopes": [
+      {
+        "name": "encounter",
+        "iterate": {
+          "kind": "tree_roots",
+          "type": "Encounter"
+        },
+        "key_variables": [
+          "encId"
+        ],
+        "vars": {
+          "encId": {
+            "steps": [
+              {
+                "p": "Resource.id"
+              },
+              {
+                "p": "value"
+              }
+            ]
+          },
+          "status": {
+            "steps": [
+              {
+                "p": "Encounter.status"
+              },
+              {
+                "p": "value"
+              }
+            ]
+          },
+          "classCode": {
+            "steps": [
+              {
+                "p": "Encounter.class"
+              },
+              {
+                "p": "Coding.code"
+              },
+              {
+                "p": "value"
+              }
+            ]
+          },
+          "subjectRef": {
+            "steps": [
+              {
+                "p": "Encounter.subject"
+              },
+              {
+                "p": "Reference.reference"
+              },
+              {
+                "p": "value"
+              }
+            ]
+          },
+          "participantRef": {
+            "steps": [
+              {
+                "p": "Encounter.participant"
+              },
+              {
+                "p": "Encounter.participant.individual"
+              },
+              {
+                "p": "Reference.reference"
+              },
+              {
+                "p": "value"
+              }
+            ]
+          },
+          "participantType": {
+            "steps": [
+              {
+                "p": "Encounter.participant"
+              },
+              {
+                "p": "Encounter.participant.type"
+              },
+              {
+                "p": "CodeableConcept.coding"
+              },
+              {
+                "p": "Coding.code"
+              },
+              {
+                "p": "value"
+              }
+            ],
+            "optional": true
+          },
+          "start": {
+            "steps": [
+              {
+                "p": "Encounter.period"
+              },
+              {
+                "p": "Period.start"
+              },
+              {
+                "p": "value"
+              }
+            ],
+            "datatype": true
+          },
+          "end": {
+            "steps": [
+              {
+                "p": "Encounter.period"
+              },
+              {
+                "p": "Period.end"
+              },
+              {
+                "p": "value"
+              }
+            ],
+            "optional": true,
+            "datatype": true
+          }
+        }
+      }
+    ]
+  }
+}

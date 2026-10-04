@@ -1,0 +1,68 @@
+{
+  "resourceType": "Observation",
+  "id": "bp-2",
+  "meta": {
+    "versionId": "1",
+    "profile": [
+      "http://hl7.org/fhir/StructureDefinition/vitalsigns"
+    ]
+  },
+  "status": "final",
+  "category": [
+    {
+      "coding": [
+        {
+          "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+          "code": "vital-signs"
+        }
+      ]
+    }
+  ],
+  "code": {
+    "coding": [
+      {
+        "system": "http://loinc.org",
+        "code": "85354-9",
+        "display": "Blood pressure panel with all children optional"
+      }
+    ]
+  },
+  "subject": {
+    "reference": "Patient/p123"
+  },
+  "effectiveDateTime": "2026-09-02T10:00:00Z",
+  "component": [
+    {
+      "code": {
+        "coding": [
+          {
+            "system": "http://loinc.org",
+            "code": "8480-6"
+          }
+        ]
+      },
+      "valueQuantity": {
+        "value": 105,
+        "unit": "mmHg",
+        "system": "http://unitsofmeasure.org",
+        "code": "mm[Hg]"
+      }
+    },
+    {
+      "code": {
+        "coding": [
+          {
+            "system": "http://loinc.org",
+            "code": "8462-4"
+          }
+        ]
+      },
+      "valueQuantity": {
+        "value": 70,
+        "unit": "mmHg",
+        "system": "http://unitsofmeasure.org",
+        "code": "mm[Hg]"
+      }
+    }
+  ]
+}

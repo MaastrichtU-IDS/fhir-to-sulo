@@ -1,0 +1,183 @@
+{
+ "accepts": [
+  {
+   "consumed": 2,
+   "quads": 2,
+   "skipped": 0
+  },
+  {
+   "consumed": 1,
+   "quads": 1,
+   "skipped": 0
+  },
+  {
+   "consumed": 3,
+   "quads": 3,
+   "skipped": 0
+  }
+ ],
+ "bindings": [
+  {
+   "https://w3id.org/fhir-sulo/var#mrn": {
+    "value": "MRN-0001"
+   }
+  },
+  [
+   {
+    "https://w3id.org/fhir-sulo/var#panelIri": "https://fhir.example/Observation/bp-1"
+   },
+   {
+    "https://w3id.org/fhir-sulo/var#panelIri": "https://fhir.example/Observation/bp-2"
+   }
+  ]
+ ],
+ "constraints": [
+  {
+   "id": "tc:0",
+   "inverse": false,
+   "mapCodes": [
+    " v:mrn "
+   ],
+   "predicate": "https://w3id.org/fhir-sulo/mrn",
+   "shape": "Subject"
+  },
+  {
+   "id": "tc:1",
+   "inverse": false,
+   "mapCodes": [
+    " v:panelIri "
+   ],
+   "predicate": "https://w3id.org/fhir-sulo/hasPanel",
+   "shape": "Subject"
+  }
+ ],
+ "coverage": {
+  "chosenAvailable": true,
+  "consumed": 3,
+  "total": 3,
+  "unconsumed": []
+ },
+ "frameOrigins": [
+  {
+   "https://w3id.org/fhir-sulo/var#mrn": [
+    0,
+    "https://w3id.org/fhir-sulo/var#mrn"
+   ],
+   "https://w3id.org/fhir-sulo/var#panelIri": [
+    1,
+    0,
+    "https://w3id.org/fhir-sulo/var#panelIri"
+   ]
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#mrn": [
+    0,
+    "https://w3id.org/fhir-sulo/var#mrn"
+   ],
+   "https://w3id.org/fhir-sulo/var#panelIri": [
+    1,
+    1,
+    "https://w3id.org/fhir-sulo/var#panelIri"
+   ]
+  }
+ ],
+ "frames": [
+  {
+   "https://w3id.org/fhir-sulo/var#mrn": {
+    "value": "MRN-0001"
+   },
+   "https://w3id.org/fhir-sulo/var#panelIri": "https://fhir.example/Observation/bp-1"
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#mrn": {
+    "value": "MRN-0001"
+   },
+   "https://w3id.org/fhir-sulo/var#panelIri": "https://fhir.example/Observation/bp-2"
+  }
+ ],
+ "lastReport": {
+  "alternatives": 3,
+  "configsPruned": 0,
+  "explorationTruncated": false,
+  "unboundVariables": [],
+  "unusedStatics": []
+ },
+ "ok": true,
+ "provenance": [
+  {
+   "constraintId": "tc:0",
+   "frame": 0,
+   "kind": "binding",
+   "predicate": "https://w3id.org/fhir-sulo/mrn",
+   "quadIndex": 0,
+   "variables": [
+    "https://w3id.org/fhir-sulo/var#mrn"
+   ]
+  },
+  {
+   "constraintId": "tc:1",
+   "frame": 0,
+   "kind": "binding",
+   "predicate": "https://w3id.org/fhir-sulo/hasPanel",
+   "quadIndex": 1,
+   "variables": [
+    "https://w3id.org/fhir-sulo/var#panelIri"
+   ]
+  },
+  {
+   "constraintId": "tc:1",
+   "frame": 1,
+   "kind": "binding",
+   "predicate": "https://w3id.org/fhir-sulo/hasPanel",
+   "quadIndex": 2,
+   "variables": [
+    "https://w3id.org/fhir-sulo/var#panelIri"
+   ]
+  }
+ ],
+ "quads": [
+  {
+   "o": {
+    "dt": "http://www.w3.org/2001/XMLSchema#string",
+    "t": "literal",
+    "v": "MRN-0001"
+   },
+   "p": {
+    "t": "iri",
+    "v": "https://w3id.org/fhir-sulo/mrn"
+   },
+   "s": {
+    "t": "iri",
+    "v": "urn:g:p-1#subject"
+   }
+  },
+  {
+   "o": {
+    "t": "iri",
+    "v": "https://fhir.example/Observation/bp-1"
+   },
+   "p": {
+    "t": "iri",
+    "v": "https://w3id.org/fhir-sulo/hasPanel"
+   },
+   "s": {
+    "t": "iri",
+    "v": "urn:g:p-1#subject"
+   }
+  },
+  {
+   "o": {
+    "t": "iri",
+    "v": "https://fhir.example/Observation/bp-2"
+   },
+   "p": {
+    "t": "iri",
+    "v": "https://w3id.org/fhir-sulo/hasPanel"
+   },
+   "s": {
+    "t": "iri",
+    "v": "urn:g:p-1#subject"
+   }
+  }
+ ]
+}

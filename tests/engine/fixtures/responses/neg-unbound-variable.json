@@ -1,0 +1,248 @@
+{
+ "accepts": [
+  {
+   "consumed": 1,
+   "quads": 1,
+   "skipped": 0
+  }
+ ],
+ "bindings": [
+  {
+   "https://w3id.org/fhir-sulo/var#status": {
+    "value": "final"
+   }
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#subject": "https://fhir.example/Patient/p-1"
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#effective": {
+    "type": "http://www.w3.org/2001/XMLSchema#dateTime",
+    "value": "2026-03-04T09:15:00Z"
+   }
+  },
+  [
+   {
+    "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/271649006",
+    "https://w3id.org/fhir-sulo/var#componentUnit": {
+     "value": "mm[Hg]"
+    },
+    "https://w3id.org/fhir-sulo/var#componentValue": {
+     "type": "http://www.w3.org/2001/XMLSchema#decimal",
+     "value": "120"
+    }
+   },
+   {
+    "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/271650006",
+    "https://w3id.org/fhir-sulo/var#componentUnit": {
+     "value": "mm[Hg]"
+    },
+    "https://w3id.org/fhir-sulo/var#componentValue": {
+     "type": "http://www.w3.org/2001/XMLSchema#decimal",
+     "value": "80"
+    }
+   }
+  ]
+ ],
+ "constraints": [
+  {
+   "id": "tc:0",
+   "inverse": false,
+   "mapCodes": [
+    " v:subject "
+   ],
+   "predicate": "https://w3id.org/fhir-sulo/aboutParticipant",
+   "shape": "Panel"
+  },
+  {
+   "id": "tc:1",
+   "inverse": false,
+   "mapCodes": [],
+   "predicate": "https://w3id.org/fhir-sulo/hasMeasurement",
+   "shape": "Panel"
+  },
+  {
+   "id": "tc:2",
+   "inverse": false,
+   "mapCodes": [
+    " v:componentCode "
+   ],
+   "predicate": "https://w3id.org/fhir-sulo/measures",
+   "shape": "Measurement"
+  },
+  {
+   "id": "tc:3",
+   "inverse": false,
+   "mapCodes": [
+    " v:componentValue "
+   ],
+   "predicate": "https://w3id.org/fhir-sulo/magnitude",
+   "shape": "Measurement"
+  },
+  {
+   "id": "tc:4",
+   "inverse": false,
+   "mapCodes": [
+    " v:componentSystem "
+   ],
+   "predicate": "https://w3id.org/fhir-sulo/system",
+   "shape": "Measurement"
+  }
+ ],
+ "coverage": {
+  "chosenAvailable": true,
+  "consumed": 1,
+  "total": 9,
+  "unconsumed": [
+   "[0,\"https://w3id.org/fhir-sulo/var#status\"]",
+   "[2,\"https://w3id.org/fhir-sulo/var#effective\"]",
+   "[3,0,\"https://w3id.org/fhir-sulo/var#componentCode\"]",
+   "[3,0,\"https://w3id.org/fhir-sulo/var#componentUnit\"]",
+   "[3,0,\"https://w3id.org/fhir-sulo/var#componentValue\"]",
+   "[3,1,\"https://w3id.org/fhir-sulo/var#componentCode\"]",
+   "[3,1,\"https://w3id.org/fhir-sulo/var#componentUnit\"]",
+   "[3,1,\"https://w3id.org/fhir-sulo/var#componentValue\"]"
+  ]
+ },
+ "frameOrigins": [
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": [
+    3,
+    0,
+    "https://w3id.org/fhir-sulo/var#componentCode"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentUnit": [
+    3,
+    0,
+    "https://w3id.org/fhir-sulo/var#componentUnit"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentValue": [
+    3,
+    0,
+    "https://w3id.org/fhir-sulo/var#componentValue"
+   ],
+   "https://w3id.org/fhir-sulo/var#effective": [
+    2,
+    "https://w3id.org/fhir-sulo/var#effective"
+   ],
+   "https://w3id.org/fhir-sulo/var#status": [
+    0,
+    "https://w3id.org/fhir-sulo/var#status"
+   ],
+   "https://w3id.org/fhir-sulo/var#subject": [
+    1,
+    "https://w3id.org/fhir-sulo/var#subject"
+   ]
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": [
+    3,
+    1,
+    "https://w3id.org/fhir-sulo/var#componentCode"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentUnit": [
+    3,
+    1,
+    "https://w3id.org/fhir-sulo/var#componentUnit"
+   ],
+   "https://w3id.org/fhir-sulo/var#componentValue": [
+    3,
+    1,
+    "https://w3id.org/fhir-sulo/var#componentValue"
+   ],
+   "https://w3id.org/fhir-sulo/var#effective": [
+    2,
+    "https://w3id.org/fhir-sulo/var#effective"
+   ],
+   "https://w3id.org/fhir-sulo/var#status": [
+    0,
+    "https://w3id.org/fhir-sulo/var#status"
+   ],
+   "https://w3id.org/fhir-sulo/var#subject": [
+    1,
+    "https://w3id.org/fhir-sulo/var#subject"
+   ]
+  }
+ ],
+ "frames": [
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/271649006",
+   "https://w3id.org/fhir-sulo/var#componentUnit": {
+    "value": "mm[Hg]"
+   },
+   "https://w3id.org/fhir-sulo/var#componentValue": {
+    "type": "http://www.w3.org/2001/XMLSchema#decimal",
+    "value": "120"
+   },
+   "https://w3id.org/fhir-sulo/var#effective": {
+    "type": "http://www.w3.org/2001/XMLSchema#dateTime",
+    "value": "2026-03-04T09:15:00Z"
+   },
+   "https://w3id.org/fhir-sulo/var#status": {
+    "value": "final"
+   },
+   "https://w3id.org/fhir-sulo/var#subject": "https://fhir.example/Patient/p-1"
+  },
+  {
+   "https://w3id.org/fhir-sulo/var#componentCode": "http://snomed.info/id/271650006",
+   "https://w3id.org/fhir-sulo/var#componentUnit": {
+    "value": "mm[Hg]"
+   },
+   "https://w3id.org/fhir-sulo/var#componentValue": {
+    "type": "http://www.w3.org/2001/XMLSchema#decimal",
+    "value": "80"
+   },
+   "https://w3id.org/fhir-sulo/var#effective": {
+    "type": "http://www.w3.org/2001/XMLSchema#dateTime",
+    "value": "2026-03-04T09:15:00Z"
+   },
+   "https://w3id.org/fhir-sulo/var#status": {
+    "value": "final"
+   },
+   "https://w3id.org/fhir-sulo/var#subject": "https://fhir.example/Patient/p-1"
+  }
+ ],
+ "lastReport": {
+  "alternatives": 1,
+  "configsPruned": 0,
+  "explorationTruncated": false,
+  "unboundVariables": [
+   {
+    "code": null,
+    "error": null,
+    "predicate": "https://w3id.org/fhir-sulo/system",
+    "variable": "https://w3id.org/fhir-sulo/var#componentSystem"
+   }
+  ],
+  "unusedStatics": []
+ },
+ "ok": true,
+ "provenance": [
+  {
+   "constraintId": "tc:0",
+   "frame": 0,
+   "kind": "binding",
+   "predicate": "https://w3id.org/fhir-sulo/aboutParticipant",
+   "quadIndex": 0,
+   "variables": [
+    "https://w3id.org/fhir-sulo/var#subject"
+   ]
+  }
+ ],
+ "quads": [
+  {
+   "o": {
+    "t": "iri",
+    "v": "https://fhir.example/Patient/p-1"
+   },
+   "p": {
+    "t": "iri",
+    "v": "https://w3id.org/fhir-sulo/aboutParticipant"
+   },
+   "s": {
+    "t": "iri",
+    "v": "urn:g:x"
+   }
+  }
+ ]
+}

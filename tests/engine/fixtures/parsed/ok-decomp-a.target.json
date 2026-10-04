@@ -1,0 +1,58 @@
+{
+ "prefixes": {
+  "Map": "http://shex.io/extensions/Map/#",
+  "ex": "https://w3id.org/fhir-sulo/",
+  "v": "https://w3id.org/fhir-sulo/var#",
+  "xsd": "http://www.w3.org/2001/XMLSchema#"
+ },
+ "schema": {
+  "shapes": [
+   {
+    "id": "Subject",
+    "shapeExpr": {
+     "expression": {
+      "expressions": [
+       {
+        "predicate": "https://w3id.org/fhir-sulo/mrn",
+        "semActs": [
+         {
+          "code": " v:mrn ",
+          "name": "http://shex.io/extensions/Map/#",
+          "type": "SemAct"
+         }
+        ],
+        "type": "TripleConstraint",
+        "valueExpr": {
+         "datatype": "http://www.w3.org/2001/XMLSchema#string",
+         "type": "NodeConstraint"
+        }
+       },
+       {
+        "max": -1,
+        "min": 0,
+        "predicate": "https://w3id.org/fhir-sulo/hasPanel",
+        "semActs": [
+         {
+          "code": " v:panelIri ",
+          "name": "http://shex.io/extensions/Map/#",
+          "type": "SemAct"
+         }
+        ],
+        "type": "TripleConstraint",
+        "valueExpr": {
+         "nodeKind": "iri",
+         "type": "NodeConstraint"
+        }
+       }
+      ],
+      "type": "EachOf"
+     },
+     "type": "Shape"
+    },
+    "type": "ShapeDecl"
+   }
+  ],
+  "start": "Subject",
+  "type": "Schema"
+ }
+}

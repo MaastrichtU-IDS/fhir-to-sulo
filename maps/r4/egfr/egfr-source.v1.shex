@@ -1,0 +1,115 @@
+# eGFR source schema -- FHIR R4 Observation, concept note section 4.
+#
+# Rooted at exactly ONE Observation resource (DR-302).  Repetition depth on
+# every path from the root is <= 1 (only fhir:DomainResource.contained, which
+# is tolerated-but-unmapped).
+#
+# Guards are deliberately *loud*: every shape below is CLOSED, so an element
+# the pilot does not interpret -- a comparator, a method, a modifier extension,
+# a second coding -- makes shex-validate exit 1 with a parseable Failure rather
+# than being silently dropped.  Concept note section 2: "Never drop a
+# comparator, absent-value reason, method, unit code/system, component
+# association, or a modifier extension while claiming an unqualified numeric
+# result."
+#
+# No domain vocabulary appears here.  Source codes (LOINC 33914-3, UCUM
+# mL/min/{1.73_m2}) are *source* value guards, not OWL class assertions.
+
+PREFIX fhir: <http://hl7.org/fhir/>
+PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX xsd:  <http://www.w3.org/2001/XMLSchema#>
+PREFIX Map:  <http://shex.io/extensions/Map/#>
+PREFIX v:    <https://w3id.org/fhir-sulo/map/egfr/var#>
+PREFIX sh:   <https://w3id.org/fhir-sulo/map/egfr/shape#>
+
+start = @sh:EGFRObservation
+
+sh:EGFRObservation CLOSED {
+  rdf:type       [fhir:Observation] ;
+  fhir:nodeRole  [fhir:treeRoot] ;
+  # TOLERATED AND NEVER MAPPED -- `source_only_elements` in
+  # profiles/fhir-r4-pilot.json. A CLOSED shape must list them or it rejects
+  # the resource outright; HL7's own observation-example-f205-egfr carries
+  # `issued`, `identifier`, `interpretation`, `note`, `performer` and `text`.
+  # None of these qualifies the numeric claim, so retaining them in the source
+  # layer while asserting the quantity is exactly what section 2 permits.
+  # The value expression is the wildcard `.`, so there is no sub-shape beneath
+  # any of them and no Map variable on any of them: depth stays 1 (DR-302) and
+  # nothing here can reach the target graph.
+  fhir:DomainResource.text        . * ;
+  fhir:DomainResource.contained   . * ;
+  fhir:Observation.identifier     . * ;
+  fhir:Observation.issued         . * ;
+  fhir:Observation.performer      . * ;
+  fhir:Observation.interpretation . * ;
+  fhir:Observation.note           . * ;
+  fhir:Observation.bodySite       . * ;
+  fhir:Observation.specimen       . * ;
+  fhir:Observation.device         . * ;
+  #
+  # DELIBERATELY ABSENT: fhir:Observation.method. It is listed in
+  # source_only_elements, but concept note section 2 names `method` among the
+  # things that must never be dropped "while claiming an unqualified numeric
+  # result" -- a creatinine-based and a cystatin-C-based eGFR are not the same
+  # measurement. Retaining it in the source layer does not make the unqualified
+  # quantity in the semantic layer correct. So a resource carrying `method`
+  # fails here, loudly, and the conflict between the two documents is reported
+  # rather than resolved unilaterally (DR-205).
+  #
+  # Also absent: fhir:Observation.valueString and .valueCodeableConcept. A
+  # resource carrying one INSTEAD of valueQuantity already fails, because
+  # valueQuantity is required; one carrying both is invalid FHIR and should
+  # fail rather than have the string silently dropped.
+  fhir:Resource.id   { fhir:value xsd:string %Map:{ v:obsId %} } ;
+  fhir:Resource.meta { fhir:Meta.versionId { fhir:value xsd:string %Map:{ v:versionId %} } } ;
+  # R3, answered 2026-10-01: `amended` and `corrected` are ELIGIBLE.
+  #
+  # FHIR's `status` conflates two independent axes. VERIFICATION runs
+  # registered -> preliminary -> final; REVISION runs final -> amended /
+  # corrected. A position on the revision axis is post-final and has been
+  # revisited, so it does not reduce reliability. Holding it at source-only
+  # applied the verification axis's caution to the wrong axis, and it meant a
+  # correction never reached the semantic layer at all: v2 replaced v1's
+  # graph and then asserted nothing, so the erroneous value was removed and
+  # the corrected one never arrived.
+  #
+  # Still NOT eligible, and the distinction is the point of the answer:
+  # `preliminary` and `registered` are verification states, and
+  # `entered-in-error` is a retraction rather than a revision.
+  fhir:Observation.status  { fhir:value ["final" "amended" "corrected"]
+                             %Map:{ v:status %} } ;
+  fhir:Observation.code    @sh:EGFRCode ;
+  fhir:Observation.subject @sh:SubjectReference ;
+  fhir:Observation.effectiveDateTime { fhir:value xsd:dateTime %Map:{ v:effective %} } ;
+  fhir:Observation.valueQuantity     @sh:EGFRQuantity
+}
+
+# Exactly one coding.  A CodeableConcept carrying a second coding fails here
+# rather than having one of them silently chosen.
+sh:EGFRCode CLOSED {
+  fhir:CodeableConcept.coding @sh:EGFRCoding
+}
+
+sh:EGFRCoding CLOSED {
+  fhir:index . ? ;
+  fhir:Coding.system  { fhir:value ["http://loinc.org"] %Map:{ v:codeSystem %} } ;
+  fhir:Coding.code    { fhir:value ["33914-3"]          %Map:{ v:code %} } ;
+  fhir:Coding.display { fhir:value xsd:string } ?
+}
+
+# The reference literal is bound; fhir:link is evidence only and is NOT bound.
+# Binding a person from either of these is the record/fact error section 2
+# forbids -- v:person is an identity-provided run binding (staticVar).
+sh:SubjectReference CLOSED {
+  fhir:Reference.reference { fhir:value xsd:string %Map:{ v:subjectRef %} } ;
+  fhir:link . ?
+}
+
+# CLOSED, and with no fhir:Quantity.comparator constraint: a comparator makes
+# this shape fail.  Concept note section 4 failure variants.
+sh:EGFRQuantity CLOSED {
+  fhir:Quantity.value  { fhir:value xsd:decimal %Map:{ v:value %} } ;
+  fhir:Quantity.unit   { fhir:value xsd:string  %Map:{ v:unitText %} } ? ;
+  fhir:Quantity.system { fhir:value ["http://unitsofmeasure.org"] %Map:{ v:unitSystem %} } ;
+  fhir:Quantity.code   { fhir:value ["mL/min/{1.73_m2}"]          %Map:{ v:unitCode %} }
+}

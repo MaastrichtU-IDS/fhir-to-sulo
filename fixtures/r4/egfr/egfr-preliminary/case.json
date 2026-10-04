@@ -1,0 +1,24 @@
+{
+  "fixture_id": "egfr-preliminary",
+  "family": "egfr",
+  "concept_note_section": "4",
+  "synthetic": true,
+  "description": "An unverified eGFR: status 'preliminary'. Declared source-only. This is the boundary case for R3's answer: 'amended' and 'corrected' became eligible because they are points on the REVISION axis - the result is complete and verified, and has since been revised. 'preliminary' is a point on the VERIFICATION axis: the result is not verified at all. Widening the eligible set must not widen it along the wrong axis, and without this fixture a suite that only shows 'final' mapping would not notice if it had.",
+  "sources": [
+    "egfr-461.json"
+  ],
+  "expected": {
+    "eligibility": "source-only",
+    "eligibility_reason_contains": [
+      "'preliminary' is source-only"
+    ],
+    "references": {
+      "Observation.subject": {
+        "kind": "literal-relative",
+        "resolved_target": "https://fhir.example/Patient/p123",
+        "entity_iri_established": true
+      }
+    },
+    "axis_note": "registered, cancelled and unknown share this outcome and this reasoning. They get no fixture of their own; tests/contracts/ingest/test_eligibility.py::TestEveryObservationStatus drives all eight R4 statuses through ingestion and asserts the manifest outcome for each, which covers them without fixture bloat."
+  }
+}

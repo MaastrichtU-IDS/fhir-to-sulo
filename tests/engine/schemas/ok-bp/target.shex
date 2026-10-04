@@ -1,0 +1,20 @@
+PREFIX sulo: <https://w3id.org/sulo/>
+PREFIX ex:   <https://w3id.org/fhir-sulo/>
+PREFIX xsd:  <http://www.w3.org/2001/XMLSchema#>
+PREFIX Map:  <http://shex.io/extensions/Map/#>
+PREFIX v:    <https://w3id.org/fhir-sulo/var#>
+
+start = @<Panel>
+
+<Panel> {
+  ex:recordStatus     xsd:string   %Map:{ v:status %};
+  ex:aboutParticipant IRI          %Map:{ v:subject %};
+  ex:atTime           xsd:dateTime %Map:{ v:effective %};
+  ex:hasMeasurement   @<Measurement>*
+}
+
+<Measurement> {
+  ex:measures  IRI         %Map:{ v:componentCode %};
+  ex:magnitude xsd:decimal %Map:{ v:componentValue %};
+  ex:unit      xsd:string  %Map:{ v:componentUnit %}
+}

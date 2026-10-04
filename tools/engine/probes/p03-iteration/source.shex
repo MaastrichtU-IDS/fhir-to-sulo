@@ -1,0 +1,16 @@
+PREFIX : <http://ex.example/>
+PREFIX v: <http://ex.example/var#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX Map: <http://shex.io/extensions/Map/#>
+
+start = @<Patient>
+
+<Patient> {
+  :name xsd:string %Map:{ v:name %};
+  :panel @<Panel>*
+}
+
+<Panel> {
+  :sys xsd:integer %Map:{ v:sys %};
+  :dia xsd:integer %Map:{ v:dia %}
+}

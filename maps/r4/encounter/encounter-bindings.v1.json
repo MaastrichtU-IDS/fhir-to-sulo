@@ -1,0 +1,213 @@
+{
+  "format": "fhir-sulo/map-run-bindings/0.1.0",
+  "map_id": "fhir-r4-encounter-pro",
+  "semantic_version": "1.0.0",
+  "var_namespace": "https://w3id.org/fhir-sulo/map/encounter/var#",
+  "shape_namespace": "https://w3id.org/fhir-sulo/map/encounter/shape#",
+  "purpose": [
+    "THE SINGLE INDIRECTION POINT for review items R1, R6 and R8.",
+    "Neither encounter-source.v1.shex nor encounter-target.v1.shex contains a domain class IRI, a person IRI or a practitioner IRI."
+  ],
+  "domain_namespace": {
+    "value": "https://w3id.org/ontostart/fhir2sulo/",
+    "source": "policies/code-interpretation.v1.json :: domain_namespace",
+    "review_item": "R1",
+    "status": "placeholder-awaiting-owner"
+  },
+  "vocabulary": {
+    "encounterClass": {
+      "iri": "https://w3id.org/ontostart/fhir2sulo/ClinicalEncounter",
+      "source": "concept note section 6 example graph (ex:ClinicalEncounter)",
+      "review_item": "R1",
+      "status": "placeholder-awaiting-owner",
+      "note": "NOT derived from the FHIR Encounter.class code (v3-ActCode AMB). That code has no reviewed entry in the code-interpretation table, and concept note section 2 forbids treating a code literal as a class assertion. It is bound by the source schema and retained in the source layer."
+    },
+    "patientRoleClass": {
+      "iri": "https://w3id.org/ontostart/fhir2sulo/PatientRole",
+      "source": "concept note section 6 example graph (ex:PatientRole)",
+      "review_item": "R1",
+      "status": "placeholder-awaiting-owner"
+    },
+    "practitionerRoleClass": {
+      "iri": "https://w3id.org/ontostart/fhir2sulo/PractitionerRole",
+      "source": "concept note section 6 example graph writes ex:ClinicianRole; the reviewer overrode it with ex:PractitionerRole on 2026-10-03 (DR-010, answering R8a)",
+      "review_item": "R1",
+      "status": "placeholder-awaiting-owner",
+      "note": "The FHIR participation type PPRF (primary performer) is bound by the source schema and guarded to PPRF, but it does not itself type this role. A reviewed participation-type-to-role-class table is the natural home for that mapping and does not exist yet.",
+      "reviewer_override": "The ruling is OntoClean: 'practitioner' names an anti-rigid property, so it must be carried by a Role individual rather than by the person. PractitionerRole is preferred over the note's ClinicianRole because Encounter.participant.individual references a Practitioner, so it is derived from what the record states; ClinicianRole names a clinical function the source did not assert. Leaves R12 free to refine it from a reviewed participation-type table."
+    },
+    "participationRoleClass": {
+      "iri": "https://w3id.org/ontostart/fhir2sulo/PrimaryPerformerRole",
+      "status": "pilot-provisional",
+      "source": "policies/participation-type-interpretation.v1.json :: PART-V3-PPRF [R12]",
+      "reviewer_item": "R12, answered 2026-10-03: 'Both classes on the role node'",
+      "note": "NOT a second role node. The same encounter-scoped role node carries this AND practitionerRoleClass. The two are not disjoint and the node is in their intersection: the role held qua practitioner, and the primary-performer role in this one encounter.",
+      "derivation": "From a CODED CLINICAL STATEMENT (Encounter.participant.type) via a reviewed table -- unlike practitionerRoleClass, which comes from the FHIR resource type of the referenced resource. See DR-013."
+    },
+    "personClass": {
+      "iri": "https://w3id.org/ontostart/fhir2sulo/Person",
+      "source": "concept note section 4 example graph (ex:Person)",
+      "review_item": "R1",
+      "status": "placeholder-awaiting-owner"
+    },
+    "personSuloClass": {
+      "iri": "https://w3id.org/sulo/SpatialObject",
+      "source": "REVIEW-REQUEST R6, answered 2026-09-30",
+      "review_item": "R6",
+      "status": "reviewer-answered",
+      "answered_on": "2026-09-30",
+      "reviewer_words": "a person is a Spatial Object.",
+      "note": "sulo:SpatialObject rdfs:subClassOf sulo:Object, so hasParticipant's range is still satisfied and the PRO chain is unaffected. The point of the change is the guard it restores: sulo:Feature owl:disjointWith sulo:SpatialObject, so a person also typed as a Quality or a Role is now INCONSISTENT and a reasoner catches it. Bare sulo:Object could not, because Quality subClassOf Feature subClassOf Object. Checked against the pinned ontology before applying: sulo:hasFeature is NOT a subproperty of sulo:hasPart, so `person hasFeature quality` does not trip SpatialObject's `hasPart only SpatialObject` restriction.",
+      "not_recorded_in_policy_yet": "As of this change, policies/code-interpretation.v1.json reviewer_decisions holds only R1 and R10. Transcribed from the integration lead's relay of the reviewer's words; see DR-206."
+    },
+    "practitionerClass": {
+      "iri": "https://w3id.org/ontostart/fhir2sulo/Person",
+      "source": "concept note section 6 writes ex:clinician-c7 without saying what it is",
+      "review_item": "R8a",
+      "status": "engineering-default",
+      "note": "R8a is ANSWERED (DR-010): a practitioner IS a person. This stays a separate manifest entry from personClass so the two remain independently rebindable, but both resolve to ex:Person and the identity service now mints both with entity_kind 'person'. Patient/c7 and Practitioner/c7 still do not merge, because resource_type is a key input -- that is record provenance under R2b, not a claim that they are different people."
+    },
+    "practitionerSuloClass": {
+      "iri": "https://w3id.org/sulo/SpatialObject",
+      "source": "REVIEW-REQUEST R6, answered 2026-09-30",
+      "review_item": "R6",
+      "status": "reviewer-answered",
+      "answered_on": "2026-09-30",
+      "reviewer_words": "a person is a Spatial Object.",
+      "note": "sulo:SpatialObject rdfs:subClassOf sulo:Object, so hasParticipant's range is still satisfied and the PRO chain is unaffected. The point of the change is the guard it restores: sulo:Feature owl:disjointWith sulo:SpatialObject, so a person also typed as a Quality or a Role is now INCONSISTENT and a reasoner catches it. Bare sulo:Object could not, because Quality subClassOf Feature subClassOf Object. Checked against the pinned ontology before applying: sulo:hasFeature is NOT a subproperty of sulo:hasPart, so `person hasFeature quality` does not trip SpatialObject's `hasPart only SpatialObject` restriction.",
+      "not_recorded_in_policy_yet": "As of this change, policies/code-interpretation.v1.json reviewer_decisions holds only R1 and R10. Transcribed from the integration lead's relay of the reviewer's words; see DR-206."
+    },
+    "recordClass": {
+      "iri": "https://w3id.org/ontostart/fhir2sulo/EncounterRecord",
+      "source": "concept note section 6: 'The FHIR Encounter record and its status remain in the source/record layer'",
+      "review_item": "R1",
+      "status": "placeholder-awaiting-owner",
+      "note": "The concept note names ex:ObservationRecord for section 4 but no class for the Encounter record. ex:EncounterRecord is this map's placeholder and is flagged as a new reviewer question."
+    }
+  },
+  "identity_provided": {
+    "person": {
+      "source": "IdentityService.resolve(...) for Encounter.subject",
+      "note": "Concept note section 6's ex:person-p123 is an identity output, not a FHIR reference."
+    },
+    "practitioner": {
+      "source": "IdentityService.resolve(...) for Encounter.participant.individual, entity_kind person (DR-010: 'practitioner' is anti-rigid and cannot be an entity kind)",
+      "review_item": "R8",
+      "note": "Concept note section 6's ex:practitioner-c7 is an identity output. enc-contained-practitioner resolves a contained '#pr-inline' reference, so the entity IRI differs from enc-baseline's Practitioner/c7 and must not be assumed equal."
+    }
+  },
+  "node_keys": {
+    "process": "{domain}encounter-{encId}",
+    "record": "{domain}encounter-record-{encId}",
+    "patientRole": "{domain}patient-role-{encId}",
+    "practitionerRole": "{domain}practitioner-role-{encId}",
+    "interval": "{domain}interval-{encId}",
+    "startTime": "{domain}start-{encId}",
+    "endTime": "{domain}end-{encId}",
+    "sourceVersionIri": "{canonicalUrl}/_history/{versionId}"
+  },
+  "node_key_note": [
+    "These match the concept note section 6 example graph's local names with ONE reviewer-ordered divergence: the note writes ex:clinician-role-enc-9 and this map emits ex:practitioner-role-enc-9, on the OntoClean ruling recorded in DR-010. The rest are exact: ex:encounter-9, ex:patient-role-enc-9, ex:interval-enc-9, ex:start-enc-9, ex:end-enc-9.",
+    "A ROLE IS KEYED BY THE ENCOUNTER, not by the person. Two encounters give two distinct patient-role nodes, which is correct: a role is a feature of its holder in the context of one process, and merging them would assert one role participating in two processes.",
+    "CD-1: host-chosen root nodes declared in MapContract.node_key_rules, not engine-minted."
+  ],
+  "passes": [
+    {
+      "name": "process",
+      "shape": "EncounterProcessNode",
+      "root": "process",
+      "vars": [
+        "encounterClass",
+        "patientRole",
+        "practitionerRole",
+        "interval",
+        "sourceVersionIri"
+      ]
+    },
+    {
+      "name": "patientRole",
+      "shape": "PatientRoleNode",
+      "root": "patientRole",
+      "vars": [
+        "patientRoleClass",
+        "person"
+      ]
+    },
+    {
+      "name": "practitionerRole",
+      "shape": "PractitionerRoleNode",
+      "root": "practitionerRole",
+      "vars": [
+        "practitionerRoleClass",
+        "participationRoleClass",
+        "practitioner"
+      ]
+    },
+    {
+      "name": "person",
+      "shape": "PersonNode",
+      "root": "person",
+      "vars": [
+        "personSuloClass",
+        "personClass",
+        "patientRole"
+      ]
+    },
+    {
+      "name": "practitioner",
+      "shape": "PractitionerNode",
+      "root": "practitioner",
+      "vars": [
+        "practitionerSuloClass",
+        "practitionerClass",
+        "practitionerRole"
+      ]
+    },
+    {
+      "name": "interval",
+      "shape": "TimeIntervalNode",
+      "root": "interval",
+      "vars": [
+        "startTime",
+        "endTime"
+      ]
+    },
+    {
+      "name": "startTime",
+      "shape": "StartTimeNode",
+      "root": "startTime",
+      "vars": [
+        "start"
+      ]
+    },
+    {
+      "name": "endTime",
+      "shape": "EndTimeNode",
+      "root": "endTime",
+      "vars": [
+        "end"
+      ]
+    },
+    {
+      "name": "record",
+      "shape": "EncounterRecordNode",
+      "root": "record",
+      "vars": [
+        "recordClass",
+        "process",
+        "sourceVersionIri"
+      ]
+    }
+  ],
+  "source_bound_vars": [
+    "start",
+    "end"
+  ],
+  "pass_vars_note": "Every target constraint in this map is required, so lastReport.unboundVariables must be empty on every pass, and lastReport.unusedStatics must be empty too. tests/contracts/maps/test_encounter_gate3.py asserts both.",
+  "r11_note": [
+    "R11 changed record->result to sulo:hasPart for the Observation maps. NOT applied here.",
+    "`encounter-record sulo:hasPart encounter-process` is inconsistent against SULO 0.2.12: sulo:InformationObject subClassOf (hasPart only InformationObject) would force the process to be an InformationObject and so an Object, but sulo:Object owl:disjointWith sulo:Process; and sulo:Object subClassOf (not (hasPart some Process)) forbids it directly.",
+    "A result is information that sits inside a record. An encounter is an event in the world; it is not located in its record. The record sulo:refersTo it.",
+    "Reported to the integration lead as a reading, per the R1d asymmetry the reviewer raised."
+  ]
+}

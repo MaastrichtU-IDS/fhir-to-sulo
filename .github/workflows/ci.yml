@@ -1,0 +1,79 @@
+name: CI
+
+on:
+  push:
+    branches: [main, 'feat/**', 'integration/**']
+  pull_request:
+
+jobs:
+  contracts:
+    name: Contracts (no Docker)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.9'
+      - name: Install pinned dependencies
+        run: |
+          python3 -m venv .venv
+          .venv/bin/pip install -r requirements-dev.txt -r requirements-runtime.txt
+      - name: Contract tests (pytest, authoritative)
+        run: make contracts
+      - name: Contract tests (stdlib fallback must also stay green)
+        run: make contracts-stdlib
+
+  engine:
+    # Without this job the Gate 1/2/3 suites never execute in CI: the map and
+    # driver tests skip unless FHIR_SULO_ENGINE_TESTS=1, and a skip is not a
+    # pass. This job is what makes those gates mean anything on a clean runner.
+    name: Engine, maps and integration (Docker)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.9'
+      - name: Install pinned dependencies
+        run: |
+          python3 -m venv .venv
+          .venv/bin/pip install -r requirements-dev.txt -r requirements-runtime.txt
+      - name: Build the pinned engine image
+        run: make engine-image
+      - name: Engine probes and tools, live engine REQUIRED (no skips)
+        env:
+          FHIR_SULO_REQUIRE_ENGINE: '1'
+          FHIR_SULO_ENGINE_TESTS: '1'
+        run: make engine-live
+      - name: Static analysis of every committed ShExMap pair (CD-1)
+        run: make lint-schemas
+      - name: Map and integration suites against the live engine
+        env:
+          FHIR_SULO_REQUIRE_ENGINE: '1'
+          FHIR_SULO_ENGINE_TESTS: '1'
+        run: PYTHONPATH=src .venv/bin/python -m pytest tests/contracts/maps tests/integration -q
+
+  gates:
+    name: Gate status
+    runs-on: ubuntu-latest
+    needs: [contracts, engine]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.9'
+      - name: Install pinned dependencies
+        run: |
+          python3 -m venv .venv
+          .venv/bin/pip install -r requirements-dev.txt -r requirements-runtime.txt
+      - name: Build the pinned engine image
+        run: make engine-image
+      - name: Report gate status
+        env:
+          FHIR_SULO_REQUIRE_ENGINE: '1'
+          FHIR_SULO_ENGINE_TESTS: '1'
+        # --fail-on mechanical: red when a condition FAILED, green when the
+        # only thing outstanding is the human sign-off. Without this the job
+        # is red from the day it is added until the reviewer answers, and a
+        # permanently red check is one nobody reads.
+        run: python3 tools/gate-check.py --all --report --fail-on mechanical

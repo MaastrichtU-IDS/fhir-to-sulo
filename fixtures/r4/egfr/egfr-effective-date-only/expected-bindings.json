@@ -1,0 +1,289 @@
+{
+  "format": "fhir-sulo/expected-bindings/0.1.0",
+  "fixture_id": "egfr-effective-date-only",
+  "family": "egfr",
+  "concept_note_section": "4",
+  "notes": [
+    "The effective tuple entry carries the xsd datatype, so this fixture fails for any renderer or map that coerces every temporal value to xsd:dateTime.",
+    "must_not_contain lists exactly those coercions: a dateTime-typed 2026-09-02, a midnight-padded timestamp, and an untyped literal."
+  ],
+  "identity_provided_variables": [
+    "person"
+  ],
+  "identity_note": "egfr:person is the identity service's output for egfr:subjectRef, supplied as a run binding, never extracted from the FHIR RDF.",
+  "binding_tree": {
+    "shape": "EGFRSource",
+    "focus": "observation-set",
+    "bindings": {},
+    "children": [
+      {
+        "shape": "EGFRObservation",
+        "focus": "egfr-457",
+        "scope": "observation",
+        "iteration_key": [
+          "egfr-457"
+        ],
+        "bindings": {
+          "obsId": "egfr-457",
+          "versionId": "1",
+          "status": "final",
+          "code": "33914-3",
+          "codeSystem": "http://loinc.org",
+          "subjectRef": "Patient/p123",
+          "effective": "2026-09-02^^http://www.w3.org/2001/XMLSchema#date",
+          "value": "55.0^^http://www.w3.org/2001/XMLSchema#decimal",
+          "unitSystem": "http://unitsofmeasure.org",
+          "unitCode": "mL/min/{1.73_m2}",
+          "comparator": "",
+          "absentReason": ""
+        }
+      }
+    ]
+  },
+  "assertions": {
+    "scope_tuples": [
+      {
+        "scope": "observation",
+        "variables": [
+          "obsId",
+          "status",
+          "code",
+          "subjectRef",
+          "effective",
+          "value",
+          "unitCode",
+          "comparator",
+          "absentReason"
+        ],
+        "expected_multiset": [
+          [
+            "egfr-457",
+            "final",
+            "33914-3",
+            "Patient/p123",
+            "2026-09-02^^http://www.w3.org/2001/XMLSchema#date",
+            "55.0^^http://www.w3.org/2001/XMLSchema#decimal",
+            "mL/min/{1.73_m2}",
+            "",
+            ""
+          ]
+        ],
+        "must_not_contain": [
+          [
+            "egfr-457",
+            "final",
+            "33914-3",
+            "Patient/p123",
+            "2026-09-02^^http://www.w3.org/2001/XMLSchema#dateTime",
+            "55.0^^http://www.w3.org/2001/XMLSchema#decimal",
+            "mL/min/{1.73_m2}",
+            "",
+            ""
+          ],
+          [
+            "egfr-457",
+            "final",
+            "33914-3",
+            "Patient/p123",
+            "2026-09-02T00:00:00Z^^http://www.w3.org/2001/XMLSchema#dateTime",
+            "55.0^^http://www.w3.org/2001/XMLSchema#decimal",
+            "mL/min/{1.73_m2}",
+            "",
+            ""
+          ],
+          [
+            "egfr-457",
+            "final",
+            "33914-3",
+            "Patient/p123",
+            "2026-09-02",
+            "55.0^^http://www.w3.org/2001/XMLSchema#decimal",
+            "mL/min/{1.73_m2}",
+            "",
+            ""
+          ]
+        ],
+        "note": "Same variable order as every other eGFR fixture, so this one is directly comparable with egfr-baseline: the ONLY difference in the tuple is the effective entry, and it differs in its datatype."
+      }
+    ]
+  },
+  "extraction": {
+    "scopes": [
+      {
+        "name": "observation",
+        "iterate": {
+          "kind": "tree_roots",
+          "type": "Observation"
+        },
+        "key_variables": [
+          "obsId"
+        ],
+        "vars": {
+          "obsId": {
+            "steps": [
+              {
+                "p": "Resource.id"
+              },
+              {
+                "p": "value"
+              }
+            ]
+          },
+          "versionId": {
+            "steps": [
+              {
+                "p": "Resource.meta"
+              },
+              {
+                "p": "Meta.versionId"
+              },
+              {
+                "p": "value"
+              }
+            ]
+          },
+          "status": {
+            "steps": [
+              {
+                "p": "Observation.status"
+              },
+              {
+                "p": "value"
+              }
+            ]
+          },
+          "codeSystem": {
+            "steps": [
+              {
+                "p": "Observation.code"
+              },
+              {
+                "p": "CodeableConcept.coding"
+              },
+              {
+                "p": "Coding.system"
+              },
+              {
+                "p": "value"
+              }
+            ]
+          },
+          "code": {
+            "steps": [
+              {
+                "p": "Observation.code"
+              },
+              {
+                "p": "CodeableConcept.coding"
+              },
+              {
+                "p": "Coding.code"
+              },
+              {
+                "p": "value"
+              }
+            ]
+          },
+          "subjectRef": {
+            "steps": [
+              {
+                "p": "Observation.subject"
+              },
+              {
+                "p": "Reference.reference"
+              },
+              {
+                "p": "value"
+              }
+            ]
+          },
+          "effective": {
+            "steps": [
+              {
+                "p": "Observation.effectiveDateTime"
+              },
+              {
+                "p": "value"
+              }
+            ],
+            "datatype": true
+          },
+          "value": {
+            "steps": [
+              {
+                "p": "Observation.valueQuantity"
+              },
+              {
+                "p": "Quantity.value"
+              },
+              {
+                "p": "value"
+              }
+            ],
+            "optional": true,
+            "datatype": true
+          },
+          "unitSystem": {
+            "steps": [
+              {
+                "p": "Observation.valueQuantity"
+              },
+              {
+                "p": "Quantity.system"
+              },
+              {
+                "p": "value"
+              }
+            ],
+            "optional": true
+          },
+          "unitCode": {
+            "steps": [
+              {
+                "p": "Observation.valueQuantity"
+              },
+              {
+                "p": "Quantity.code"
+              },
+              {
+                "p": "value"
+              }
+            ],
+            "optional": true
+          },
+          "comparator": {
+            "steps": [
+              {
+                "p": "Observation.valueQuantity"
+              },
+              {
+                "p": "Quantity.comparator"
+              },
+              {
+                "p": "value"
+              }
+            ],
+            "optional": true
+          },
+          "absentReason": {
+            "steps": [
+              {
+                "p": "Observation.dataAbsentReason"
+              },
+              {
+                "p": "CodeableConcept.coding"
+              },
+              {
+                "p": "Coding.code"
+              },
+              {
+                "p": "value"
+              }
+            ],
+            "optional": true
+          }
+        }
+      }
+    ]
+  }
+}

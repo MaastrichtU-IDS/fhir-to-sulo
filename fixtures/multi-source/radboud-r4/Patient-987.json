@@ -1,0 +1,25 @@
+{
+  "resourceType": "Patient",
+  "id": "987",
+  "meta": {
+    "versionId": "1"
+  },
+  "identifier": [
+    {
+      "system": "http://radboud.example/mrn",
+      "value": "MRN-987"
+    },
+    {
+      "system": "https://w3id.org/ontostart/fhir2sulo/synthetic/person-number",
+      "value": "900001"
+    }
+  ],
+  "name": [
+    {
+      "family": "Radboud",
+      "given": [
+        "Pat"
+      ]
+    }
+  ]
+}

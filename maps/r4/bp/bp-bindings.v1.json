@@ -1,0 +1,246 @@
+{
+  "format": "fhir-sulo/map-run-bindings/0.1.0",
+  "map_id": "fhir-r4-bp-panel-solid",
+  "semantic_version": "1.0.0",
+  "var_namespace": "https://w3id.org/fhir-sulo/map/bp/var#",
+  "shape_namespace": "https://w3id.org/fhir-sulo/map/bp/shape#",
+  "purpose": [
+    "THE SINGLE INDIRECTION POINT for review items R1, R2, R4, R6 and R9.",
+    "Neither bp-source.v1.shex nor bp-target.v1.shex contains a domain class IRI, a person IRI or a quality IRI."
+  ],
+  "domain_namespace": {
+    "value": "https://w3id.org/ontostart/fhir2sulo/",
+    "source": "policies/code-interpretation.v1.json :: domain_namespace",
+    "review_item": "R1",
+    "status": "placeholder-awaiting-owner"
+  },
+  "vocabulary": {
+    "sysResultClass": {
+      "iri": "https://w3id.org/ontostart/fhir2sulo/SystolicBloodPressureResult",
+      "source": "policies/code-interpretation.v1.json :: CODE-LOINC-8480-6.result_class",
+      "review_item": "R1b",
+      "status": "pilot-provisional"
+    },
+    "diaResultClass": {
+      "iri": "https://w3id.org/ontostart/fhir2sulo/DiastolicBloodPressureResult",
+      "source": "policies/code-interpretation.v1.json :: CODE-LOINC-8462-4.result_class",
+      "review_item": "R1b",
+      "status": "pilot-provisional"
+    },
+    "sysQualityClass": {
+      "iri": "https://w3id.org/ontostart/fhir2sulo/SystolicBloodPressureQuality",
+      "source": "policies/code-interpretation.v1.json :: CODE-LOINC-8480-6.quality_class",
+      "review_item": "R1b",
+      "status": "pilot-provisional"
+    },
+    "diaQualityClass": {
+      "iri": "https://w3id.org/ontostart/fhir2sulo/DiastolicBloodPressureQuality",
+      "source": "policies/code-interpretation.v1.json :: CODE-LOINC-8462-4.quality_class",
+      "review_item": "R1b",
+      "status": "pilot-provisional"
+    },
+    "qualityBranch": {
+      "iri": "https://w3id.org/sulo/Quality",
+      "source": "DR-002 axiom 6; REVIEW-REQUEST R4 option A",
+      "review_item": "R4",
+      "status": "engineering-default",
+      "alternatives": {
+        "A": "https://w3id.org/sulo/Quality",
+        "B": "https://w3id.org/sulo/Feature"
+      }
+    },
+    "personSuloClass": {
+      "iri": "https://w3id.org/sulo/SpatialObject",
+      "source": "REVIEW-REQUEST R6, answered 2026-09-30",
+      "review_item": "R6",
+      "status": "reviewer-answered",
+      "answered_on": "2026-09-30",
+      "reviewer_words": "a person is a Spatial Object.",
+      "note": "sulo:SpatialObject rdfs:subClassOf sulo:Object, so hasParticipant's range is still satisfied and the PRO chain is unaffected. The point of the change is the guard it restores: sulo:Feature owl:disjointWith sulo:SpatialObject, so a person also typed as a Quality or a Role is now INCONSISTENT and a reasoner catches it. Bare sulo:Object could not, because Quality subClassOf Feature subClassOf Object. Checked against the pinned ontology before applying: sulo:hasFeature is NOT a subproperty of sulo:hasPart, so `person hasFeature quality` does not trip SpatialObject's `hasPart only SpatialObject` restriction.",
+      "not_recorded_in_policy_yet": "As of this change, policies/code-interpretation.v1.json reviewer_decisions holds only R1 and R10. Transcribed from the integration lead's relay of the reviewer's words; see DR-206."
+    },
+    "personClass": {
+      "iri": "https://w3id.org/ontostart/fhir2sulo/Person",
+      "source": "concept note section 4 example graph (ex:Person)",
+      "review_item": "R1",
+      "status": "placeholder-awaiting-owner"
+    },
+    "recordClass": {
+      "iri": "https://w3id.org/ontostart/fhir2sulo/ObservationRecord",
+      "source": "concept note section 4 example graph (ex:ObservationRecord)",
+      "review_item": "R1",
+      "status": "placeholder-awaiting-owner"
+    }
+  },
+  "not_emitted": {
+    "panelClass": {
+      "review_item": "R9",
+      "status": "withheld",
+      "note": "LOINC 85354-9 is `proposed` in the code table and therefore yields source-only. Concept note section 2: a FHIR code literal alone is not an OWL class assertion. Option A adds `rdf:type IRI %Map:{ v:panelClass %}` to sh:BPPanelRecordNode and one vocabulary entry here; option B (current) emits nothing. tests/contracts/maps/test_bp_gate3.py asserts the panel record carries no domain type beyond recordClass, so flipping this is a visible change."
+    }
+  },
+  "identity_provided": {
+    "person": {
+      "source": "fhir_sulo.identity.IdentityService.resolve(...).identity.entity_iri for Observation.subject",
+      "note": "bp-other-patient has two panels belonging to two different people, so this is resolved per resource and never hoisted across panels."
+    },
+    "sysQuality": {
+      "source": "IdentityService.resolve_quality(person, SystolicBloodPressureQuality, LOINC 8480-6, ...)",
+      "review_item": "R2"
+    },
+    "diaQuality": {
+      "source": "IdentityService.resolve_quality(person, DiastolicBloodPressureQuality, LOINC 8462-4, ...)",
+      "review_item": "R2"
+    },
+    "unitIri": {
+      "source": "fhir_sulo.terminology.TerminologyService.resolve_unit(UCUM mm[Hg], dimension=pressure).unit.unit_iri"
+    }
+  },
+  "node_keys": {
+    "panelRecord": "{domain}bp-panel-{panel}",
+    "sysResult": "{domain}bp-systolic-result-{panel}",
+    "diaResult": "{domain}bp-diastolic-result-{panel}",
+    "timeInstant": "{domain}time-{panel}",
+    "sourceVersionIri": "{canonicalUrl}/_history/{versionId}"
+  },
+  "node_key_note": [
+    "CD-1: host-chosen root nodes, declared in MapContract.node_key_rules, not engine-minted.",
+    "Keyed by resource id, not version, so a correction replaces the same nodes."
+  ],
+  "passes": [
+    {
+      "name": "panel",
+      "shape": "BPPanelRecordNode",
+      "root": "panelRecord",
+      "vars": [
+        "recordClass",
+        "timeInstant",
+        "sysResult",
+        "sourceVersionIri"
+      ],
+      "forbids_source_binding": "diaValue"
+    },
+    {
+      "name": "panelWithDiastolic",
+      "shape": "BPPanelRecordNodeWithDiastolic",
+      "root": "panelRecord",
+      "vars": [
+        "recordClass",
+        "timeInstant",
+        "sysResult",
+        "diaResult",
+        "sourceVersionIri"
+      ],
+      "requires_source_binding": "diaValue"
+    },
+    {
+      "name": "systolic",
+      "shape": "BPSystolicQuantityNode",
+      "root": "sysResult",
+      "vars": [
+        "sysResultClass",
+        "sysValue",
+        "unitIri",
+        "sysQuality",
+        "timeInstant",
+        "sourceVersionIri",
+        "person"
+      ]
+    },
+    {
+      "name": "diastolic",
+      "shape": "BPDiastolicQuantityNode",
+      "root": "diaResult",
+      "vars": [
+        "diaResultClass",
+        "diaValue",
+        "unitIri",
+        "diaQuality",
+        "timeInstant",
+        "sourceVersionIri",
+        "person"
+      ],
+      "requires_source_binding": "diaValue"
+    },
+    {
+      "name": "systolicQuality",
+      "shape": "BPSystolicQualityNode",
+      "root": "sysQuality",
+      "vars": [
+        "qualityBranch",
+        "sysQualityClass",
+        "person"
+      ]
+    },
+    {
+      "name": "diastolicQuality",
+      "shape": "BPDiastolicQualityNode",
+      "root": "diaQuality",
+      "vars": [
+        "qualityBranch",
+        "diaQualityClass",
+        "person"
+      ],
+      "requires_source_binding": "diaValue"
+    },
+    {
+      "name": "person",
+      "shape": "BPPersonNode",
+      "root": "person",
+      "vars": [
+        "personSuloClass",
+        "personClass",
+        "sysQuality"
+      ],
+      "forbids_source_binding": "diaValue"
+    },
+    {
+      "name": "personWithDiastolic",
+      "shape": "BPPersonNodeWithDiastolic",
+      "root": "person",
+      "vars": [
+        "personSuloClass",
+        "personClass",
+        "sysQuality",
+        "diaQuality"
+      ],
+      "requires_source_binding": "diaValue"
+    },
+    {
+      "name": "unit",
+      "shape": "BPUnitNode",
+      "root": "unitIri",
+      "vars": [
+        "sysUnit"
+      ]
+    },
+    {
+      "name": "time",
+      "shape": "BPTimeNode",
+      "root": "timeInstant",
+      "vars": [
+        "effective"
+      ]
+    }
+  ],
+  "source_bound_vars": [
+    "sysValue",
+    "diaValue",
+    "sysUnit",
+    "diaUnit",
+    "effective"
+  ],
+  "conditional_pass_note": [
+    "`requires_source_binding` / `forbids_source_binding` is the ONLY conditional in the host path, and it is declared here rather than in code. It selects between two ALTERNATIVE ENTRY SHAPES (MapContract.allowed_alternative_shapes) for the panel record and for the person, and it runs or skips the three diastolic-only passes.",
+    "A pass is skipped exactly when the source schema bound no value for the named variable -- the DR-302 rule 'one engine invocation per group', applied to a group that is absent. Nothing is reconstructed, guessed or re-associated host-side; a skipped pass emits nothing at all.",
+    "Why not a single shape with an optional diastolic member: an optional target constraint whose variable is unbound emits the right graph but still reports in lastReport.unboundVariables, which would destroy the invariant that a non-empty unboundVariables is always DR-301 blocker 8c. Measured, not assumed; see the comment in bp-target.v1.shex.",
+    "`bp-component-omitted` therefore yields a graph with no diastolic quantity, no diastolic quality and no diastolic member triple."
+  ],
+  "pass_vars_note": "tests/contracts/maps/test_bp_gate3.py asserts lastReport.unusedStatics == [] and lastReport.unboundVariables == [] on every pass, which is the CD-1 substitute for the static checker the engine does not ship. Every target constraint is required, so an unbound variable is always an error.",
+  "r11_note": [
+    "R11, answered 2026-09-30. Reviewer: \"compositionally, a record could indeed be comprised of statements, which could include the recording of results. This then captures where the results are located (e.g. the record). however, the results are information about the individual - they are features of the individual and they also refer to their qualities.\"",
+    "record sulo:hasPart result (was sulo:refersTo); result sulo:isFeatureOf person (new); result sulo:refersTo quality (unchanged).",
+    "NOT applied to the Encounter record: `record hasPart process` is inconsistent against SULO 0.2.12 twice over (InformationObject hasPart only InformationObject, and Object not (hasPart some Process)). See DR-206 and encounter-target.v1.shex.",
+    "This answers R5's FIRST row (materialize isFeatureOf on quantities) as option A. R5's second row -- an explicit sulo:Unit on a TimeInstant -- REMAINS OPEN and stays unset: no time unit is emitted."
+  ]
+}

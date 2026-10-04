@@ -1,0 +1,78 @@
+# NEGATIVE cases for the shape contract and the negative queries, one per
+# section. Every one of these must be REJECTED. If a change to the shapes or
+# the queries makes this file conform, the change is wrong.
+
+@prefix sulo: <https://w3id.org/sulo/> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:   <https://example.org/neg/> .
+
+### orphan: a unit nothing points at (Gate 2: no orphan quantity/unit nodes)
+ex:orphan-unit a sulo:Unit ;
+    sulo:hasValue "mg/dL" .
+
+### orphan: a quantity nothing points at
+ex:orphan-result a sulo:Quantity ;
+    sulo:hasValue "7"^^xsd:decimal ;
+    sulo:hasPart ex:orphan-unit-b ;
+    sulo:refersTo ex:some-quality .
+ex:orphan-unit-b a sulo:Unit ; sulo:hasValue "mmol/L" .
+ex:some-quality a sulo:Feature ; sulo:isFeatureOf ex:person-a .
+
+### cross-patient: one result reaching two people
+ex:cross-record a sulo:InformationObject ; sulo:refersTo ex:cross-result .
+ex:cross-result a sulo:Quantity ;
+    sulo:hasValue "55.0"^^xsd:decimal ;
+    sulo:hasPart ex:unit-x ;
+    sulo:refersTo ex:quality-a , ex:quality-b .
+ex:unit-x a sulo:Unit ; sulo:hasValue "mL/min" .
+ex:quality-a a sulo:Feature ; sulo:isFeatureOf ex:person-a .
+ex:quality-b a sulo:Feature ; sulo:isFeatureOf ex:person-b .
+
+### resource-specific shortcut: the prohibited hasPatient predicate
+ex:shortcut-encounter a sulo:Process ;
+    sulo:hasParticipant ex:some-role ;
+    ex:hasPatient ex:person-a .
+ex:some-role a sulo:Role ; sulo:isFeatureOf ex:person-a .
+
+### the same prohibition for the clinician-side shortcuts. hasClinician must stay
+### forbidden even though the role class was renamed (DR-010), and hasPractitioner
+### is forbidden for exactly the same reason: the PRO pattern goes through a typed
+### Role, never straight from the process to the person.
+ex:shortcut-clinician-encounter a sulo:Process ;
+    sulo:hasParticipant ex:some-role ;
+    ex:hasClinician ex:person-a .
+
+ex:shortcut-practitioner-encounter a sulo:Process ;
+    sulo:hasParticipant ex:some-role ;
+    ex:hasPractitioner ex:person-a .
+
+ex:shortcut-subject-encounter a sulo:Process ;
+    sulo:hasParticipant ex:some-role ;
+    ex:hasSubject ex:person-a .
+
+### quantity with no unit part (DR-002 axiom 2)
+ex:unitless-record a sulo:InformationObject ; sulo:refersTo ex:unitless .
+ex:unitless a sulo:Quantity ;
+    sulo:hasValue "42"^^xsd:decimal ;
+    sulo:refersTo ex:some-quality .
+
+### quantity with two values (DR-002 axiom 1: hasValue is functional)
+ex:twovalue-record a sulo:InformationObject ; sulo:refersTo ex:twovalue .
+ex:twovalue a sulo:Quantity ;
+    sulo:hasValue "1"^^xsd:decimal , "2"^^xsd:decimal ;
+    sulo:hasPart ex:unit-x ;
+    sulo:refersTo ex:some-quality .
+
+### role with no holder (PRO: a role is always a feature of someone)
+ex:dangling-role a sulo:Role .
+
+### a time instant whose precision was widened to a plain string
+ex:sloppy-record a sulo:InformationObject ; sulo:refersTo ex:sloppy-time .
+ex:sloppy-time a sulo:TimeInstant ;
+    sulo:hasValue "sometime on Tuesday" .
+
+### a node in two disjoint Feature branches at once (DR-002 axiom 6)
+ex:confused-record a sulo:InformationObject ; sulo:refersTo ex:confused .
+ex:confused a sulo:Role , sulo:Quality ;
+    sulo:isFeatureOf ex:person-a .

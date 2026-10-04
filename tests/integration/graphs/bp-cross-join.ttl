@@ -1,0 +1,60 @@
+# NEGATIVE case for concept note section 5.
+#
+# Every individual value from the real data appears somewhere: 120, 80, 105
+# and 70 are all present, and the two times are right. But bp-1's systolic is
+# paired with bp-2's diastolic. The note is explicit that this fails: "A graph
+# that produces (bp-1, 120, 70) or conflates the two panels fails, even if
+# every individual value appears somewhere."
+#
+# The competency query CQ2 must return a multiset that is NOT
+# {(09:00,120,80),(10:00,105,70)} for this graph. A test that only counted
+# rows, or only checked that 120 appears, would pass this file - which is why
+# the assertion is on the multiset.
+
+@prefix sulo: <https://w3id.org/sulo/> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:   <https://w3id.org/ontostart/fhir2sulo/> .
+
+ex:person-p123 a ex:Person .
+
+ex:ucum-mm-Hg a sulo:Unit ;
+    sulo:hasValue "mm[Hg]" .
+
+ex:bp-record-1 a sulo:InformationObject ;
+    sulo:hasPart ex:bp-1-systolic, ex:bp-2-diastolic ;    # <-- the cross join
+    sulo:atTime ex:time-bp-1 .
+
+ex:bp-record-2 a sulo:InformationObject ;
+    sulo:hasPart ex:bp-2-systolic, ex:bp-1-diastolic ;    # <-- the cross join
+    sulo:atTime ex:time-bp-2 .
+
+ex:time-bp-1 a sulo:TimeInstant ;
+    sulo:hasValue "2026-09-02T09:00:00Z"^^xsd:dateTimeStamp .
+ex:time-bp-2 a sulo:TimeInstant ;
+    sulo:hasValue "2026-09-02T10:00:00Z"^^xsd:dateTimeStamp .
+
+ex:bp-1-systolic a sulo:Quantity ;
+    sulo:hasValue "120"^^xsd:decimal ;
+    sulo:hasPart ex:ucum-mm-Hg ;
+    sulo:refersTo ex:systolic-quality-bp-1 .
+ex:bp-1-diastolic a sulo:Quantity ;
+    sulo:hasValue "80"^^xsd:decimal ;
+    sulo:hasPart ex:ucum-mm-Hg ;
+    sulo:refersTo ex:diastolic-quality-bp-1 .
+ex:bp-2-systolic a sulo:Quantity ;
+    sulo:hasValue "105"^^xsd:decimal ;
+    sulo:hasPart ex:ucum-mm-Hg ;
+    sulo:refersTo ex:systolic-quality-bp-2 .
+ex:bp-2-diastolic a sulo:Quantity ;
+    sulo:hasValue "70"^^xsd:decimal ;
+    sulo:hasPart ex:ucum-mm-Hg ;
+    sulo:refersTo ex:diastolic-quality-bp-2 .
+
+ex:systolic-quality-bp-1 a sulo:Feature, ex:SystolicBloodPressureQuality ;
+    sulo:isFeatureOf ex:person-p123 .
+ex:diastolic-quality-bp-1 a sulo:Feature, ex:DiastolicBloodPressureQuality ;
+    sulo:isFeatureOf ex:person-p123 .
+ex:systolic-quality-bp-2 a sulo:Feature, ex:SystolicBloodPressureQuality ;
+    sulo:isFeatureOf ex:person-p123 .
+ex:diastolic-quality-bp-2 a sulo:Feature, ex:DiastolicBloodPressureQuality ;
+    sulo:isFeatureOf ex:person-p123 .

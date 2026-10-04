@@ -1,0 +1,8 @@
+PREFIX : <http://ex.example/>
+<http://ex.example/P> :name "Sue" ; :report <http://ex.example/r1>, <http://ex.example/r2> .
+<http://ex.example/r1> :reportNo "one" ; :panel <http://ex.example/a0>, <http://ex.example/a1> .
+<http://ex.example/r2> :reportNo "two" ; :panel <http://ex.example/b0>, <http://ex.example/b1> .
+<http://ex.example/a0> :sys 100 ; :dia 60 .
+<http://ex.example/a1> :sys 101 ; :dia 61 .
+<http://ex.example/b0> :sys 110 ; :dia 70 .
+<http://ex.example/b1> :sys 111 ; :dia 71 .

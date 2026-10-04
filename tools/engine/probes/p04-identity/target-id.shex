@@ -1,0 +1,17 @@
+PREFIX t: <http://target.example/>
+PREFIX v: <http://ex.example/var#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX Map: <http://shex.io/extensions/Map/#>
+
+start = @<Coll>
+
+<Coll> {
+  t:subjectName xsd:string %Map:{ v:name %};
+  t:panel @<TPanel>*
+}
+
+<TPanel> {
+  t:iri IRI %Map:{ id(v:panelId) %};
+  t:systolic xsd:integer %Map:{ v:sys %};
+  t:diastolic xsd:integer %Map:{ v:dia %}
+}

@@ -1,0 +1,32 @@
+{
+  "fixture_id": "egfr-amended",
+  "family": "egfr",
+  "concept_note_section": "4",
+  "synthetic": true,
+  "description": "Version 3 of egfr-456: status 'amended', and the amendment touches ONLY a source-only element - an Observation.note is added. The value, unit, code, subject and effective time are byte-identical to version 2. This is the case the reviewer signed off on when answering R3: a revision that changes the record without changing anything the map binds. The emitted target triples should therefore differ from version 2's only in prov:wasDerivedFrom, while source_json_digest differs outright, so the store must report a replacement rather than 'unchanged'.",
+  "sources": [
+    "egfr-456.json"
+  ],
+  "lineage": {
+    "resource_id": "egfr-456",
+    "canonical_url": "https://fhir.example/Observation/egfr-456",
+    "version_id": "3",
+    "supersedes": "2",
+    "note": "Supersedes version 2 (fixtures/r4/egfr/egfr-corrected). No bound pivot variable changes except versionId; Observation.note is tolerated and never mapped."
+  },
+  "expected": {
+    "eligibility": "eligible",
+    "eligibility_reason_contains": [],
+    "references": {
+      "Observation.subject": {
+        "kind": "literal-relative",
+        "resolved_target": "https://fhir.example/Patient/p123",
+        "entity_iri_established": true
+      }
+    },
+    "amendment_touches_only": [
+      "Observation.note"
+    ],
+    "bound_variables_unchanged_from": "egfr-corrected"
+  }
+}

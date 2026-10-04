@@ -1,0 +1,84 @@
+{
+  "policy_id": "participation-type-interpretation",
+  "version": "1.0.0",
+  "status": "pilot-provisional",
+  "owner": "Agent 5 (identity and terminology)",
+  "reviewer_item": "R12, answered 2026-10-03",
+  "notes": [
+    "Deliberately a SEPARATE table from code-interpretation.v1.json, with the same shape and the same status vocabulary. A participation type answers a different question from an observation code: not 'what was measured' but 'what part did this participant play in this process'.",
+    "Concept note section 2 still governs: a FHIR code literal alone is not an OWL class assertion. An entry HERE is what makes it one, and an entry is a reviewed decision.",
+    "A code with no entry, or an entry that is `proposed` or `rejected`, does NOT type the role. The defaults below are the same conservative defaults the code table uses."
+  ],
+  "domain_namespace": "https://w3id.org/ontostart/fhir2sulo/",
+  "applies_to_elements": [
+    "Encounter.participant.type"
+  ],
+  "review_status_values": {
+    "approved": "The clinical/ontology reviewer signed this entry off. Interpretable, clinical_signoff true.",
+    "pilot-provisional": "Engineering default for the pilot, reviewed at the level of the RULE (R12) but not of the individual clinical binding. Interpretable, clinical_signoff false.",
+    "proposed": "Present so it cannot be dropped silently, but types nothing.",
+    "rejected": "Must not be interpreted. The resource is rejected rather than reduced."
+  },
+  "interpretable_statuses": ["approved", "pilot-provisional"],
+  "clinically_signed_off_statuses": ["approved"],
+  "defaults": {
+    "unknown_code_in_known_system": "rejected",
+    "unknown_system": "rejected",
+    "review_status_proposed": "source-only",
+    "review_status_rejected": "rejected",
+    "silent_pass_through": false,
+    "invent_class_for_unknown_code": false
+  },
+  "defaults_rationale": [
+    "`unknown_code_in_known_system` is `rejected` here, NOT `source-only` as in the code table. The difference is deliberate. An unrecognised OBSERVATION code can be retained in the source layer while the rest of the resource still maps, because the observation simply is not interpreted. An unrecognised PARTICIPATION type cannot: the role node is emitted either way, and emitting it while silently ignoring a code that says what the participation WAS would assert an under-specified role rather than decline to assert one. The encounter source schema already guards participant.type to PPRF and fails loudly on anything else; this keeps the policy table and the schema agreeing."
+  ],
+  "code_systems": {
+    "http://terminology.hl7.org/CodeSystem/v3-ParticipationType": {
+      "name": "HL7 v3 ParticipationType",
+      "terminology_snapshot": "pinned via profiles/fhir-r4-pilot.json"
+    }
+  },
+  "entries": [
+    {
+      "entry_id": "PART-V3-PPRF",
+      "system": "http://terminology.hl7.org/CodeSystem/v3-ParticipationType",
+      "code": "PPRF",
+      "display_source": "primary performer",
+      "role_class": "https://w3id.org/ontostart/fhir2sulo/PrimaryPerformerRole",
+      "review_status": "pilot-provisional",
+      "reviewer": null,
+      "reviewed_on": null,
+      "provenance": "The only participation type the Encounter fixtures carry and the only one the source schema admits.",
+      "note": "Types the ENCOUNTER-SCOPED role node, alongside ex:PractitionerRole. The two are not disjoint and the node is in their intersection: it is the role held qua practitioner AND the primary-performer role in this one encounter. R12 answered 'both'."
+    },
+    {
+      "entry_id": "PART-V3-SBJ",
+      "system": "http://terminology.hl7.org/CodeSystem/v3-ParticipationType",
+      "code": "SBJ",
+      "display_source": "subject",
+      "role_class": null,
+      "review_status": "proposed",
+      "provenance": "Named in R12 as a code we would meet. Present so adding it is a reviewed edit rather than an invention.",
+      "note": "Types nothing. The pilot reaches the patient through Encounter.subject, not through a participant with type SBJ, so no entry is needed yet and guessing one would be inference."
+    },
+    {
+      "entry_id": "PART-V3-ATND",
+      "system": "http://terminology.hl7.org/CodeSystem/v3-ParticipationType",
+      "code": "ATND",
+      "display_source": "attender",
+      "role_class": null,
+      "review_status": "proposed",
+      "provenance": "Named in R12 as a code we would meet.",
+      "note": "Types nothing. An attender is not a primary performer and must not silently reuse PPRF's class."
+    }
+  ],
+  "reviewer_decisions": [
+    {
+      "item": "R12",
+      "answer": "Both classes on the role node",
+      "answered_on": "2026-10-03",
+      "consequence": "The encounter-scoped role node carries ex:PractitionerRole and ex:PrimaryPerformerRole. Expected Encounter graphs gain one rdf:type per role node.",
+      "residual_concern_recorded_not_blocking": "ex:PractitionerRole is derived from the FHIR RESOURCE TYPE of the referenced resource (Practitioner), which is record metadata rather than a clinical statement. ex:PrimaryPerformerRole is derived from a coded clinical statement via this table. The two are not on equal evidential footing, and DR-010's defence of the PractitionerRole name overstated how much it was 'derived from what the record states'. Recorded in DR-013; not re-litigated."
+    }
+  ]
+}

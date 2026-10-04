@@ -1,0 +1,95 @@
+{
+ "ok": false,
+ "stage": "validate",
+ "validation": {
+  "errors": [
+   {
+    "constraint": {
+     "max": -1,
+     "min": 0,
+     "predicate": "http://hl7.org/fhir/component",
+     "type": "TripleConstraint",
+     "valueExpr": "BPComponent"
+    },
+    "errors": {
+     "errors": [
+      {
+       "constraint": {
+        "predicate": "http://hl7.org/fhir/value",
+        "semActs": [
+         {
+          "code": " v:componentValue ",
+          "name": "http://shex.io/extensions/Map/#",
+          "type": "SemAct"
+         }
+        ],
+        "type": "TripleConstraint",
+        "valueExpr": {
+         "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+         "type": "NodeConstraint"
+        }
+       },
+       "errors": {
+        "errors": [
+         {
+          "actual": "http://www.w3.org/2001/XMLSchema#string",
+          "expected": "http://www.w3.org/2001/XMLSchema#decimal",
+          "message": "mismatched datatype: http://www.w3.org/2001/XMLSchema#string !== http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "DatatypeMismatch"
+         }
+        ],
+        "node": {
+         "value": "one hundred twenty"
+        },
+        "shape": "BPComponent",
+        "shapeExpr": {
+         "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+         "type": "NodeConstraint"
+        },
+        "type": "NodeConstraintViolation"
+       },
+       "triple": {
+        "object": {
+         "value": "one hundred twenty"
+        },
+        "predicate": "http://hl7.org/fhir/value",
+        "subject": "https://fhir.example/Observation/bp-1#c0",
+        "type": "TestedTriple"
+       },
+       "type": "TypeMismatch"
+      }
+     ],
+     "node": "https://fhir.example/Observation/bp-1#c0",
+     "repairs": [
+      {
+       "arcs": [
+        {
+         "delta": 1,
+         "property": "http://hl7.org/fhir/value",
+         "valueExpr": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "NodeConstraint"
+         }
+        }
+       ],
+       "cost": 1,
+       "type": "NearestBag"
+      }
+     ],
+     "shape": "BPComponent",
+     "type": "Failure"
+    },
+    "triple": {
+     "object": "https://fhir.example/Observation/bp-1#c0",
+     "predicate": "http://hl7.org/fhir/component",
+     "subject": "https://fhir.example/Observation/bp-1",
+     "type": "TestedTriple"
+    },
+    "type": "TypeMismatch"
+   }
+  ],
+  "node": "https://fhir.example/Observation/bp-1",
+  "shape": "BPObservation",
+  "type": "Failure"
+ }
+}

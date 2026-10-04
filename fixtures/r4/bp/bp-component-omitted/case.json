@@ -1,0 +1,16 @@
+{
+  "fixture_id": "bp-component-omitted",
+  "family": "bp",
+  "concept_note_section": "5",
+  "synthetic": true,
+  "description": "bp-1 has no diastolic component. The diastolic slot must stay empty; it must not be filled from bp-2.",
+  "sources": [
+    "bp-1.json",
+    "bp-2.json"
+  ],
+  "expected": {
+    "eligibility": "eligible",
+    "eligibility_reason_contains": [],
+    "references": {}
+  }
+}

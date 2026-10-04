@@ -1,0 +1,10 @@
+{
+  "name": "fhir-sulo-engine-bench",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Gate 4 scale measurement for the pinned ShExMap engine. Versions MUST match tools/engine/package.json (Agent 4, DR-301); a drift here would measure a build the pilot does not run.",
+  "dependencies": {
+    "shex": "1.0.0-alpha.33",
+    "@shexjs/extension-map": "1.0.0-alpha.33"
+  }
+}

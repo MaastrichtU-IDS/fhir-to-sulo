@@ -1,0 +1,111 @@
+# eGFR target schema -- SULO 0.2.12 SOLID quantity, concept note section 4.
+#
+# ONE INDIRECTION POINT FOR DOMAIN VOCABULARY (REVIEW ITEM R1).
+# No domain class IRI is written in this file.  Every one of them arrives as a
+# run binding (a ThreadedMaterializer `staticVars` entry) named below:
+#
+#     v:resultClass   v:qualityClass   v:personClass   v:recordClass
+#
+# and every node IRI likewise (v:person, v:quality, v:unitIri, v:result,
+# v:record, v:timeInstant, v:sourceVersionIri).  Swapping the domain
+# vocabulary, or answering R1/R2/R4/R6, is therefore a change to the run
+# binding table -- `maps/r4/egfr/egfr-bindings.v1.json` -- and touches no
+# schema.
+#
+# Only SULO 0.2.12 upper-level terms and prov: appear literally.
+#
+# DR-301 4b/4c: the engine has no id(), a Map variable on a shape-valued
+# constraint emits the IRI as a leaf and drops the sub-shape, and only the root
+# node of a materialization has a controllable IRI.  Each IRI-identified node
+# therefore gets its own entry shape, materialized rooted at that IRI, and
+# refers to its neighbours as leaf IRIs.  This is the DR-302 decomposition:
+# every triple below is constructed by this schema, and the host only chooses
+# roots and unions the passes.
+
+PREFIX sulo: <https://w3id.org/sulo/>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX xsd:  <http://www.w3.org/2001/XMLSchema#>
+PREFIX Map:  <http://shex.io/extensions/Map/#>
+PREFIX v:    <https://w3id.org/fhir-sulo/map/egfr/var#>
+PREFIX sh:   <https://w3id.org/fhir-sulo/map/egfr/shape#>
+
+start = @sh:EGFRResultNode
+
+# --- the quantity ----------------------------------------------------------
+# sulo:hasValue is an owl:FunctionalProperty with domain sulo:InformationObject
+# (DR-002 axiom 1), so exactly one value.  sulo:Quantity is subsumed by
+# sulo:InformationObject and requires a unit part (DR-002 axiom 2), supplied
+# here as the shared UCUM unit IRI.
+sh:EGFRResultNode {
+  rdf:type [sulo:Quantity] ;
+  rdf:type IRI %Map:{ v:resultClass %} ;
+  sulo:hasValue xsd:decimal %Map:{ v:value %} ;
+  sulo:hasPart  IRI %Map:{ v:unitIri %} ;
+  sulo:refersTo IRI %Map:{ v:quality %} ;
+  sulo:isFeatureOf IRI %Map:{ v:person %} ;
+  sulo:atTime   IRI %Map:{ v:timeInstant %} ;
+  prov:wasDerivedFrom IRI %Map:{ v:sourceVersionIri %}
+}
+
+# --- the quality the quantity refers to ------------------------------------
+# R4: sulo:Feature is a disjoint union of Capability/InformationObject/Quality/
+# Role (DR-002 axiom 6), so bare Feature leaves the individual unpartitioned.
+# The branch is a run binding (v:qualityBranch), defaulting to sulo:Quality per
+# the R4 option A recommendation; setting it to sulo:Feature restores the
+# concept note's literal text without touching this schema.
+sh:EGFRQualityNode {
+  rdf:type IRI %Map:{ v:qualityBranch %} ;
+  rdf:type IRI %Map:{ v:qualityClass %} ;
+  sulo:isFeatureOf IRI %Map:{ v:person %}
+}
+
+# --- the person ------------------------------------------------------------
+# R6 supplies both the SULO parent (v:personSuloClass) and the domain class
+# (v:personClass).  The person IRI itself is the identity service's output,
+# never derived from the FHIR reference (concept note section 2).
+sh:EGFRPersonNode {
+  rdf:type IRI %Map:{ v:personSuloClass %} ;
+  rdf:type IRI %Map:{ v:personClass %} ;
+  sulo:hasFeature IRI %Map:{ v:quality %}
+}
+
+# --- the unit --------------------------------------------------------------
+# sulo:Unit is subsumed by sulo:Quantity and sulo:hasPart is reflexive, so a
+# unit satisfies its own unit-part requirement (DR-002 axiom 3).
+sh:EGFRUnitNode {
+  rdf:type [sulo:Unit] ;
+  sulo:hasValue xsd:string %Map:{ v:unitCode %}
+}
+
+# --- the clinically relevant time ------------------------------------------
+# Observation.effective[x], explicitly NOT `issued` or `meta.lastUpdated`
+# (concept note section 2).  R5/Q2: whether a TimeInstant carries an explicit
+# sulo:Unit is unresolved; the concept note's example graph omits it and so
+# does this shape.  Adding it is one triple constraint here plus one run
+# binding, not a re-authoring.
+sh:EGFRTimeNode {
+  rdf:type [sulo:TimeInstant] ;
+  sulo:hasValue xsd:dateTime %Map:{ v:effective %}
+}
+
+# --- the record layer ------------------------------------------------------
+# The FHIR resource and its semantic interpretation are distinct individuals
+# and no owl:sameAs joins them (concept note section 2).
+#
+# R11, answered 2026-09-30. The reviewer: "compositionally, a record could
+# indeed be comprised of statements, which could include the recording of
+# results. This then captures where the results are located (e.g. the record).
+# however, the results are information about the individual - they are
+# features of the individual and they also refer to their qualities."
+#
+# So the record HAS the result as a PART -- where the result is located --
+# rather than referring to it. Well-formed: sulo:InformationObject is
+# subClassOf (sulo:hasPart only sulo:InformationObject), and a result is a
+# sulo:Quantity subClassOf sulo:InformationObject.
+sh:EGFRRecordNode {
+  rdf:type [sulo:InformationObject] ;
+  rdf:type IRI %Map:{ v:recordClass %} ;
+  sulo:hasPart IRI %Map:{ v:result %} ;
+  prov:wasDerivedFrom IRI %Map:{ v:sourceVersionIri %}
+}

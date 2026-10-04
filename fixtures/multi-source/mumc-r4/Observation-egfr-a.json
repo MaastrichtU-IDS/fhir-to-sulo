@@ -1,0 +1,27 @@
+{
+  "resourceType": "Observation",
+  "id": "egfr-a",
+  "meta": {
+    "versionId": "1"
+  },
+  "status": "final",
+  "code": {
+    "coding": [
+      {
+        "system": "http://loinc.org",
+        "code": "33914-3",
+        "display": "Glomerular filtration rate/1.73 sq M.predicted"
+      }
+    ]
+  },
+  "subject": {
+    "reference": "Patient/123"
+  },
+  "effectiveDateTime": "2026-03-02T09:00:00Z",
+  "valueQuantity": {
+    "value": 61.5,
+    "unit": "mL/min/1.73m2",
+    "system": "http://unitsofmeasure.org",
+    "code": "mL/min/{1.73_m2}"
+  }
+}

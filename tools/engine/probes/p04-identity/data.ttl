@@ -1,0 +1,4 @@
+PREFIX : <http://ex.example/>
+<http://ex.example/P> :name "Sue" ; :panel <http://ex.example/p1>, <http://ex.example/p2> .
+<http://ex.example/p1> :sys 120 ; :dia 80 .
+<http://ex.example/p2> :sys 105 ; :dia 70 .

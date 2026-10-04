@@ -1,0 +1,25 @@
+{
+  "resourceType": "Patient",
+  "id": "555",
+  "meta": {
+    "versionId": "1"
+  },
+  "identifier": [
+    {
+      "system": "http://other.example/mrn",
+      "value": "MRN-555"
+    },
+    {
+      "system": "https://w3id.org/ontostart/fhir2sulo/synthetic/person-number",
+      "value": "900009"
+    }
+  ],
+  "name": [
+    {
+      "family": "Other",
+      "given": [
+        "Someone"
+      ]
+    }
+  ]
+}

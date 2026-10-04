@@ -1,0 +1,21 @@
+# The target side of the benchmark pair. Shaped like the SOLID quantity
+# pattern (a record with component quantities, each carrying a value and a
+# code) so that the number of emitted triples per resource is in the right
+# ballpark, without pretending to be a reviewed clinical map.
+
+PREFIX t: <http://target.example/>
+PREFIX v: <http://ex.example/var#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX Map: <http://shex.io/extensions/Map/#>
+
+start = @<Record>
+
+<Record> {
+  t:atTime xsd:string %Map:{ v:effective %};
+  t:refersTo @<Quantity>*
+}
+
+<Quantity> {
+  t:observableCode xsd:string  %Map:{ v:code %};
+  t:hasValue       xsd:integer %Map:{ v:value %}
+}

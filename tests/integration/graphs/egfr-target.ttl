@@ -1,0 +1,39 @@
+# Concept note section 4, the schematic target graph, copied literally.
+#
+# This is a TEST VECTOR, not a fixture. Agent 2 and Agent 3 own `fixtures/`;
+# when `fixtures/expected/` lands, these files are superseded by it and the
+# validator API is unchanged - it takes any graph. Until then Agent 6's
+# validation layer needs something to be right about, and the concept note's
+# own example graph is the only target with warrant that does not depend on an
+# open review item.
+#
+# The `ex:` domain classes are the note's placeholders. Review item R1 is open
+# and nothing here decides it.
+
+@prefix sulo: <https://w3id.org/sulo/> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:   <https://w3id.org/ontostart/fhir2sulo/> .
+
+ex:person-p123 a ex:Person ;
+    sulo:hasFeature ex:renal-quality-p123 .
+
+ex:renal-quality-p123 a sulo:Feature, ex:RenalFiltrationQuality ;
+    sulo:isFeatureOf ex:person-p123 .
+
+ex:egfr-result-456 a sulo:Quantity, ex:EGFRResult ;
+    sulo:hasValue "55.0"^^xsd:decimal ;
+    sulo:hasPart ex:ucum-mL-min-1_73_m2 ;
+    sulo:refersTo ex:renal-quality-p123 ;
+    sulo:atTime ex:time-egfr-456 ;
+    prov:wasDerivedFrom <https://fhir.example/Observation/egfr-456/_history/1> .
+
+ex:ucum-mL-min-1_73_m2 a sulo:Unit ;
+    sulo:hasValue "mL/min/{1.73_m2}" .
+
+ex:time-egfr-456 a sulo:TimeInstant ;
+    sulo:hasValue "2026-09-02T14:00:00Z"^^xsd:dateTimeStamp .
+
+ex:egfr-record-456 a sulo:InformationObject, ex:ObservationRecord ;
+    sulo:refersTo ex:egfr-result-456 ;
+    prov:wasDerivedFrom <https://fhir.example/Observation/egfr-456/_history/1> .

@@ -1,0 +1,99 @@
+# Encounter source schema -- FHIR R4 Encounter, concept note section 6.
+#
+# Rooted at exactly ONE Encounter resource (DR-302).  Repetition depth on every
+# path from the root is <= 1 (only fhir:DomainResource.contained, tolerated and
+# never mapped).
+#
+# ONE PARTICIPANT ONLY in v1.  `fhir:Encounter.participant` is cardinality 1,
+# not `*`.  This is a real restriction and it is deliberate: see
+# DR-201 section "What ShExMap could not express".  A role node needs its own
+# target IRI, that IRI comes from the identity service as a run binding, and
+# ThreadedMaterializer staticVars are global to a materialization -- so N
+# participants would need N per-iteration run bindings, which the engine has
+# no way to express.  DR-302's decomposition does not rescue it either,
+# because a FHIR participant is a blank node with no source IRI to key on.
+# A second participant therefore fails validation loudly (exit 1, parseable
+# Failure) rather than being silently dropped or cross-joined.
+#
+# STATUS GUARD: `finished` only.  Concept note section 6: an `in-progress`
+# Encounter "may receive a separate, explicitly defined policy; it is not
+# treated as a finished interval", and that policy is review item R3 /
+# Q-A2-2, unanswered.  `enc-in-progress` and `enc-open-period` are both
+# declared source-only by Agent 2 and both fail here, which is the intended
+# outcome while the question is open.
+
+PREFIX fhir: <http://hl7.org/fhir/>
+PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX xsd:  <http://www.w3.org/2001/XMLSchema#>
+PREFIX Map:  <http://shex.io/extensions/Map/#>
+PREFIX v:    <https://w3id.org/fhir-sulo/map/encounter/var#>
+PREFIX sh:   <https://w3id.org/fhir-sulo/map/encounter/shape#>
+
+start = @sh:ClinicalEncounter
+
+sh:ClinicalEncounter CLOSED {
+  rdf:type       [fhir:Encounter] ;
+  fhir:nodeRole  [fhir:treeRoot] ;
+  # TOLERATED AND NEVER MAPPED -- `source_only_elements` in
+  # profiles/fhir-r4-pilot.json. Wildcard value expressions, so no sub-shape
+  # and no Map variable: depth stays 1 (DR-302) and none of them can reach the
+  # target graph.
+  fhir:DomainResource.text       . * ;
+  fhir:DomainResource.contained  . * ;
+  fhir:Encounter.identifier      . * ;
+  fhir:Encounter.type            . * ;
+  fhir:Encounter.serviceProvider . * ;
+  fhir:Resource.id   { fhir:value xsd:string %Map:{ v:encId %} } ;
+  fhir:Resource.meta { fhir:Meta.versionId { fhir:value xsd:string %Map:{ v:versionId %} } } ;
+  fhir:Encounter.status  { fhir:value ["finished"] %Map:{ v:status %} } ;
+  fhir:Encounter.class   @sh:EncounterClass ;
+  fhir:Encounter.subject @sh:SubjectReference ;
+  fhir:Encounter.participant @sh:Participant ;
+  fhir:Encounter.period  @sh:BoundedPeriod
+}
+
+sh:EncounterClass CLOSED {
+  fhir:Coding.system  { fhir:value ["http://terminology.hl7.org/CodeSystem/v3-ActCode"]
+                        %Map:{ v:classSystem %} } ;
+  fhir:Coding.code    { fhir:value xsd:string %Map:{ v:classCode %} } ;
+  fhir:Coding.display { fhir:value xsd:string } ?
+}
+
+sh:SubjectReference CLOSED {
+  fhir:Reference.reference { fhir:value xsd:string %Map:{ v:subjectRef %} } ;
+  fhir:link . ?
+}
+
+sh:Participant CLOSED {
+  fhir:Encounter.participant.period . * ;   # tolerated, never mapped
+  fhir:index . ? ;
+  fhir:Encounter.participant.type       @sh:ParticipationType ;
+  fhir:Encounter.participant.individual @sh:IndividualReference
+}
+
+sh:ParticipationType CLOSED {
+  fhir:index . ? ;
+  fhir:CodeableConcept.coding @sh:ParticipationCoding
+}
+sh:ParticipationCoding CLOSED {
+  fhir:index . ? ;
+  fhir:Coding.system  { fhir:value ["http://terminology.hl7.org/CodeSystem/v3-ParticipationType"]
+                        %Map:{ v:participantTypeSystem %} } ;
+  fhir:Coding.code    { fhir:value ["PPRF"] %Map:{ v:participantType %} } ;
+  fhir:Coding.display { fhir:value xsd:string } ?
+}
+
+sh:IndividualReference CLOSED {
+  fhir:Reference.reference { fhir:value xsd:string %Map:{ v:participantRef %} } ;
+  fhir:link . ?
+}
+
+# BOTH ENDPOINTS REQUIRED.  Concept note section 2 requires unknown endpoints to
+# be preserved rather than invented; the pilot has no reviewed representation
+# for an unknown endpoint (R3 / Q-A2-3), so an open-ended period fails here
+# instead of materialising a fabricated end.  `enc-open-period` is declared
+# source-only and this is how it stays source-only.
+sh:BoundedPeriod CLOSED {
+  fhir:Period.start { fhir:value xsd:dateTime %Map:{ v:start %} } ;
+  fhir:Period.end   { fhir:value xsd:dateTime %Map:{ v:end %} }
+}

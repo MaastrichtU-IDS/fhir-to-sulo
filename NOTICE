@@ -1,0 +1,54 @@
+FHIR-to-SULO pilot
+Copyright 2026 Maastricht University
+
+This product includes software developed at the Institute of Data Science,
+Maastricht University (https://www.maastrichtuniversity.nl/ids).
+
+Licensed under the Apache License, Version 2.0. See LICENSE.
+
+================================================================================
+Third-party content redistributed in this repository
+================================================================================
+
+The Apache-2.0 licence above covers this project's own code, schemas, fixtures
+and documentation. It does NOT relicense the third-party files below, which are
+redistributed under their own terms.
+
+1. SULO - Simplified Upper Level Ontology
+   File:    src/fhir_sulo/validation/ontology/sulo-0.2.12.ttl
+   Version: 0.2.12 (owl:versionInfo "0.2.12")
+   Source:  https://github.com/AIDAVA-DEV/sulo
+            commit 1a4abc1699471187e94fbc59591101b2b635d6ea
+   Licence: MIT
+   Why vendored: the reasoning tests must run offline and against a pinned
+   ontology; the file's sha256 is checked against the pin recorded in
+   docs/fhir-sulo/decisions/DR-002-sulo-pin-and-axioms.md.
+
+2. HL7 FHIR R4 specification examples
+   Files:   fixtures/r4/_oracle/observation-example-f205-egfr.{json,ttl}
+            fixtures/r4/_oracle/observation-example-bloodpressure.{json,ttl}
+            fixtures/r4/_oracle/encounter-example.{json,ttl}
+   Source:  HL7 FHIR R4 (4.0.1), https://hl7.org/fhir/R4/
+   Licence: Creative Commons CC0 1.0 Universal Public Domain Dedication
+   Why vendored: they are the external oracle the RDF renderer is validated
+   against (graph isomorphism). Vendoring keeps that test offline and stops the
+   oracle changing underneath us. See fixtures/r4/_oracle/README.md.
+
+   FHIR(R) is a registered trademark of Health Level Seven International. Its
+   use here is descriptive and implies no endorsement.
+
+================================================================================
+Pinned dependencies (not redistributed)
+================================================================================
+
+Fetched at build time, never vendored:
+  shex, @shexjs/extension-map  1.0.0-alpha.33   (MIT)   - tools/engine/package-lock.json
+  rdflib 7.1.4, pyshacl 0.26.0, pytest 8.3.5, pyyaml 6.0.2
+  obolibrary/robot (HermiT)    pinned by image digest   - see DR-602
+
+================================================================================
+Data
+================================================================================
+
+All patient data in this repository is SYNTHETIC. No real or de-identified
+clinical data is present. See docs/FHIR_to_SULO_Concept_Note.md section 2.

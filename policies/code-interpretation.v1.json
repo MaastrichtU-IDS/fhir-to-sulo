@@ -1,0 +1,170 @@
+{
+  "policy_id": "code-interpretation",
+  "version": "1.0.0",
+  "status": "draft-awaiting-reviewer",
+  "owner": "Agent 5 (identity and terminology)",
+  "notes": [
+    "Concept note section 2: a FHIR code literal alone is not an OWL class assertion.",
+    "A code becomes a domain class ONLY through an entry in this reviewed table.",
+    "The source system and code are retained on every outcome, including rejected."
+  ],
+  "domain_namespace": "https://w3id.org/ontostart/fhir2sulo/",
+  "sulo_version": "0.2.12",
+  "sulo_pin_commit": "1a4abc1699471187e94fbc59591101b2b635d6ea",
+  "terminology_snapshot": {
+    "snapshot_id": "pilot-pinned-subset-2026-09-29",
+    "acquisition": "offline. Hand-pinned from the concept note's worked examples (sections 4 and 5), which cite the HL7 R4 examples observation-example-f205-egfr and observation-example-bloodpressure.",
+    "live_lookup_at_runtime": false,
+    "live_lookup_note": "Plan Gate 1 requires a deterministic mock terminology service. There is no network call at run time; the resolver reads this file only."
+  },
+  "review_status_values": {
+    "approved": "The clinical/ontology reviewer signed this entry off. Interpretable, clinical_signoff true.",
+    "pilot-provisional": "Engineering default taken verbatim from the concept note's worked examples so Gates 1-3 can run on synthetic data. Interpretable, but clinical_signoff FALSE. Must not be used on clinical data.",
+    "proposed": "Drafted, not usable. Yields source-only.",
+    "rejected": "Explicitly must not be interpreted. Yields rejected."
+  },
+  "interpretable_statuses": [
+    "approved",
+    "pilot-provisional"
+  ],
+  "clinically_signed_off_statuses": [
+    "approved"
+  ],
+  "defaults": {
+    "unknown_code_in_known_system": "source-only",
+    "unknown_system": "source-only",
+    "review_status_proposed": "source-only",
+    "review_status_rejected": "rejected",
+    "silent_pass_through": false,
+    "invent_class_for_unknown_code": false
+  },
+  "defaults_rationale": "Concept note section 2: unsupported cases are rejected or represented only in the source/record layer. An unknown observable code is retained as a source record rather than rejected outright; it is the map's own code guard that rejects an eGFR fixture carrying the wrong code, not this table.",
+  "code_systems": {
+    "http://loinc.org": {
+      "system_id": "loinc",
+      "in_scope": true,
+      "pinned_subset": true,
+      "note": "Only the codes listed in entries are known. LOINC itself is not redistributed."
+    },
+    "http://snomed.info/sct": {
+      "system_id": "snomed-ct",
+      "in_scope": false,
+      "note": "Recognised system, no reviewed entries. Codes yield source-only."
+    }
+  },
+  "entries": [
+    {
+      "entry_id": "CODE-LOINC-33914-3",
+      "system": "http://loinc.org",
+      "code": "33914-3",
+      "display_source": "Glomerular filtration rate/1.73 sq M.predicted",
+      "observation_kind": "quantitative",
+      "result_class": "https://w3id.org/ontostart/fhir2sulo/EGFRResult",
+      "quality_class": "https://w3id.org/ontostart/fhir2sulo/RenalFiltrationQuality",
+      "expected_unit_dimension": "egfr-rate",
+      "component_of": null,
+      "review_status": "pilot-provisional",
+      "reviewer": null,
+      "reviewed_on": null,
+      "provenance": "Concept note section 4 worked example A and its schematic target graph.",
+      "reviewer_note": "The result is a reported estimate, not an asserted physiological fact. The map must not assert a measurement process, device, specimen, or diagnosis."
+    },
+    {
+      "entry_id": "CODE-LOINC-8480-6",
+      "system": "http://loinc.org",
+      "code": "8480-6",
+      "display_source": "Systolic blood pressure",
+      "observation_kind": "quantitative",
+      "result_class": "https://w3id.org/ontostart/fhir2sulo/SystolicBloodPressureResult",
+      "quality_class": "https://w3id.org/ontostart/fhir2sulo/SystolicBloodPressureQuality",
+      "expected_unit_dimension": "pressure",
+      "component_of": "blood-pressure-panel",
+      "review_status": "pilot-provisional",
+      "reviewer": null,
+      "reviewed_on": null,
+      "provenance": "Concept note section 5 worked example B."
+    },
+    {
+      "entry_id": "CODE-LOINC-8462-4",
+      "system": "http://loinc.org",
+      "code": "8462-4",
+      "display_source": "Diastolic blood pressure",
+      "observation_kind": "quantitative",
+      "result_class": "https://w3id.org/ontostart/fhir2sulo/DiastolicBloodPressureResult",
+      "quality_class": "https://w3id.org/ontostart/fhir2sulo/DiastolicBloodPressureQuality",
+      "expected_unit_dimension": "pressure",
+      "component_of": "blood-pressure-panel",
+      "review_status": "pilot-provisional",
+      "reviewer": null,
+      "reviewed_on": null,
+      "provenance": "Concept note section 5 worked example B."
+    },
+    {
+      "entry_id": "CODE-LOINC-85354-9",
+      "system": "http://loinc.org",
+      "code": "85354-9",
+      "display_source": "Blood pressure panel with all children optional",
+      "observation_kind": "panel",
+      "result_class": null,
+      "quality_class": null,
+      "expected_unit_dimension": null,
+      "component_of": null,
+      "review_status": "proposed",
+      "reviewer": null,
+      "reviewed_on": null,
+      "provenance": "The HL7 blood-pressure example's panel code. The concept note names only the two component codes, so the panel code is drafted but NOT interpretable; it yields source-only.",
+      "reviewer_note": "Reviewer question T1: should the BP panel code type the panel record node, or does the panel stay an untyped ex:ObservationRecord?"
+    }
+  ],
+  "reviewer_decisions": {
+    "R10": {
+      "question": "Is 'pilot-provisional' an acceptable engineering status?",
+      "answer": "A",
+      "answered_by": "human clinical/ontology reviewer",
+      "answered_on": "2026-09-29",
+      "means": "The pilot-provisional tier is ratified: an entry at that status MAY be interpreted, so a map may emit a domain class for it and Gates 2 and 3 can demonstrate a materialized graph on synthetic data.",
+      "does_not_mean": [
+        "It does NOT approve any individual typing. Whether 33914-3 means RenalFiltrationQuality is review item R1b, still open.",
+        "It does NOT confer clinical sign-off. Every outcome from a pilot-provisional entry still reports clinical_signoff: false.",
+        "It does NOT promote anything to 'approved'. Nothing is approved.",
+        "The domain_namespace is still the R1 placeholder, so the machinery runs end-to-end on placeholder vocabulary."
+      ]
+    },
+    "R1": {
+      "question": "Who owns the domain vocabulary, and under what namespace?",
+      "answer": "A — mint a project-local vocabulary",
+      "namespace": "https://w3id.org/ontostart/fhir2sulo/",
+      "answered_on": "2026-09-30",
+      "note": "The reviewer first wrote wi3d.org; confirmed as w3id.org on a transposition check before applying, because the namespace is a graph-key input via quality_class_iri and correcting it later would have been a second migration.",
+      "trailing_slash": "Added, matching SULO's own https://w3id.org/sulo/.",
+      "successor": "RAG over OMOP vocabularies with LLM reranking — DR-008. Out of scope for Gates 0-4. A reranker proposes; it does not approve."
+    },
+    "R4": {
+      "question": "sulo:Quality or bare sulo:Feature for the observed quality?",
+      "answer": "A - sulo:Quality",
+      "answered_on": "2026-09-30",
+      "reviewer_words": "we should not use feature -> it should go to a more specific class eg. sulo:Quality",
+      "effect": "Ratifies what the maps already emit. Diverges deliberately from the concept note's literal 'a sulo:Feature' in section 4: bare Feature leaves the individual outside the disjoint union."
+    },
+    "R6": {
+      "question": "What is the SULO parent of the patient/practitioner class?",
+      "answer": "sulo:SpatialObject",
+      "answered_on": "2026-09-30",
+      "reviewer_words": "a person is a Spatial Object",
+      "effect": "CHANGE from the emitted bare sulo:Object. Verified safe: SpatialObject is a subclass of Object, so hasParticipant's range and the Feature isFeatureOf-some-(Object or Process) restriction both still hold.",
+      "restores": "The OWL guard recorded as absent in CD-6. Under SpatialObject a person also typed as a Quality or Role becomes INCONSISTENT, because Feature is disjointWith SpatialObject. CD-6 should close."
+    },
+    "R11": {
+      "question": "How does a record relate to its component results?",
+      "answer": "B - sulo:hasPart, plus two further relations the reviewer named",
+      "answered_on": "2026-09-30",
+      "reviewer_words": "compositionally, a record could indeed be comprised of statements, which could include the recording of results. This then captures where the results are located (e.g. the record). however, the results are information about the individual - they are features of the individual and they also refer to their qualities.",
+      "target_pattern": [
+        "record  sulo:hasPart      result    (compositional: where the result is located)",
+        "result  sulo:isFeatureOf  person    (the result is information about the individual)",
+        "result  sulo:refersTo     quality   (already emitted)"
+      ],
+      "bears_on_R5": "The isFeatureOf-on-results relation is R5's first open row (materialize isFeatureOf on quantities) answered as option A. The second row - an explicit unit on a TimeInstant - remains OPEN."
+    }
+  }
+}

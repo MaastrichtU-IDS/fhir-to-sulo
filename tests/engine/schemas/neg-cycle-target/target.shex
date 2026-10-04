@@ -1,0 +1,19 @@
+# SP005. <Panel> -> <Measurement> -> <Panel>. Materialization unrolls the cycle
+# to maxCallDepth and then kills the thread, so the depth of the output graph is
+# decided by a guard rather than by the data.
+PREFIX ex:  <https://w3id.org/fhir-sulo/>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX Map: <http://shex.io/extensions/Map/#>
+PREFIX v:   <https://w3id.org/fhir-sulo/var#>
+
+start = @<Panel>
+
+<Panel> {
+  ex:aboutParticipant IRI %Map:{ v:subject %};
+  ex:hasMeasurement   @<Measurement>
+}
+
+<Measurement> {
+  ex:magnitude xsd:decimal %Map:{ v:componentValue %};
+  ex:partOf    @<Panel>
+}

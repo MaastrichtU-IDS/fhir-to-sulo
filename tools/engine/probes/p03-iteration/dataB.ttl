@@ -1,0 +1,5 @@
+PREFIX : <http://ex.example/>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+<http://ex.example/P> :name "Sue" ; :panel <http://ex.example/p1>, <http://ex.example/p2> .
+<http://ex.example/p1> :dia 80 ; :sys 120 .
+<http://ex.example/p2> :dia 70 ; :sys 105 .

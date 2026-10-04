@@ -1,0 +1,83 @@
+# Concept note section 5, the two blood-pressure panels, built out to a target
+# graph from the note's prose ("For each component, materialize sulo:Quantity
+# -> sulo:refersTo -> a typed systolic or diastolic quality -> sulo:isFeatureOf
+# -> the person, and attach the UCUM unit. The BP panel record relates to both
+# component results; its time is the Observation's effective[x].").
+#
+# The required tuple multiset is {(bp-1, 120, 80), (bp-2, 105, 70)}. A graph
+# that produces (bp-1, 120, 70) fails, which `bp-cross-join.ttl` is the
+# negative case for.
+#
+# Quality identity here is observation-scoped (one quality node per panel per
+# observable). That is review item R2 option B, and it is NOT a decision:
+# `bp-two-panels-shared-quality.ttl` is the same data under option A, and the
+# competency query returns the same pairs for both. That is the point of
+# committing both - CQ2 is shown not to depend on the open item.
+#
+# Test vector, not a fixture. See egfr-target.ttl.
+
+@prefix sulo: <https://w3id.org/sulo/> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:   <https://w3id.org/ontostart/fhir2sulo/> .
+
+ex:person-p123 a ex:Person .
+
+ex:ucum-mm-Hg a sulo:Unit ;
+    sulo:hasValue "mm[Hg]" .
+
+### panel bp-1, 09:00, 120/80 ###############################################
+
+ex:bp-record-1 a sulo:InformationObject, ex:BloodPressurePanelRecord ;
+    sulo:refersTo ex:bp-1-systolic, ex:bp-1-diastolic ;
+    sulo:atTime ex:time-bp-1 ;
+    prov:wasDerivedFrom <https://fhir.example/Observation/bp-1/_history/1> .
+
+ex:time-bp-1 a sulo:TimeInstant ;
+    sulo:hasValue "2026-09-02T09:00:00Z"^^xsd:dateTimeStamp .
+
+ex:bp-1-systolic a sulo:Quantity, ex:SystolicResult ;
+    sulo:hasValue "120"^^xsd:decimal ;
+    sulo:hasPart ex:ucum-mm-Hg ;
+    sulo:refersTo ex:systolic-quality-bp-1 ;
+    sulo:atTime ex:time-bp-1 .
+
+ex:systolic-quality-bp-1 a sulo:Feature, ex:SystolicBloodPressureQuality ;
+    sulo:isFeatureOf ex:person-p123 .
+
+ex:bp-1-diastolic a sulo:Quantity, ex:DiastolicResult ;
+    sulo:hasValue "80"^^xsd:decimal ;
+    sulo:hasPart ex:ucum-mm-Hg ;
+    sulo:refersTo ex:diastolic-quality-bp-1 ;
+    sulo:atTime ex:time-bp-1 .
+
+ex:diastolic-quality-bp-1 a sulo:Feature, ex:DiastolicBloodPressureQuality ;
+    sulo:isFeatureOf ex:person-p123 .
+
+### panel bp-2, 10:00, 105/70 ###############################################
+
+ex:bp-record-2 a sulo:InformationObject, ex:BloodPressurePanelRecord ;
+    sulo:refersTo ex:bp-2-systolic, ex:bp-2-diastolic ;
+    sulo:atTime ex:time-bp-2 ;
+    prov:wasDerivedFrom <https://fhir.example/Observation/bp-2/_history/1> .
+
+ex:time-bp-2 a sulo:TimeInstant ;
+    sulo:hasValue "2026-09-02T10:00:00Z"^^xsd:dateTimeStamp .
+
+ex:bp-2-systolic a sulo:Quantity, ex:SystolicResult ;
+    sulo:hasValue "105"^^xsd:decimal ;
+    sulo:hasPart ex:ucum-mm-Hg ;
+    sulo:refersTo ex:systolic-quality-bp-2 ;
+    sulo:atTime ex:time-bp-2 .
+
+ex:systolic-quality-bp-2 a sulo:Feature, ex:SystolicBloodPressureQuality ;
+    sulo:isFeatureOf ex:person-p123 .
+
+ex:bp-2-diastolic a sulo:Quantity, ex:DiastolicResult ;
+    sulo:hasValue "70"^^xsd:decimal ;
+    sulo:hasPart ex:ucum-mm-Hg ;
+    sulo:refersTo ex:diastolic-quality-bp-2 ;
+    sulo:atTime ex:time-bp-2 .
+
+ex:diastolic-quality-bp-2 a sulo:Feature, ex:DiastolicBloodPressureQuality ;
+    sulo:isFeatureOf ex:person-p123 .

@@ -1,0 +1,416 @@
+{
+  "manifest_id": "fhir-sulo/profiles/r4-pilot",
+  "manifest_version": "0.1.0",
+  "owner": "Agent 2 (FHIR ingestion)",
+  "gate": 0,
+  "description": "The pinned FHIR release, profile set, code systems, unit systems and element scope for the FHIR-to-SULO pilot. Everything SourceContext and MapContract need about the source side. Machine-readable; see profiles/README.md for prose.",
+  "release": {
+    "fhir_release": "4.0.1",
+    "fhir_release_name": "R4",
+    "core_package": "hl7.fhir.r4.core#4.0.1",
+    "specification_base": "https://hl7.org/fhir/R4/",
+    "fhir_vocabulary_base": "http://hl7.org/fhir/",
+    "rdf_specification": "https://hl7.org/fhir/R4/rdf.html",
+    "note": "R5 is a separate compatibility track (plan section 1). Element names such as effective[x] and occurrence[x] differ by release, so the renderer refuses any resource whose declared release is not 4.0.1."
+  },
+  "source_server": {
+    "base_url": "https://fhir.example/",
+    "synthetic": true,
+    "note": "Synthetic base used to form canonical resource IRIs and fhir:link targets. No such server is contacted; the pilot never performs network I/O at ingestion time."
+  },
+  "renderer": {
+    "renderer_id": "fhir_sulo.ingest.fhir_rdf/0.1.0",
+    "decision_record": "docs/fhir-sulo/decisions/DR-101-fhir-rdf-renderer.md",
+    "canonical_media_type": "application/n-triples",
+    "canonical_form": "N-Triples, UTF-8, LF line endings, lines sorted bytewise ascending, blank node labels assigned b0..bN by a depth-first walk in FHIR element order",
+    "readable_media_type": "text/turtle",
+    "deterministic": true,
+    "network_at_runtime": false,
+    "options": {
+      "emit_code_system_class_assertions": false,
+      "emit_ontology_header": false,
+      "emit_reference_stub_types": true,
+      "emit_node_role_tree_root": true
+    },
+    "option_notes": {
+      "emit_code_system_class_assertions": "The HL7 publisher adds 'a loinc:33914-3' / 'a sct:702668005' type arcs beside a Coding. That is a terminology-derived OWL class assertion, and concept note section 2 states that a FHIR code literal alone is not an OWL class assertion. Default off. Turned on only by the oracle-conformance test that reproduces HL7's own published Turtle byte-equivalently.",
+      "emit_ontology_header": "The '<...ttl> a owl:Ontology; owl:versionIRI <http://build.fhir.org/...>' block is an artifact of the HL7 publisher and points at build.fhir.org. Default off; on for the oracle test.",
+      "emit_reference_stub_types": "'<https://fhir.example/Patient/p123> a fhir:Patient .' Matches HL7 rendering and gives the source ShEx shape a typed node to match. This is a record-layer type, not a person claim."
+    }
+  },
+  "code_system_iri_templates": {
+    "http://loinc.org": "http://loinc.org/rdf#{code}",
+    "http://snomed.info/sct": "http://snomed.info/id/{code}"
+  },
+  "resources": {
+    "Observation": {
+      "base_profile": "http://hl7.org/fhir/StructureDefinition/Observation",
+      "pinned_profiles": [
+        {
+          "canonical": "http://hl7.org/fhir/StructureDefinition/Observation",
+          "version": "4.0.1",
+          "role": "validated",
+          "note": "The only profile the pilot asserts conformance to at Gate 0."
+        },
+        {
+          "canonical": "http://hl7.org/fhir/StructureDefinition/vitalsigns",
+          "version": "4.0.1",
+          "role": "validated",
+          "note": "Claimed and ENFORCED, on the reviewer's answer to R9a. Applies to a resource that DECLARES it in meta.profile, not to every Observation: eGFR is not a vital sign, and forcing category=vital-signs on it would be wrong. That is also what meta.profile means in FHIR. HL7's own published BP example declares this profile.",
+          "reviewer_item": "R9a, answered 2026-10-03",
+          "constraints": [
+            {
+              "id": "vs-cat",
+              "kind": "coding-present",
+              "path": "category",
+              "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+              "code": "vital-signs",
+              "message": "vitalsigns requires Observation.category to include observation-category#vital-signs"
+            },
+            {
+              "id": "vs-code-loinc",
+              "kind": "coding-system-present",
+              "path": "code",
+              "system": "http://loinc.org",
+              "message": "vitalsigns requires a LOINC Observation.code"
+            },
+            {
+              "id": "vs-subject",
+              "kind": "element-present",
+              "path": "subject",
+              "message": "vitalsigns requires Observation.subject (1..1)"
+            },
+            {
+              "id": "vs-effective",
+              "kind": "one-of-present",
+              "paths": [
+                "effectiveDateTime",
+                "effectivePeriod"
+              ],
+              "message": "vitalsigns requires effective[x] as dateTime or Period (1..1)"
+            },
+            {
+              "id": "vs-2",
+              "kind": "value-or-component",
+              "message": "vitalsigns vs-2: with no component and no hasMember, either value[x] or dataAbsentReason must be present"
+            }
+          ],
+          "constraints_are_a_subset": "These five are ENFORCED. Deliberately NOT enforced, and therefore not claimed: the full vital-signs code value-set binding (we check only that the code is LOINC), the UCUM unit binding on value[x], and the component-level slicing rules. Claiming a constraint the pipeline does not check is the failure mode this list exists to prevent -- see validated_profiles_semantics."
+        },
+        {
+          "canonical": "http://hl7.org/fhir/StructureDefinition/bp",
+          "version": "4.0.1",
+          "base_definition": "http://hl7.org/fhir/StructureDefinition/vitalsigns",
+          "role": "candidate",
+          "note": "Still `candidate`. R9a answered vitalsigns, not bp. Our corrected BP fixtures would in fact satisfy bp (panel code 85354-9, no parent value[x], both components), but claiming it would assert more than HL7's own published BP example does, which declares vitalsigns only."
+        }
+      ],
+      "in_scope_elements": [
+        "Observation.id",
+        "Observation.meta.versionId",
+        "Observation.meta.lastUpdated",
+        "Observation.meta.profile",
+        "Observation.status",
+        "Observation.category",
+        "Observation.code",
+        "Observation.subject",
+        "Observation.encounter",
+        "Observation.effectiveDateTime",
+        "Observation.effectivePeriod",
+        "Observation.effectiveInstant",
+        "Observation.valueQuantity",
+        "Observation.dataAbsentReason",
+        "Observation.component",
+        "Observation.component.code",
+        "Observation.component.valueQuantity",
+        "Observation.component.dataAbsentReason"
+      ],
+      "source_only_elements": [
+        "Observation.text",
+        "Observation.contained",
+        "Observation.category",
+        "Observation.identifier",
+        "Observation.issued",
+        "Observation.performer",
+        "Observation.interpretation",
+        "Observation.note",
+        "Observation.bodySite",
+        "Observation.method",
+        "Observation.specimen",
+        "Observation.device",
+        "Observation.valueString",
+        "Observation.valueCodeableConcept",
+        "Observation.component.interpretation",
+        "Observation.valueQuantity.unit",
+        "Observation.component.valueQuantity.unit"
+      ],
+      "source_only_note": "Rendered into FHIR RDF and retained in the source layer, but not bound to a pivot variable. Observation.issued and Observation.meta.lastUpdated are deliberately NOT interchangeable with effective[x] (concept note section 2).",
+      "validated_profiles_semantics": "A profile is listed in SourceContext.validated_profiles only if it was CHECKED and PASSED. Before R9a this field meant 'declared and recognised' -- a resource declaring vitalsigns landed in validated_profiles with nothing verifying it. A profile with no `constraints` block cannot be validated and is never reported as validated.",
+      "source_only_elements_notes": {
+        "Observation.category": "R9a/R9b. REQUIRED by the vitalsigns profile the BP family now claims, and still source-only: conformance is checked in the host, and a category code is not a class assertion. Both halves matter -- required to be PRESENT, forbidden to be INTERPRETED."
+      }
+    },
+    "Encounter": {
+      "base_profile": "http://hl7.org/fhir/StructureDefinition/Encounter",
+      "pinned_profiles": [
+        {
+          "canonical": "http://hl7.org/fhir/StructureDefinition/Encounter",
+          "version": "4.0.1",
+          "role": "validated"
+        }
+      ],
+      "in_scope_elements": [
+        "Encounter.id",
+        "Encounter.meta.versionId",
+        "Encounter.meta.lastUpdated",
+        "Encounter.meta.profile",
+        "Encounter.status",
+        "Encounter.class",
+        "Encounter.subject",
+        "Encounter.participant",
+        "Encounter.participant.individual",
+        "Encounter.participant.type",
+        "Encounter.period",
+        "Encounter.period.start",
+        "Encounter.period.end"
+      ],
+      "source_only_elements": [
+        "Encounter.text",
+        "Encounter.contained",
+        "Encounter.identifier",
+        "Encounter.type",
+        "Encounter.serviceProvider",
+        "Encounter.participant.period"
+      ]
+    }
+  },
+  "code_systems": {
+    "http://loinc.org": {
+      "name": "LOINC",
+      "oid": "urn:oid:2.16.840.1.113883.6.1",
+      "version_policy": "unversioned in the pilot; Observation.code.coding.version is retained verbatim if present",
+      "pinned_codes": [
+        {
+          "code": "33914-3",
+          "display": "Glomerular filtration rate/1.73 sq M.predicted [Volume Rate/Area] in Serum or Plasma by Creatinine-based formula (MDRD)",
+          "role": "eGFR result code",
+          "concept_note_section": "4"
+        },
+        {
+          "code": "8480-6",
+          "display": "Systolic blood pressure",
+          "role": "BP systolic component code",
+          "concept_note_section": "5"
+        },
+        {
+          "code": "8462-4",
+          "display": "Diastolic blood pressure",
+          "role": "BP diastolic component code",
+          "concept_note_section": "5"
+        },
+        {
+          "code": "85354-9",
+          "display": "Blood pressure panel with all children optional",
+          "note": "R9c. The BP PANEL code, on the parent Observation. The fixtures previously carried 8480-6 here -- the systolic code, identical to their own systolic component's code -- which is clinically wrong; HL7's own published BP example uses 85354-9. Pinned means RECOGNISED. What it means is a separate question, answered by R9b: code-interpretation.v1.json keeps CODE-LOINC-85354-9 at `proposed` with result_class null, so it types nothing and stays source-only."
+        }
+      ]
+    },
+    "http://terminology.hl7.org/CodeSystem/data-absent-reason": {
+      "name": "DataAbsentReason",
+      "role": "Observation.dataAbsentReason / Observation.component.dataAbsentReason",
+      "pinned_codes": [
+        {
+          "code": "not-performed",
+          "display": "Not Performed"
+        },
+        {
+          "code": "unknown",
+          "display": "Unknown"
+        }
+      ]
+    },
+    "http://terminology.hl7.org/CodeSystem/v3-ActCode": {
+      "name": "ActCode",
+      "role": "Encounter.class",
+      "pinned_codes": [
+        {
+          "code": "AMB",
+          "display": "ambulatory"
+        }
+      ]
+    },
+    "http://terminology.hl7.org/CodeSystem/v3-ParticipationType": {
+      "name": "ParticipationType",
+      "role": "Encounter.participant.type",
+      "pinned_codes": [
+        {
+          "code": "PPRF",
+          "display": "primary performer"
+        }
+      ]
+    },
+    "http://terminology.hl7.org/CodeSystem/observation-category": {
+      "pinned_codes": [
+        {
+          "code": "vital-signs",
+          "display": "Vital Signs",
+          "note": "R9a. Required by the vitalsigns profile the BP family now claims. Source-only: a category code is not a class assertion."
+        }
+      ]
+    }
+  },
+  "unit_systems": {
+    "http://unitsofmeasure.org": {
+      "name": "UCUM",
+      "pinned_codes": [
+        {
+          "code": "mL/min/{1.73_m2}",
+          "display_text_seen": "mL/min/1.73 m2",
+          "role": "eGFR",
+          "note": "Quantity.unit is human display text and is source-only. Quantity.code is the normalized unit binding (concept note section 4)."
+        },
+        {
+          "code": "mm[Hg]",
+          "display_text_seen": "mmHg",
+          "role": "blood pressure"
+        }
+      ],
+      "unrecognised_unit_outcome": "rejected",
+      "missing_unit_system_outcome": "rejected",
+      "note": "Concept note section 4: missing or unrecognised UCUM units fail the numeric target shape. Recognition is against this pinned list only; Agent 5 owns any broader UCUM resolver."
+    }
+  },
+  "status_policy": {
+    "Observation": {
+      "final": "eligible",
+      "amended": "eligible",
+      "corrected": "eligible",
+      "preliminary": "source-only",
+      "registered": "source-only",
+      "cancelled": "source-only",
+      "entered-in-error": "source-only",
+      "unknown": "source-only"
+    },
+    "Encounter": {
+      "finished": "eligible",
+      "in-progress": "source-only",
+      "planned": "source-only",
+      "arrived": "source-only",
+      "triaged": "source-only",
+      "onleave": "source-only",
+      "cancelled": "source-only",
+      "entered-in-error": "source-only",
+      "unknown": "source-only"
+    },
+    "notes": [
+      "entered-in-error is source-only, never rejected: concept note section 2 says it suppresses clinical assertions but does not erase the source record.",
+      "Encounter in-progress is source-only pending an explicit policy (concept note section 6: 'may receive a separate, explicitly defined policy; it is not treated as a finished interval'). See reviewer question Q-A2-2.",
+      "Agent 3's egfr-source.v1.shex guards Observation.status. R3's answer requires it to widen from ['final'] to ['final','amended','corrected'] so the two layers - ingestion eligibility and map acceptance - agree again. Measured 2026-10-01 with the guard widened locally: egfr-corrected and egfr-amended both map (22 triples each) and egfr-preliminary still correctly fails source validation, so the widening does not leak the verification axis.",
+      "R3, answered 2026-10-01: amended and corrected are ELIGIBLE. FHIR's status conflates two axes -- verification (registered < preliminary < final) and revision (final -> amended/corrected). The revision axis does not reduce reliability: both are post-final and have been revisited. Holding them at source-only applied the verification axis's caution to a position on the revision axis, and meant a correction never reached the semantic layer. preliminary and registered remain source-only -- those ARE verification states. entered-in-error remains source-only: retraction, not revision.",
+      "Known consequence of accepting amended. MEASURED 2026-10-01, and the measurement does not match the expectation this note previously recorded. An amendment touching only a source_only element (fixture egfr-amended, egfr-456 v3, adds an Observation.note) produces a graph whose triples are NOT identical to its predecessor's under the quality identity mode R2 actually chose. Under 'per-observation' 14 triples differ: 4 provenance (prov:wasDerivedFrom naming _history/2 vs /3, unavoidable) and 10 quality-node triples, because per-observation keys the quality by version, so a purely administrative amendment mints a NEW renal-quality individual for the patient. Under 'persistent-per-person-code' only the 4 provenance triples differ and the expectation holds exactly. Either way the store correctly reports a replacement rather than unchanged, because source_json_digest is a graph-key content field - but the reason differs. R2 was answered provisionally with an explicit instruction not to let the caveat quietly become a conclusion; this is a consequence of per-observation that is worth putting in front of the reviewer. See DR-102 Q-A2-7."
+    ]
+  },
+  "value_policy": {
+    "valueQuantity.comparator_present": {
+      "outcome": "rejected",
+      "reason": "Concept note section 4: a comparator requires a qualified-value mapping that does not exist at Gate 2. Never drop it while claiming an unqualified numeric result (section 2)."
+    },
+    "dataAbsentReason_present": {
+      "outcome": "source-only",
+      "reason": "Concept note section 4: dataAbsentReason produces no numeric hasValue."
+    },
+    "value_and_dataAbsentReason_both_present": {
+      "outcome": "rejected",
+      "reason": "Violates FHIR invariant obs-6."
+    },
+    "code_not_in_pinned_set": {
+      "outcome": "rejected",
+      "reason": "Concept note section 2: a code-to-class interpretation needs a reviewed terminology rule."
+    },
+    "unresolvable_reference": {
+      "outcome": "rejected",
+      "reason": "Concept note section 4: an unresolved or ambiguous reference cannot be silently treated as a person IRI."
+    },
+    "ambiguous_reference": {
+      "outcome": "rejected",
+      "reason": "Acceptance matrix row Identity: ambiguous identity never silently merges."
+    },
+    "effective_time_coarser_than_seconds": {
+      "outcome": "source-only",
+      "reason": "PROPOSED, PENDING REVIEW ITEM R3 - not a settled rule. The reviewer ruled that a date is not an instant; DR-009 derives the consequence that no SULO time node fits a date-precision value. sulo:TimeInstant needs a dateTime; sulo:Duration is an elapsed amount and a date is a position, not an amount; sulo:TimeInterval requires both a StartTime and an EndTime, and deriving those from a date means choosing a timezone the source never gave, which concept note section 2 forbids; bare sulo:Time repeats the bare-sulo:Feature mistake rejected in R4. So the record is retained and no semantic time node is emitted - the same shape as dataAbsentReason.",
+      "applies_to": [
+        "Observation.effectiveDateTime",
+        "Observation.effectivePeriod"
+      ],
+      "scope_note": "Encounter.period is deliberately NOT in this list. Its open-endedness question is Q-A2-3 / R5 and is owned there, and no Encounter fixture carries a coarse endpoint today. Adding it is a one-line manifest change once R3 and R5 are both answered.",
+      "detection": "A FHIR dateTime with no time component: the R4 regex makes the timezone offset mandatory once 'T' is present, so 'coarser than seconds' and 'carries no offset' are the same set - YYYY, YYYY-MM and YYYY-MM-DD.",
+      "review_item": "R3"
+    },
+    "unsupported_modifier_extension": {
+      "outcome": "rejected",
+      "reason": "Acceptance matrix row Source fidelity: an unsupported modifier extension blocks semantic materialization. SourceContext enforces this."
+    }
+  },
+  "supported_modifier_extensions": [],
+  "temporal_precision_policy": {
+    "rule": "The xsd datatype of a rendered date/dateTime/instant literal is chosen from the lexical form so that precision survives the rendering.",
+    "mapping": {
+      "YYYY": "http://www.w3.org/2001/XMLSchema#gYear",
+      "YYYY-MM": "http://www.w3.org/2001/XMLSchema#gYearMonth",
+      "YYYY-MM-DD": "http://www.w3.org/2001/XMLSchema#date",
+      "YYYY-MM-DDThh:mm:ss[.sss](Z|±hh:mm)": "http://www.w3.org/2001/XMLSchema#dateTime"
+    },
+    "offset_is_mandatory_once_a_time_is_present": {
+      "fact": "In FHIR R4 the timezone offset is REQUIRED as soon as a dateTime carries a time component. The (Z|(+|-)hh:mm) group sits inside the T-group of the dateTime regex and is not optional, so 'YYYY-MM-DDThh:mm:ss' with no offset is NOT a conformant R4 dateTime and the renderer refuses it.",
+      "source": "StructureDefinition/dateTime, the regex extension on dateTime.value, in the published R4 definitions bundle (profiles-types.json). instant requires an offset unconditionally; date never carries one.",
+      "consequence": "Every conformant R4 dateTime that renders as xsd:dateTime carries an offset. A rule of the form 'emit xsd:dateTimeStamp when an offset is present, xsd:dateTime when it is not' therefore has no reachable second branch at second precision. The only offsetless values are YYYY, YYYY-MM and YYYY-MM-DD, which render as gYear, gYearMonth and date and are never xsd:dateTime. See DR-102 Q-A2-6 and review item R5b."
+    },
+    "unknown_endpoint": "An absent Period.end is rendered as an absent triple, never as an invented value. The 'open-ended period' fixture asserts this.",
+    "distinct_elements": [
+      "Observation.effective[x] - clinically relevant time",
+      "Observation.issued - availability of the result",
+      "Observation.meta.lastUpdated - resource version update"
+    ]
+  },
+  "terminology_snapshot": "pilot-pinned/0.1.0 (this manifest; no external terminology server is contacted)",
+  "element_table": "profiles/fhir-r4-element-table.json",
+  "reviewer_decisions": {
+    "R3_confirmations": {
+      "answered_on": "2026-10-01",
+      "reviewer_words": "confirm all",
+      "scope": "Confirms every row of R3 that carried a current value awaiting confirmation. The outcomes below are now the reviewer's, not engineering's conservative holding position.",
+      "confirmed": [
+        "Observation final -> eligible",
+        "Observation entered-in-error -> source-only (never rejected; section 2: suppresses clinical assertions, does not erase the source record)",
+        "Observation cancelled, unknown -> source-only",
+        "Observation preliminary, registered -> source-only",
+        "Encounter finished -> eligible",
+        "Encounter in-progress, planned, arrived, triaged, onleave, cancelled, entered-in-error, unknown -> source-only",
+        "dataAbsentReason present -> source-only",
+        "value AND dataAbsentReason both present -> rejected (FHIR obs-6)",
+        "code not in the pinned set -> rejected",
+        "unresolvable reference -> rejected",
+        "ambiguous reference -> rejected",
+        "unsupported modifier extension -> rejected",
+        "date-only effective[x] -> source-only (DR-009)"
+      ],
+      "still_open_not_covered_by_this_confirmation": [
+        "Observation amended / corrected -- the reviewer asked for an explanation before deciding. Held at source-only MEANWHILE, which is their current value, but this is not a ratification.",
+        "A 'finished' Encounter with an open-ended period -- no current value to confirm; it needs a ruling and no fixture fabricates it.",
+        "The comparator qualified-value pattern (ex:UpperBoundedResult) -- a new proposal, not a row awaiting confirmation. Comparator stays rejected.",
+        "N4 Observation.method, and the method-in-the-code rule -- same."
+      ]
+    },
+    "R3_amended_corrected": {
+      "question": "Should Observation amended and corrected be eligible?",
+      "answer": "Both eligible",
+      "answered_on": "2026-10-01",
+      "rationale_accepted": "The revision axis does not reduce reliability.",
+      "entered_in_error": "Unchanged at source-only -- retraction, not revision.",
+      "follow_through_required": [
+        "Agent 3: widen status_eligibility from [final] to [final, amended, corrected] in the three MapContracts and the source shapes.",
+        "Agent 2: re-point egfr-corrected at status 'corrected'. It currently uses 'final' at versionId 2 because the map rejected 'corrected' -- so Gate 4's correction row passes on a status that is not the FHIR-precise one."
+      ]
+    }
+  }
+}

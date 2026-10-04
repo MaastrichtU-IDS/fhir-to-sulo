@@ -1,0 +1,228 @@
+{
+  "format": "fhir-sulo/map-contract/0.1.0",
+  "map_id": "fhir-r4-encounter-pro",
+  "semantic_version": "1.0.0",
+  "pairing_files": [
+    "maps/r4/encounter/encounter-source.v1.shex",
+    "maps/r4/encounter/encounter-target.v1.shex",
+    "maps/r4/encounter/encounter-bindings.v1.json"
+  ],
+  "pairing_hash": "8df9bc6aeb2681bee3044d369eb7e8c71e40b7d33e3f2bdf3873c3d090b191f3",
+  "pairing_hash_note": "Recomputed and checked by tests/contracts/maps/test_map_contracts.py; written by `python3 maps/r4/rehash.py`.",
+  "source_release": "R4",
+  "source_profiles": [
+    "http://hl7.org/fhir/StructureDefinition/Encounter"
+  ],
+  "source_shape_label": "https://w3id.org/fhir-sulo/map/encounter/shape#ClinicalEncounter",
+  "target_shape_label": "https://w3id.org/fhir-sulo/map/encounter/shape#EncounterProcessNode",
+  "sulo_version": "0.2.12",
+  "pivot_variables": [
+    {
+      "name": "encId",
+      "var_type": "string",
+      "required": true,
+      "source_element": "Encounter.id",
+      "target_role": "node key input",
+      "inverse_covered": false
+    },
+    {
+      "name": "versionId",
+      "var_type": "string",
+      "required": true,
+      "source_element": "Encounter.meta.versionId",
+      "target_role": "prov:wasDerivedFrom path segment",
+      "inverse_covered": true
+    },
+    {
+      "name": "status",
+      "var_type": "code",
+      "required": true,
+      "source_element": "Encounter.status",
+      "target_role": "eligibility guard only",
+      "inverse_covered": false,
+      "notes": [
+        "Guarded to 'finished'. The Encounter record and its status stay in the source layer (concept note section 6)."
+      ]
+    },
+    {
+      "name": "classSystem",
+      "var_type": "string",
+      "required": true,
+      "source_element": "Encounter.class.system",
+      "target_role": "guard only",
+      "inverse_covered": false
+    },
+    {
+      "name": "classCode",
+      "var_type": "code",
+      "required": true,
+      "source_element": "Encounter.class.code",
+      "target_role": "source layer only",
+      "inverse_covered": false,
+      "notes": [
+        "v3-ActCode AMB. Bound so it cannot be dropped silently, but NOT emitted: it has no reviewed entry in the code-interpretation table, and concept note section 2 forbids treating a code literal as a class assertion. ex:ClinicalEncounter comes from the reviewed vocabulary, not from this code."
+      ]
+    },
+    {
+      "name": "subjectRef",
+      "var_type": "string",
+      "required": true,
+      "source_element": "Encounter.subject.reference",
+      "target_role": "identity service input",
+      "inverse_covered": false
+    },
+    {
+      "name": "participantType",
+      "var_type": "code",
+      "required": true,
+      "source_element": "Encounter.participant.type.coding.code",
+      "target_role": "guard only",
+      "inverse_covered": false,
+      "notes": [
+        "Guarded to v3-ParticipationType PPRF. It does NOT type the practitioner role: there is no reviewed participation-type-to-role-class table, which is a new reviewer question."
+      ]
+    },
+    {
+      "name": "participantTypeSystem",
+      "var_type": "string",
+      "required": true,
+      "source_element": "Encounter.participant.type.coding.system",
+      "target_role": "guard only",
+      "inverse_covered": false
+    },
+    {
+      "name": "participantRef",
+      "var_type": "string",
+      "required": true,
+      "source_element": "Encounter.participant.individual.reference",
+      "target_role": "identity service input",
+      "inverse_covered": false,
+      "notes": [
+        "enc-contained-practitioner resolves '#pr-inline' in the containing resource's scope, so its practitioner entity IRI differs from enc-baseline's Practitioner/c7. That is intended: a contained resource has no existence outside its container."
+      ]
+    },
+    {
+      "name": "start",
+      "var_type": "datetime",
+      "required": true,
+      "source_element": "Encounter.period.start",
+      "target_role": "sulo:hasValue on the sulo:StartTime",
+      "inverse_covered": true
+    },
+    {
+      "name": "end",
+      "var_type": "datetime",
+      "required": true,
+      "source_element": "Encounter.period.end",
+      "target_role": "sulo:hasValue on the sulo:EndTime",
+      "inverse_covered": true,
+      "notes": [
+        "Required. An open-ended period fails the source shape rather than materialising a fabricated endpoint; concept note section 2 requires unknown endpoints to be preserved and the pilot has no reviewed representation for one (R3 / Q-A2-3)."
+      ]
+    }
+  ],
+  "repetition_scopes": [
+    {
+      "name": "encounter",
+      "key_variables": [
+        "encId"
+      ],
+      "member_variables": [
+        "status",
+        "classCode",
+        "subjectRef",
+        "participantRef",
+        "participantType",
+        "start",
+        "end"
+      ],
+      "min_occurs": 1,
+      "max_occurs": 1,
+      "note": "One iteration per map run. Encounter.participant is cardinality 1 in v1, not `*`, so there is no repeating triple constraint anywhere except the tolerated, unmapped DomainResource.contained."
+    }
+  ],
+  "node_key_rules": {
+    "process": "{domain_namespace}encounter-{encId}",
+    "record": "{domain_namespace}encounter-record-{encId}",
+    "patientRole": "{domain_namespace}patient-role-{encId}",
+    "practitionerRole": "{domain_namespace}practitioner-role-{encId}",
+    "interval": "{domain_namespace}interval-{encId}",
+    "startTime": "{domain_namespace}start-{encId}",
+    "endTime": "{domain_namespace}end-{encId}",
+    "sourceVersionIri": "{Encounter canonical url}/_history/{versionId}",
+    "person": "IdentityService.resolve(Encounter.subject).entity_iri",
+    "practitioner": "IdentityService.resolve(Encounter.participant.individual, entity_kind='person').entity_iri  [DR-010]",
+    "_roles_are_keyed_by_the_encounter": "Not by the person. Two encounters give two distinct patient-role nodes, because a role is a feature of its holder in the context of one process; merging them would assert one role participating in two processes.",
+    "_why": "CD-1: no id() in the pinned engine."
+  },
+  "terminology_dependencies": [
+    "policies/identity-policy.v1.json :: entity_iri",
+    "NO code-interpretation entry is used. v3-ActCode and v3-ParticipationType have no reviewed entries, so neither code types anything."
+  ],
+  "status_eligibility": [
+    "finished"
+  ],
+  "status_eligibility_note": "Concept note section 6: an in-progress Encounter 'may receive a separate, explicitly defined policy; it is not treated as a finished interval'. That policy is R3 / Q-A2-2 and is unanswered, so in-progress fails the source shape and stays source-only. R3's 2026-10-01 answer widened the Observation maps to amended/corrected; it says nothing about Encounter, which has no revision axis in its status value set. `finished` remains the only eligible Encounter status, and a finished Encounter with an open-ended period still awaits a ruling.",
+  "expected_failures": [
+    "Encounter.status != 'finished' (covers enc-in-progress, declared source-only)",
+    "Encounter.period without Period.end (covers enc-open-period, declared source-only)",
+    "more than one Encounter.participant -- see limitations below",
+    "a participation type other than PPRF",
+    "an Encounter.class system other than v3-ActCode",
+    "any Encounter element outside the CLOSED shape, including modifierExtension",
+    "an ambiguous or unresolvable subject or participant.individual -- no entity is claimed, so no target graph"
+  ],
+  "expected_nonmapped_fields": [
+    "Encounter.status",
+    "Encounter.class.system",
+    "Encounter.class.code",
+    "Encounter.class.display",
+    "Encounter.participant.type.coding.system",
+    "Encounter.participant.type.coding.code",
+    "Encounter.participant.type.coding.display",
+    "Encounter.subject.reference",
+    "Encounter.subject.link",
+    "Encounter.participant.individual.reference",
+    "Encounter.contained"
+  ],
+  "allowed_alternative_shapes": [],
+  "limitations": [
+    "EXACTLY ONE PARTICIPANT. Encounter.participant is cardinality 1, not `*`. A second participant fails validation loudly rather than being dropped or cross-joined. This is a ShExMap expressiveness limit, not a modelling choice: each role node needs its own target IRI, that IRI is an identity-service run binding, and ThreadedMaterializer staticVars are global to a materialization -- there is no way to supply one per iteration. DR-302's decomposition does not rescue it, because a FHIR participant is a blank node with no source IRI to root a pass at. Reported to the integration lead; see DR-201."
+  ],
+  "static_variables": {
+    "encounterClass": "encounter-bindings.v1.json :: vocabulary.encounterClass [R1]",
+    "patientRoleClass": "encounter-bindings.v1.json :: vocabulary.patientRoleClass [R1]",
+    "practitionerRoleClass": "encounter-bindings.v1.json :: vocabulary.practitionerRoleClass [R1]",
+    "participationRoleClass": "HOST-RESOLVED, not a constant: TerminologyService.participation_role_class(Encounter.participant.type) against the reviewed table policies/participation-type-interpretation.v1.json. Listed among the statics because the engine receives it as a run binding, but the host overwrites the manifest default with the class that table gives for the code the resource actually carries. An unreviewed participation type raises before the engine is called. [R12, DR-013]",
+    "personClass": "encounter-bindings.v1.json :: vocabulary.personClass [R1]",
+    "personSuloClass": "encounter-bindings.v1.json :: vocabulary.personSuloClass [R6]",
+    "practitionerClass": "encounter-bindings.v1.json :: vocabulary.practitionerClass [R8a]",
+    "practitionerSuloClass": "encounter-bindings.v1.json :: vocabulary.practitionerSuloClass [R6]",
+    "recordClass": "encounter-bindings.v1.json :: vocabulary.recordClass [R1]",
+    "person": "identity service run binding",
+    "practitioner": "identity service run binding [R8]",
+    "process": "node_key_rules.process",
+    "record": "node_key_rules.record",
+    "patientRole": "node_key_rules.patientRole",
+    "practitionerRole": "node_key_rules.practitionerRole",
+    "interval": "node_key_rules.interval",
+    "startTime": "node_key_rules.startTime",
+    "endTime": "node_key_rules.endTime",
+    "sourceVersionIri": "node_key_rules.sourceVersionIri"
+  },
+  "static_analysis_passed": true,
+  "static_analysis_note": [
+    "CD-1: no static checker ships and Agent 4's linter has not landed.",
+    "Asserted at run time on all four Encounter fixtures by tests/contracts/maps/test_encounter_gate3.py."
+  ],
+  "entailment": [
+    "SULO 0.2.12 asserts sulo:hasParticipant owl:propertyChainAxiom (sulo:hasParticipant [owl:inverseOf sulo:hasFeature]), which is hasParticipant o isFeatureOf -> hasParticipant (DR-002, verified against the axiom).",
+    "So `encounter hasParticipant person` and `encounter hasParticipant practitioner` are ENTAILED, not asserted. test_encounter_gate3.py computes the entailment from the emitted triples and asserts the map did not assert either of them directly, and that no hasPatient-style shortcut exists."
+  ],
+  "fixture_references": [
+    "fixtures/r4/encounter/enc-baseline",
+    "fixtures/r4/encounter/enc-contained-practitioner",
+    "fixtures/r4/encounter/enc-in-progress",
+    "fixtures/r4/encounter/enc-open-period"
+  ]
+}

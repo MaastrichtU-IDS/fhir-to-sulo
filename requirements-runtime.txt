@@ -1,0 +1,21 @@
+# Pinned runtime dependencies for the Agent 6 layers (validation, benchmark).
+#
+#   python3 -m venv .venv
+#   .venv/bin/pip install -r requirements-runtime.txt
+#
+# `fhir_sulo.contracts`, `fhir_sulo.store` and `fhir_sulo.provenance` are
+# stdlib-only on purpose and need none of this: the contract guard tests run
+# on a bare interpreter. Only shape validation, reasoning and the benchmark
+# need these.
+#
+# The OWL reasoner is NOT here: there is no java on the pilot host, so it runs
+# in Docker, pinned by image digest in src/fhir_sulo/validation/reasoning.py.
+#
+# Verified on CPython 3.9.6 (system python3, macOS 25.4) and on
+# python:3.11-slim-bookworm in the benchmark image.
+#
+# Agent 1: this file and Agent 5's requirements-dev.txt (pytest==7.4.4) are
+# disjoint and should be merged or kept as runtime/dev at integration.
+
+rdflib==7.1.4
+pyshacl==0.26.0
