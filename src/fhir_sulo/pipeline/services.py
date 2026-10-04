@@ -64,11 +64,18 @@ class ReferenceNotAPerson(RuntimeError):
         self.reason = reason
 
 
-def source_context(json_path: Path):
-    """Agent 2's ``SourceContext``: rendered RDF, resolved references, eligibility."""
+def source_context(json_path: Path, source_scope_id: Optional[str] = None):
+    """Agent 2's ``SourceContext``: rendered RDF, resolved references, eligibility.
+
+    ``source_scope_id`` is which source the resource came from. Leaving it
+    None takes the ingest default, which is correct only for a single-source
+    run -- see DR-014 for what happens when several sources share one scope.
+    """
     from fhir_sulo.ingest import ingest_file
 
-    return ingest_file(str(json_path))
+    if source_scope_id is None:
+        return ingest_file(str(json_path))
+    return ingest_file(str(json_path), source_scope_id=source_scope_id)
 
 
 def _scope_of(ctx) -> "SourceScope":
@@ -152,7 +159,32 @@ def entity_for_reference(svc, ctx, element_path: str, expected_type: str):
         canonical = None
         container_url = ctx.canonical_url
     else:
-        resource_id = ev.resolved_target.rsplit("/", 1)[-1]
+        # DR-018. The parsed target, not the last path segment.
+        # rsplit("/", 1)[-1] turned Patient/123/_history/2 into the id "2",
+        # so a versioned reference to patient 123 was attributed to patient 2
+        # -- silently, status `mapped`.
+        if ev.target_server_base:
+            # A reference into ANOTHER server. Keying it in the ingesting
+            # source's scope would assert that their Patient/987 and ours are
+            # one person, which is exactly the unrecorded cross-source merge
+            # reference_scope.cross_source_merge refuses. Parallel to ID-R9
+            # for a contained reference with no container.
+            raise ReferenceNotAPerson(
+                "cross-server-reference-unscoped",
+                "reference %r names server %r, not the ingesting source's %r. There is no "
+                "scope id for that server, and keying it in this one would merge their "
+                "patient with ours. Supply the other server as its own source, or record "
+                "cross-source evidence."
+                % (ev.raw_reference, ev.target_server_base, ctx.fhir_base_url),
+            )
+        resource_id = ev.target_resource_id
+        if not resource_id:
+            raise ReferenceNotAPerson(
+                "reference-target-unparsed",
+                "reference %r resolved to %r but reference resolution did not parse a "
+                "target resource id from it, so there is nothing to key on."
+                % (ev.raw_reference, ev.resolved_target),
+            )
         canonical = ev.resolved_target
         container_url = None
 
@@ -164,6 +196,8 @@ def entity_for_reference(svc, ctx, element_path: str, expected_type: str):
         resource_id=resource_id,
         canonical_url=canonical,
         container_url=container_url,
+        # Lineage, not identity: a record version does not make a new person.
+        resource_version_id=ev.target_version_id if ev.kind != "contained" else None,
     )
     # Both a Patient and a Practitioner reference denote a PERSON. "patient" and
     # "practitioner" are anti-rigid roles, and entity_kind is an identity criterion,

@@ -10,10 +10,10 @@ is keyed on it directly: one IRI, deterministically, with no post-hoc graph
 rewriting, no ``owl:sameAs`` between records, and no reasoning needed to
 collapse two nodes.
 
-``person_identifying_identifier_systems`` is **empty in the shipped policy**,
-so none of this can fire in production.  These tests install a test-local
-allowlist, which is the only honest way to exercise a mechanism whose switch is
-a reviewer decision nobody has made yet.
+The shipped policy allowlists a **synthetic** namespace only, so nothing a
+real register issues can merge anyone.  These tests install a test-local
+allowlist where they need a different one; the shipped state is covered by
+``TheShippedPolicyMergesOnlySyntheticIdentifiers`` below.
 """
 
 import copy

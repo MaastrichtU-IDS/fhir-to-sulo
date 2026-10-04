@@ -124,6 +124,11 @@ class Pipeline:
     #: R8b. The person-identifier index this run resolves identity under, or
     #: None for the conservative default where nothing reunifies.
     person_index: Optional[Any] = None
+    #: DR-018. Which source this run's resources come from. ``None`` means
+    #: the ingest default, which is correct ONLY for a single-source run.
+    #: Carried here because ``run_file`` ingests for itself, so DR-014's fix
+    #: reached ``run_context`` and stopped short of the path operators use.
+    source_scope_id: Optional[str] = None
     metadata: RunMetadata = field(default_factory=RunMetadata)
 
     @property
@@ -149,6 +154,7 @@ class Pipeline:
         quality_mode: Optional[str] = None,
         metadata: Optional["RunMetadata"] = None,
         person_index: Optional[Any] = None,
+        source_scope_id: Optional[str] = None,
     ) -> "Pipeline":
         families = {f.family: f for f in discover(repo_root / "maps")}
         if name not in families:
@@ -170,6 +176,7 @@ class Pipeline:
             quality_mode=mode,
             metadata=meta,
             person_index=person_index,
+            source_scope_id=source_scope_id,
         )
 
     # -- the path -----------------------------------------------------------
@@ -195,7 +202,7 @@ class Pipeline:
 
     def run_file(self, fhir_json: Path, rdf: Optional[str] = None) -> PipelineOutcome:
         """Ingest one FHIR JSON resource and map it."""
-        context = source_context(Path(fhir_json))
+        context = source_context(Path(fhir_json), source_scope_id=self.source_scope_id)
         return self.run_context(context, rdf=rdf)
 
     def run_context(

@@ -52,6 +52,22 @@ class ReferenceEvidence:
     #: when the system is on the policy's reviewed allowlist.
     identifier_system: Optional[str] = None
     identifier_value: Optional[str] = None
+    #: DR-018. The reference's TARGET, parsed once, here. The identity
+    #: service used to re-derive these by string surgery on
+    #: ``resolved_target`` -- ``rsplit("/", 1)[-1]`` -- which turned
+    #: ``Patient/123/_history/2`` into the id ``"2"`` and attributed the
+    #: observation to patient 2. Parsing a display string to decide identity
+    #: is the mistake DR-011 already named once.
+    target_resource_type: Optional[str] = None
+    target_resource_id: Optional[str] = None
+    #: The record version the reference pins, if any. NOT part of the
+    #: person's identity: Patient/123/_history/2 and Patient/123 are one
+    #: person. Retained as lineage.
+    target_version_id: Optional[str] = None
+    #: Set only when the reference names a server other than the pinned base.
+    #: A reference into another server is a cross-source reference, and
+    #: keying it in the ingesting source's scope would be an unrecorded merge.
+    target_server_base: Optional[str] = None
 
 
 @dataclass(frozen=True)

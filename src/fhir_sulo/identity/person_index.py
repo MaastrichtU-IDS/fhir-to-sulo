@@ -104,7 +104,19 @@ class PersonIdentifierIndex:
                     % (rtype, rid, scope_id, len(found),
                        ", ".join("%s|%s" % p for p in sorted(found)))
                 )
-            out[(normalise_text(scope_id), rtype, rid)] = found.pop()
+            key = (normalise_text(scope_id), rtype, rid)
+            pair = found.pop()
+            # Review finding: `out[key] = ...` let two Patient/123 entries in
+            # ONE Bundle disagree and the last one win. merged_with checks
+            # this ACROSS files; nothing checked it within one, so DR-015's
+            # "two indexes disagreeing about one record raise" was true only
+            # between files.
+            if key in out and out[key] != pair:
+                raise PersonIdentifierConflict(
+                    "%s/%s appears twice in one source with different person identifiers "
+                    "(%s|%s then %s|%s). Choosing would make identity depend on document "
+                    "order." % (rtype, rid, out[key][0], out[key][1], pair[0], pair[1]))
+            out[key] = pair
         return cls(entries=out)
 
     @classmethod
@@ -180,7 +192,17 @@ class PersonIdentifierIndex:
         }
         index = cls(entries=entries)
         recorded = doc.get("digest")
-        if recorded and recorded != index.digest:
+        if not recorded:
+            # Review finding: `if recorded and ...` meant a file with no
+            # digest loaded unchecked, so a hand-written index bypassed the
+            # verification DR-015 promises. An index decides which records
+            # are one person; it is not something to accept on trust.
+            raise ValueError(
+                "person identifier index %s carries no `digest`. Every index this project "
+                "writes has one, so this was hand-made or truncated -- and an index decides "
+                "which records are one person. Rebuild it with "
+                "`python -m fhir_sulo.identity.cli build`." % path)
+        if recorded != index.digest:
             raise ValueError(
                 "person identifier index %s has been edited since it was written: it records "
                 "digest %s but hashes to %s. An index decides which records are one person, "

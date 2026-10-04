@@ -119,16 +119,26 @@ def _resolve_engine(tag: Optional[str]) -> EngineImage:
 def _run_files(
     family: str, files: Sequence[Path], repo: Path, image: EngineImage,
     quality_mode: Optional[str], metadata: Optional["RunMetadata"] = None,
+    source_scope_id: Optional[str] = None, person_index_path: Optional[str] = None,
 ) -> List[PipelineOutcome]:
+    person_index = None
+    if person_index_path:
+        from fhir_sulo.identity.person_index import PersonIdentifierIndex
+
+        person_index = PersonIdentifierIndex.load(person_index_path)
     pipeline = Pipeline.for_family(family, repo, engine=image,
-                                   quality_mode=quality_mode, metadata=metadata)
+                                   quality_mode=quality_mode, metadata=metadata,
+                                   source_scope_id=source_scope_id,
+                                   person_index=person_index)
     return [pipeline.run_file(path) for path in files]
 
 
 def cmd_map(args) -> int:
     image = _resolve_engine(args.image)
     outcomes = _run_files(args.family, [Path(p) for p in args.files],
-                          Path(args.repo), image, args.quality_mode)
+                          Path(args.repo), image, args.quality_mode,
+                          source_scope_id=args.source_scope,
+                          person_index_path=args.person_index)
     for outcome in outcomes:
         print(f"{outcome.source.canonical_url}  {outcome.transform.status.value}"
               f"  {len(outcome.ntriples)} quad(s)"
@@ -148,7 +158,9 @@ def cmd_batch(args) -> int:
                           Path(args.repo), image, args.quality_mode,
                           metadata=RunMetadata(
                               sulo_version=args.sulo_version,
-                              domain_ontology_version=args.domain_ontology_version))
+                              domain_ontology_version=args.domain_ontology_version),
+                          source_scope_id=args.source_scope,
+                          person_index_path=args.person_index)
     out = Path(args.out)
     with out.open("w", encoding="utf-8") as handle:
         for outcome in outcomes:
@@ -188,6 +200,15 @@ def build_parser() -> argparse.ArgumentParser:
         p.add_argument("--repo", default=str(REPO_DEFAULT),
                        help="repository root holding maps/")
         p.add_argument("--image", help="override the pinned engine image tag")
+        p.add_argument("--source-scope", default=None, metavar="SCOPE_ID",
+                       help="which source these resources come from. An entity IRI is "
+                            "keyed on it, so two systems that each hold Patient/123 must "
+                            "pass different values or their patients are fused (DR-014). "
+                            "Omitted means the single-source default.")
+        p.add_argument("--person-index", default=None, metavar="FILE",
+                       help="person-identifier index from `python -m "
+                            "fhir_sulo.identity.cli build`. Without it nothing reunifies "
+                            "one human across sources (R8b).")
         p.add_argument("--quality-mode", default=None,
                        help="policy quality-identity mode; the shipped default "
                             "rejects every request, so a map that needs one "

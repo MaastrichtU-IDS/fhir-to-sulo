@@ -1,7 +1,10 @@
 # DR-011 — R8b: a person-identifying business identifier keys the person
 
-**Status:** Reviewer ruling 2026-10-03 (answers R8b); implemented, and **switched off pending
-one further reviewer input** (the allowlist)
+**Status:** Reviewer ruling 2026-10-03 (answers R8b); implemented and **live for a synthetic
+namespace**, demonstrated end to end in `fixtures/multi-source/`. No real-world identifier
+system is enabled; that is a governance choice, not a missing implementation.
+Superseded in part by [DR-015](DR-015-person-identifier-index.md) (how the identifier reaches
+the service at all) and [DR-017](DR-017-one-identifier-system-has-several-spellings.md).
 **Gate:** 0 (R8b) · Supersedes the deferral recorded in [DR-010](DR-010-ontoclean-practitioner-is-a-role.md)
 
 ## The ruling
@@ -86,9 +89,8 @@ namespace is interpretable**, and a test enforces exactly that rather than the w
 soon-obsolete "the list is empty".
 
 Which `Identifier.system` URIs identify a *human* is a clinical and governance decision, not an
-engineering one, so the implementation does not populate it. **While it is empty the mechanism
-is fully implemented and tested but can never fire, and behaviour is identical to before R8b
-was answered.**
+engineering one, so the implementation does not populate it. **Superseded 2026-10-04:** a synthetic namespace is now `pilot-provisional`, so the
+mechanism is live and demonstrated. No *real-world* namespace is interpretable.
 
 A local MRN does **not** belong on it: an MRN identifies a patient record at one organisation,
 not a human. A national person number or national provider number does.

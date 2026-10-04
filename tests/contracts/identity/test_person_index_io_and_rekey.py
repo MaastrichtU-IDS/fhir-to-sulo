@@ -191,3 +191,56 @@ class AliasedSystemsIndexUnderOneSpelling(unittest.TestCase):
         from fhir_sulo.identity.cli import allowlist_from_policy
 
         self.assertIsInstance(allowlist_from_policy(), dict)
+
+
+class ConflictsRaiseWhereverTheyOccur(unittest.TestCase):
+    """DR-015 says a disagreement about one record raises. Review found that
+    was true ACROSS files and untested, and false WITHIN one file: ``build``
+    did ``out[key] = ...`` so the last entry silently won.
+    """
+
+    def _patient(self, value):
+        return {"resourceType": "Patient", "id": "123",
+                "identifier": [{"system": BSN, "value": value}]}
+
+    def test_two_entries_for_one_record_in_one_bundle_raise(self):
+        doc = {"resourceType": "Bundle",
+               "entry": [{"resource": self._patient("900001")},
+                         {"resource": self._patient("900002")}]}
+        with self.assertRaises(PersonIdentifierConflict):
+            PersonIdentifierIndex.from_bundle(doc, scope_id="s", allowlist=[BSN])
+
+    def test_an_agreeing_duplicate_is_not_a_conflict(self):
+        """Two copies saying the same thing are not a disagreement."""
+        doc = {"resourceType": "Bundle",
+               "entry": [{"resource": self._patient("900001")},
+                         {"resource": self._patient("900001")}]}
+        built = PersonIdentifierIndex.from_bundle(doc, scope_id="s", allowlist=[BSN])
+        self.assertEqual(len(built), 1)
+
+    def test_two_indexes_disagreeing_on_merge_raise(self):
+        """Stated by DR-015 and, until now, pinned by nothing: review deleted
+        the raise entirely and 637 tests still passed."""
+        a = PersonIdentifierIndex.build([self._patient("900001")],
+                                        scope_id="s", allowlist=[BSN])
+        b = PersonIdentifierIndex.build([self._patient("900002")],
+                                        scope_id="s", allowlist=[BSN])
+        with self.assertRaises(PersonIdentifierConflict):
+            a.merged_with(b)
+
+    def test_merging_agreeing_indexes_is_fine(self):
+        a = PersonIdentifierIndex.build([self._patient("900001")],
+                                        scope_id="s", allowlist=[BSN])
+        self.assertEqual(len(a.merged_with(a)), 1)
+
+    def test_an_index_with_no_digest_is_refused(self):
+        """`if recorded and ...` skipped verification when the field was
+        absent, so a hand-written index bypassed the check DR-015 promises."""
+        import json
+
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "i.json"
+            path.write_text(json.dumps({"format": "x", "entries": []}))
+            with self.assertRaises(ValueError) as caught:
+                PersonIdentifierIndex.load(path)
+        self.assertIn("no `digest`", str(caught.exception))

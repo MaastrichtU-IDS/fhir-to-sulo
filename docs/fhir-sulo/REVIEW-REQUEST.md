@@ -452,10 +452,11 @@ What we are asking you to confirm:
 
 ---
 
-## R8 — Does a `Practitioner` reference mint a *person*?  ✅ R8a ANSWERED / R8b OPEN
+## R8 — Does a `Practitioner` reference mint a *person*?  ✅ ANSWERED (R8a and R8b)
 
 **Blocks:** Gate 3 Encounter roles.
-**R8a: ANSWERED 2026-10-03 (applied). R8b: STILL OPEN.**
+**R8a answered 2026-10-03; R8b answered 2026-10-04. Both applied.**
+What remains is not an unanswered question but an unmade *governance* choice: no real-world identifier system is enabled.
 
 - **R8a.** Is a person the right entity kind for a practitioner, or should it be an
   organisational or agent entity distinct from a patient?

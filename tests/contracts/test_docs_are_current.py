@@ -15,6 +15,11 @@ ROOT = pathlib.Path(__file__).resolve().parents[2]
 DOCS = ROOT / "docs" / "fhir-sulo"
 DECISIONS = DOCS / "decisions"
 
+#: "OPEN" as a status word. Not "open-world", which is in R5's own title --
+#: the first version of this guard flagged that heading, which is the same
+#: too-crude-matching mistake as banning the bare string "synthea".
+_OPEN_WORD = re.compile(r"\bOPEN\b(?!-)")
+
 
 class EveryDecisionRecordIsIndexed(unittest.TestCase):
     """41 records with no map undercuts the "reviewable PR" the plan asks for."""
@@ -60,23 +65,60 @@ class TheTopLevelDocumentsAreNotStale(unittest.TestCase):
         if accepted:
             self.assertNotIn("`accepted_merge_evidence` is empty by design", text)
 
-    def test_no_document_lists_an_answered_item_as_open(self):
+    def _answered_items(self):
+        """Review items whose heading says answered AND does not also say open.
+
+        Review finding: the first version matched `^## (R\d+) .*ANSWERED` and
+        so read `## R8 — ... R8a ANSWERED / R8b OPEN` as fully answered. A
+        heading that says both is itself the defect.
+        """
         review = self._read("REVIEW-REQUEST.md")
-        answered = set(re.findall(r"^## (R\d+) .*(?:ANSWERED|SIGNED OFF)", review, re.M))
+        answered = set()
+        for line in review.splitlines():
+            m = re.match(r"^## (R\d+) .*", line)
+            if not m:
+                continue
+            head = line.upper()
+            if ("ANSWERED" in head or "SIGNED OFF" in head) and not _OPEN_WORD.search(head):
+                answered.add(m.group(1))
+        return answered
+
+    def test_no_heading_claims_an_item_is_both_answered_and_open(self):
+        review = self._read("REVIEW-REQUEST.md")
+        both = [
+            line for line in review.splitlines()
+            if re.match(r"^## R\d+ ", line)
+            and ("ANSWERED" in line.upper() or "SIGNED OFF" in line.upper())
+            and _OPEN_WORD.search(line.upper())
+        ]
+        self.assertEqual(both, [], both)
+
+    def test_no_document_lists_an_answered_item_as_open(self):
+        """Matches any claim that items remain open, not one past phrasing.
+
+        Review finding: the regex keyed on "review items remain open", a
+        sentence that no longer appears, so the loop body never ran. A guard
+        whose scenario cannot occur is not guarding.
+        """
+        answered = self._answered_items()
         self.assertTrue(answered, "could not find any answered items to check against")
         summary = self._read("GATE-0-4-SUMMARY.md")
-        for match in re.finditer(r"review items? remain open[^.\n]*", summary):
+        pattern = re.compile(
+            r"[^.\n]*\b(?:remain|remains|are still|is still|still)\s+open[^.\n]*", re.I)
+        for match in pattern.finditer(summary):
             claimed = set(re.findall(r"R\d+", match.group(0)))
             self.assertFalse(
                 claimed & answered,
-                "GATE-0-4-SUMMARY lists %s as open; they are answered"
-                % sorted(claimed & answered))
+                "GATE-0-4-SUMMARY says %r but %s are answered"
+                % (match.group(0).strip(), sorted(claimed & answered)))
 
     def test_the_old_scope_name_is_not_advertised_as_current(self):
         """It survives only in DR-014, which quotes it as the defect."""
         for name in ("GATE-0-4-SUMMARY.md", "OPERATOR-GUIDE.md", "REVIEW-REQUEST.md"):
             with self.subTest(doc=name):
-                self.assertNotIn("synthea", self._read(name))
+                # Case-insensitive: review appended "generated with Synthea."
+                # and the case-sensitive check let it through.
+                self.assertNotIn("synthea", self._read(name).lower())
 
 
 if __name__ == "__main__":

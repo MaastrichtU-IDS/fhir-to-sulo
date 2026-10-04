@@ -184,6 +184,10 @@ class ReferenceResolver:
             return ResolvedReference(evidence=ReferenceEvidence(
                 kind="literal-versioned" if m.group("version") else "literal-absolute",
                 raw_reference=text, resolved_target=text, source_element=source_element,
+                target_resource_type=m.group("type"),
+                target_resource_id=m.group("id"),
+                target_version_id=m.group("version"),
+                target_server_base=None if same_server else m.group("base"),
                 notes=_note(
                     f"absolute reference to {m.group('type')}/{m.group('id')}",
                     "" if same_server else
@@ -203,6 +207,9 @@ class ReferenceResolver:
                 raw_reference=text,
                 resolved_target=self.m.server_base + text,
                 source_element=source_element,
+                target_resource_type=m.group("type"),
+                target_resource_id=m.group("id"),
+                target_version_id=m.group("version"),
                 notes=_note(
                     f"relative reference resolved against the pinned server base "
                     f"{self.m.server_base!r}",
