@@ -74,7 +74,12 @@ def ingest_resource(resource: Dict[str, Any], json_text: Optional[str] = None,
             f"{m.supported_resource_types()}"
         )
 
-    rendered = FhirRdfRenderer(m).render(resource)
+    # DR-021. The SAME base the canonical URL is built from. These used to
+    # disagree whenever fhir_base_url was set: the graph's root IRI came from
+    # the pinned manifest while canonical_url came from the source, so the
+    # engine was handed a focus node that was not in the graph and every
+    # resource failed source validation. The flag was unusable.
+    rendered = FhirRdfRenderer(m).render(resource, base=fhir_base_url)
 
     declared = tuple(str(p) for p in (resource.get("meta", {}).get("profile") or ()))
     known = set(m.known_profiles(rtype))
@@ -87,7 +92,7 @@ def ingest_resource(resource: Dict[str, Any], json_text: Optional[str] = None,
     unenforceable_declared = tuple(sorted(
         (set(declared) & known) - conformant - set(m.validated_profiles(rtype))))
 
-    resolver = ReferenceResolver(m)
+    resolver = ReferenceResolver(m, effective_base=fhir_base_url)
     raw_refs = resolver.resolve_resource(
         resource,
         expected_types={

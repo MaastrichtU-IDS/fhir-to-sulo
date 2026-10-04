@@ -1,6 +1,6 @@
 # Decision records
 
-44 records. The numbering is by owner, not by date: **DR-0xx** integration and reviewer
+45 records. The numbering is by owner, not by date: **DR-0xx** integration and reviewer
 rulings, **DR-1xx** ingestion, **DR-2xx** maps, **DR-3xx** engine, **DR-4xx** identity and
 terminology, **DR-6xx** provenance, validation and operations.
 
@@ -31,6 +31,7 @@ held.
 | ★ | [DR-018](DR-018-the-key-triple-came-from-string-surgery.md) | **three false merges: a versioned reference named the wrong patient** |
 | ★ | [DR-019](DR-019-the-source-scope-was-in-no-key-field.md) | two hospitals shared one replacement slot, so one superseded the other |
 | ★ | [DR-020](DR-020-contained-fusion-alias-shadowing-and-the-canonical-url.md) | a contained resource fused with a top-level patient; two smaller holes |
+| ★ | [DR-021](DR-021-a-flag-that-could-not-be-used-and-guards-that-did-not-guard.md) | --fhir-base broke every run; three features could be switched off, suite green |
 
 ## Ingestion (DR-1xx)
 

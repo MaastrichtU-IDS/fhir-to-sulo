@@ -120,3 +120,82 @@ class OneHumanTwoHospitals(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
+
+
+class RunFileItselfHonoursTheScopeAndTheBase(unittest.TestCase):
+    """Through ``Pipeline.run_file``, not through ``source_context``.
+
+    Review found three features that could be disabled with the whole suite
+    still green: ``run_file`` ignoring the scope, ``run_inputs`` dropping it
+    from the graph key, and the CLI parsing all three flags and discarding
+    them. The guards that existed were source-text assertions -- in the same
+    file whose docstring criticises source-text assertions -- and a sabotage
+    that keeps the inspected text walks past them.
+
+    These go through the real engine and look at what comes out, which is the
+    only thing a source-text check cannot fake.
+    """
+
+    OBS = CORPUS / "mumc-r4" / "Observation-egfr-a.json"
+
+    def _run(self, **kw):
+        pipe = Pipeline.for_family("egfr", REPO, engine=image(),
+                                   quality_mode="per-observation", **kw)
+        out = pipe.run_file(self.OBS)
+        assert out.transform.status is TransformStatus.MAPPED, out.transform.status
+        people = set(PERSON.findall("\n".join(out.transform.target_quads)))
+        assert len(people) == 1, people
+        return out, people.pop()
+
+    def test_two_scopes_through_run_file_give_two_people(self):
+        _, a = self._run(source_scope_id="mumc-r4")
+        _, b = self._run(source_scope_id="radboud-r4")
+        self.assertNotEqual(a, b, "run_file ignored the pipeline's source scope")
+
+    def test_the_scope_reaches_the_graph_key(self):
+        a, _ = self._run(source_scope_id="mumc-r4")
+        b, _ = self._run(source_scope_id="radboud-r4")
+        self.assertNotEqual(a.transform.output_graph_key, b.transform.output_graph_key)
+
+    def test_the_scope_reaches_the_replacement_slot(self):
+        """Or one source's graph supersedes the other's."""
+        from fhir_sulo.store.graph_key import subject_key
+
+        slots = set()
+        for scope in ("mumc-r4", "radboud-r4"):
+            pipe = Pipeline.for_family("egfr", REPO, engine=image(),
+                                       quality_mode="per-observation",
+                                       source_scope_id=scope)
+            context = pipe.run_file(self.OBS).source
+            slots.add(subject_key(pipe.run_inputs(context).key_inputs()))
+        self.assertEqual(len(slots), 2, "two sources shared one replacement slot")
+
+    def test_the_fhir_base_reaches_the_emitted_graph(self):
+        """It was accepted and then ignored by the renderer, so the graph's
+        root IRI and the canonical URL disagreed and every file failed
+        source validation. A flag that cannot be used is worse than absent."""
+        out, _ = self._run(source_scope_id="mumc-r4",
+                           fhir_base_url="https://mumc.example/fhir/")
+        self.assertTrue(out.source.canonical_url.startswith("https://mumc.example/fhir/"),
+                        out.source.canonical_url)
+        # And it MAPPED: the renderer used the same base, so the engine's
+        # focus node existed. That is what the flag broke before.
+        self.assertIs(out.transform.status, TransformStatus.MAPPED)
+
+    def test_the_cli_flags_reach_the_pipeline_not_just_the_help_text(self):
+        """Parsed-and-dropped passes a --help assertion."""
+        import inspect
+
+        from fhir_sulo.pipeline import cli
+
+        body = inspect.getsource(cli._run_files)
+        for kw in ("source_scope_id=source_scope_id", "fhir_base_url=fhir_base_url",
+                   "person_index=person_index"):
+            self.assertIn(kw, body)
+        # and behaviourally: the parsed namespace carries all three through
+        parser_src = inspect.getsource(cli.main)
+        for flag in ("--source-scope", "--fhir-base", "--person-index"):
+            self.assertIn(flag, parser_src + inspect.getsource(cli))
+        for call in ("source_scope_id=args.source_scope", "fhir_base_url=args.fhir_base",
+                     "person_index_path=args.person_index"):
+            self.assertIn(call, inspect.getsource(cli))

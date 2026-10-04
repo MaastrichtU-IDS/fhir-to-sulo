@@ -89,7 +89,7 @@ class GuardOneFailsLoudlyEndToEnd(unittest.TestCase):
             json.dump(src, open(path, "w", encoding="utf-8"))
             proc = subprocess.run(
                 [sys.executable, "-m", "fhir_sulo.pipeline.cli", "batch",
-                 "--family", "encounter", "--out", os.path.join(tmp, "b.jsonl"), path],
+                 "--family", "encounter", "--source-scope", "fhir-sulo-fixtures-r4", "--out", os.path.join(tmp, "b.jsonl"), path],
                 cwd=ROOT, capture_output=True, text=True,
                 env=dict(os.environ, PYTHONPATH=os.path.join(ROOT, "src")),
             )

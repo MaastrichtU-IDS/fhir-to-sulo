@@ -58,8 +58,18 @@ class ReferenceResolver:
     manifest's job and merging is Agent 5's.
     """
 
-    def __init__(self, manifest: Optional[Manifest] = None):
+    def __init__(self, manifest: Optional[Manifest] = None,
+                 effective_base: Optional[str] = None):
         self.m = manifest or default_manifest()
+        #: DR-021. The base of the source these resources came from. "Same
+        #: server" must be judged against THIS, not the pinned manifest:
+        #: with a per-source base set, comparing against the pinned one
+        #: refused the source's own absolute references and accepted
+        #: references to the placeholder, which is exactly backwards.
+        self.effective_base = effective_base
+
+    def _base(self) -> str:
+        return self.effective_base or self.m.server_base
 
     def resolve_resource(self, resource: Dict[str, Any],
                          expected_types: Optional[Dict[str, str]] = None
@@ -180,7 +190,7 @@ class ReferenceResolver:
         # ---- absolute ----
         m = _ABSOLUTE.match(text)
         if m:
-            same_server = m.group("base") == self.m.server_base
+            same_server = m.group("base") == self._base()
             return ResolvedReference(evidence=ReferenceEvidence(
                 kind="literal-versioned" if m.group("version") else "literal-absolute",
                 raw_reference=text, resolved_target=text, source_element=source_element,
@@ -191,8 +201,9 @@ class ReferenceResolver:
                 notes=_note(
                     f"absolute reference to {m.group('type')}/{m.group('id')}",
                     "" if same_server else
-                    f"names a different server base {m.group('base')!r} than the pinned "
-                    f"{self.m.server_base!r}; cross-server identity is an identity-policy decision",
+                    f"names a different server base {m.group('base')!r} than this "
+                    f"source's {self._base()!r}; cross-server identity is an "
+                    f"identity-policy decision",
                     f"version {m.group('version')}" if m.group("version") else "",
                     _type_note(expected_type, m.group("type")),
                     _declared_type_note(declared_type, m.group("type")),
@@ -205,14 +216,14 @@ class ReferenceResolver:
             return ResolvedReference(evidence=ReferenceEvidence(
                 kind="literal-versioned" if m.group("version") else "literal-relative",
                 raw_reference=text,
-                resolved_target=self.m.server_base + text,
+                resolved_target=self._base() + text,
                 source_element=source_element,
                 target_resource_type=m.group("type"),
                 target_resource_id=m.group("id"),
                 target_version_id=m.group("version"),
                 notes=_note(
-                    f"relative reference resolved against the pinned server base "
-                    f"{self.m.server_base!r}",
+                    f"relative reference resolved against the source's server base "
+                    f"{self._base()!r}",
                     f"version {m.group('version')}" if m.group("version") else "",
                     _type_note(expected_type, m.group("type")),
                     _declared_type_note(declared_type, m.group("type")),

@@ -212,3 +212,55 @@ class TheCanonicalUrlNamesTheSourceItCameFrom(unittest.TestCase):
                 with contextlib.redirect_stdout(buf), contextlib.suppress(SystemExit):
                     main([sub, "--help"])
                 self.assertIn("--fhir-base", buf.getvalue())
+
+
+class TheOperatorPathRefusesToGuessTheSource(unittest.TestCase):
+    """DR-021. The policy declares multi-source; defaulting the scope fuses.
+
+    The library default stays, for fixtures and tests. The OPERATOR path
+    refuses, because that is where being wrong costs something: without a
+    scope every source keys alike and two systems holding Patient/123 become
+    one person, silently.
+    """
+
+    FIXTURE = "fixtures/r4/egfr/egfr-baseline/egfr-456.json"
+
+    def test_the_cli_refuses_without_a_source_scope(self):
+        from fhir_sulo.pipeline.cli import main
+
+        with self.assertRaises(SystemExit) as caught:
+            main(["map", "--family", "egfr", self.FIXTURE])
+        message = str(caught.exception)
+        self.assertIn("--source-scope is required", message)
+        self.assertIn("multi-source", message)
+
+    def test_the_refusal_is_driven_by_the_policy_not_hardcoded(self):
+        """Set the policy to single-source and the refusal must lift."""
+        import copy
+        from unittest import mock
+
+        from fhir_sulo.policy import PolicyBundle
+
+        base = PolicyBundle.load()
+        identity = copy.deepcopy(dict(base.identity))
+        identity["reference_scope"]["deployment_mode"] = "single-source"
+        import dataclasses
+
+        single = dataclasses.replace(base, identity=identity)
+        with mock.patch.object(PolicyBundle, "load", classmethod(lambda cls: single)):
+            from fhir_sulo.pipeline import cli
+
+            # Reaches the engine rather than the refusal; EngineUnavailable or
+            # a real run are both fine, SystemExit about the scope is not.
+            try:
+                cli._run_files("egfr", [], __import__("pathlib").Path("."), None, None)
+            except SystemExit as exc:  # pragma: no cover - only on regression
+                self.fail("refused under single-source policy: %s" % exc)
+            except Exception:
+                pass
+
+    def test_the_library_default_still_works_for_fixtures(self):
+        """Tests and fixtures must not need a scope they do not have."""
+        from fhir_sulo.ingest import ingest_file
+
+        self.assertTrue(ingest_file(self.FIXTURE).source_scope_id)

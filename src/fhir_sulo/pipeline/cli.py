@@ -27,7 +27,7 @@ import sys
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Sequence
 
-from ..contracts import CONTRACT_VERSION, TransformStatus
+from ..contracts import CONTRACT_VERSION, PILOT_SOURCE_SCOPE_ID, TransformStatus
 from ..engine.docker import EngineImage, EngineUnavailable, default_image
 from .compose import Pipeline, PipelineOutcome, RunMetadata
 from .families import FAMILIES
@@ -122,6 +122,22 @@ def _run_files(
     source_scope_id: Optional[str] = None, person_index_path: Optional[str] = None,
     fhir_base_url: Optional[str] = None,
 ) -> List[PipelineOutcome]:
+    # DR-021. The policy declares which deployment this is. Under
+    # multi-source, defaulting the scope fuses every source that shares a
+    # resource id -- silently, because an entity IRI is keyed on it. The
+    # library default stays, for fixtures and tests; the OPERATOR path
+    # refuses, which is where the cost of being wrong is real.
+    from fhir_sulo.policy import PolicyBundle
+
+    mode = (PolicyBundle.load().identity.get("reference_scope") or {}).get("deployment_mode")
+    if mode == "multi-source" and not source_scope_id:
+        raise SystemExit(
+            "policy declares reference_scope.deployment_mode = 'multi-source', so --source-scope "
+            "is required: without it every source keys as %r and two systems that each hold "
+            "Patient/123 become one person (DR-014). Pass the source's own id, or set the "
+            "policy to single-source if that is what this really is."
+            % PILOT_SOURCE_SCOPE_ID)
+
     person_index = None
     if person_index_path:
         from fhir_sulo.identity.person_index import PersonIdentifierIndex

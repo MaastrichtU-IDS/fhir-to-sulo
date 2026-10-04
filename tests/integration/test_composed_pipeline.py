@@ -297,7 +297,7 @@ class TestTheStoreSeam(unittest.TestCase):
             store = Path(tmp) / "store"
             proc = subprocess.run(
                 [sys.executable, "-m", "fhir_sulo.pipeline.cli", "batch",
-                 "--family", "bp", "--quality-mode", "per-observation",
+                 "--family", "bp", "--source-scope", "fhir-sulo-fixtures-r4", "--quality-mode", "per-observation",
                  "--repo", str(REPO), "--out", str(batch), "--load", str(store),
                  str(fixture("bp", "bp-two-panels", "bp-1.json")),
                  str(fixture("bp", "bp-two-panels", "bp-2.json"))],
