@@ -64,7 +64,10 @@
         "cost_accepted": "An entity keyed on an identifier has a DIFFERENT IRI from the same person keyed on a record address. If a record later starts carrying an allowlisted identifier, that person's IRI moves. That is a re-keying event, visible and deterministic, not a silent drift -- but it is real, and it is why the allowlist is a reviewed list rather than 'any identifier'."
       }
     ],
-    "accepted_merge_evidence_note": "No longer empty. R8b was answered on 2026-10-03: a shared person-identifying business identifier merges. The ALLOWLIST below is still empty, so no merge can occur yet; adding a system to it is the reviewed decision, and is what switches this on."
+    "accepted_merge_evidence_note": "No longer empty. R8b was answered on 2026-10-03: a shared person-identifying business identifier merges. The ALLOWLIST below is still empty, so no merge can occur yet; adding a system to it is the reviewed decision, and is what switches this on.",
+    "deployment_mode": "multi-source",
+    "deployment_mode_note": "Set to multi-source on 2026-10-04: the reviewer stated the data will come from a variety of different healthcare systems. Each source MUST pass its own source_scope_id to ingest. Until that date pipeline/services.py held the scope as a module constant and passed it for every resource, so every source keyed as one and two hospitals' Patient/123 became ONE person. The scope now travels on SourceContext, per resource, and a context without one is rejected rather than defaulted.",
+    "consequence_of_multi_source": "With no allowlisted person-identifying identifier, the same human seen at five systems is FIVE person entities. That is the correct conservative outcome under R2b -- five records, no reviewed evidence they are one person -- but it is a large effect at this scale, and it makes person_identifying_identifier_systems the only mechanism that can ever reunite them. R8b is therefore no longer an edge case; it is the primary cross-system identity rule."
   },
   "contained_reference_scoping": {
     "applies_to_evidence_kind": "contained",

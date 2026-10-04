@@ -98,6 +98,14 @@ class UnresolvedReferenceError(RuntimeError):
     """Raised when an unresolved reference is used as though it were resolved."""
 
 
+#: The single source this pilot's fixtures come from. A DEFAULT, not a
+#: constant: a deployment reading from several healthcare systems must pass
+#: its own per-source value, and ``identity-policy.v1.json`` records that
+#: under ``reference_scope.deployment_mode``.
+PILOT_SOURCE_SCOPE_ID = "synthea-pilot-r4"
+PILOT_FHIR_BASE_URL = "https://fhir.example/"
+
+
 @dataclass(frozen=True)
 class SourceContext:
     """Everything downstream needs about one validated FHIR source resource."""
@@ -114,6 +122,15 @@ class SourceContext:
     resolved_references: Mapping[str, ResolvedReference]
     terminology_snapshot: str
     eligibility: EligibilityOutcome
+    #: WHERE this resource came from. An entity IRI is keyed on it, so two
+    #: healthcare systems that each hold ``Patient/123`` must give two
+    #: different people. Carried per resource rather than configured globally,
+    #: because in a multi-source run it varies from one resource to the next.
+    #: It was a module constant in ``pipeline/services.py`` until 2026-10-04,
+    #: which meant every source keyed as one and records from different
+    #: systems sharing a resource id silently became ONE person.
+    source_scope_id: str = PILOT_SOURCE_SCOPE_ID
+    fhir_base_url: str = PILOT_FHIR_BASE_URL
     eligibility_reason: Optional[str] = None
     unsupported_modifier_extensions: Tuple[str, ...] = ()
     renderer_id: str = ""

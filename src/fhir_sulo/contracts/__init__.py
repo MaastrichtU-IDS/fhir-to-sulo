@@ -20,6 +20,8 @@ Design rules enforced here, traceable to the contract documents:
 from __future__ import annotations
 
 from .source_context import (
+    PILOT_FHIR_BASE_URL,
+    PILOT_SOURCE_SCOPE_ID,
     EligibilityOutcome,
     ReferenceEvidence,
     ResolvedReference,
@@ -55,7 +57,7 @@ __all__ = [
     "RunRecord",
 ]
 
-CONTRACT_VERSION = "0.4.0"
+CONTRACT_VERSION = "0.5.0"
 """Bumped by the integration lead on any breaking interface change.
 
 0.3.0 - RunRecord gains renderer_id, which joins the graph key's content

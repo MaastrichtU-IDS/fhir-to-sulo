@@ -16,6 +16,7 @@ from .fhir_rdf import FhirRdfRenderer
 from .identity_port import IdentityService, RefusingIdentityService, SubjectContext
 from .manifest import Manifest, default_manifest
 from .ntriples import serialize
+from ..contracts import PILOT_SOURCE_SCOPE_ID
 from .profile_conformance import check_declared_profiles
 from .references import ReferenceResolver
 
@@ -39,11 +40,13 @@ def _expected_for(path: str) -> Optional[str]:
 
 def ingest_text(json_text: str, manifest: Optional[Manifest] = None,
                 identity: Optional[IdentityService] = None,
-                dataset_id: str = "synthetic/pilot") -> SourceContext:
+                dataset_id: str = "synthetic/pilot",
+                source_scope_id: str = PILOT_SOURCE_SCOPE_ID) -> SourceContext:
     m = manifest or default_manifest()
     resource = jsonio.loads(json_text)
     return ingest_resource(resource, json_text=json_text, manifest=m,
-                           identity=identity, dataset_id=dataset_id)
+                           identity=identity, dataset_id=dataset_id,
+                           source_scope_id=source_scope_id)
 
 
 def ingest_file(path: str, **kwargs) -> SourceContext:
@@ -54,7 +57,8 @@ def ingest_file(path: str, **kwargs) -> SourceContext:
 def ingest_resource(resource: Dict[str, Any], json_text: Optional[str] = None,
                     manifest: Optional[Manifest] = None,
                     identity: Optional[IdentityService] = None,
-                    dataset_id: str = "synthetic/pilot") -> SourceContext:
+                    dataset_id: str = "synthetic/pilot",
+                    source_scope_id: str = PILOT_SOURCE_SCOPE_ID) -> SourceContext:
     m = manifest or default_manifest()
     identity = identity or RefusingIdentityService()
     if json_text is None:
@@ -124,6 +128,8 @@ def ingest_resource(resource: Dict[str, Any], json_text: Optional[str] = None,
         source_status=str(resource.get("status", "")),
         resolved_references=refs,
         terminology_snapshot=m.terminology_snapshot,
+        source_scope_id=source_scope_id,
+        fhir_base_url=m.server_base,
         eligibility=verdict.outcome,
         eligibility_reason=verdict.reason_text,
         unsupported_modifier_extensions=verdict.unsupported_modifier_extensions,

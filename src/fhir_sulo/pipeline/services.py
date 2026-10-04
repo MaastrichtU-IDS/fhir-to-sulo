@@ -39,8 +39,14 @@ def policy_bundle(quality_mode: Optional[str] = "per-observation"):
     )
 
 
-SCOPE_ID = "synthea-pilot-r4"
-FHIR_BASE = "https://fhir.example/"
+# These WERE the scope every resource was keyed under, hardcoded, so two
+# healthcare systems that each held Patient/123 produced ONE person -- a
+# silent false merge, and the exact failure identity-policy.v1.json promises
+# it prevents ("two sources that both hold Patient/p123 get different IRIs").
+# The scope now travels on the SourceContext, because in a multi-source run it
+# varies per resource. Re-exported only so existing callers keep resolving.
+from fhir_sulo.contracts import PILOT_FHIR_BASE_URL as FHIR_BASE
+from fhir_sulo.contracts import PILOT_SOURCE_SCOPE_ID as SCOPE_ID
 
 
 class ReferenceNotAPerson(RuntimeError):
@@ -64,6 +70,27 @@ def source_context(json_path: Path):
 
     return ingest_file(str(json_path))
 
+
+def _scope_of(ctx) -> "SourceScope":
+    """Where this resource came from, per resource, never a module constant.
+
+    An entity IRI is keyed on the scope, so getting this wrong does not fail
+    loudly -- it fuses two different people who happen to share a resource id
+    at two different healthcare systems.
+    """
+    scope_id = getattr(ctx, "source_scope_id", None)
+    base = getattr(ctx, "fhir_base_url", None)
+    if not scope_id or not base:
+        raise ReferenceNotAPerson(
+            "source-scope-unknown",
+            "this SourceContext carries no source scope, so there is nothing to key an "
+            "entity in. A resource whose origin is unknown cannot be keyed: doing it "
+            "under a default would merge it with every other source's resource of the "
+            "same id.",
+        )
+    from fhir_sulo.identity import SourceScope
+
+    return SourceScope(scope_id, base)
 
 def entity_for_reference(svc, ctx, element_path: str, expected_type: str):
     """Agent 5's ``EntityIdentity`` for one of Agent 2's resolved references.
@@ -94,7 +121,7 @@ def entity_for_reference(svc, ctx, element_path: str, expected_type: str):
         evidence = ReferenceEvidence(
             evidence_id=element_path,
             kind=ev.kind,
-            source_scope=SourceScope(SCOPE_ID, FHIR_BASE),
+            source_scope=_scope_of(ctx),
             resource_type=expected_type,
             resource_id="",
             identifier_system=ev.identifier_system,
@@ -132,7 +159,7 @@ def entity_for_reference(svc, ctx, element_path: str, expected_type: str):
     evidence = ReferenceEvidence(
         evidence_id=element_path,
         kind=ev.kind,
-        source_scope=SourceScope(SCOPE_ID, FHIR_BASE),
+        source_scope=_scope_of(ctx),
         resource_type=expected_type,
         resource_id=resource_id,
         canonical_url=canonical,
