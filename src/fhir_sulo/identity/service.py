@@ -49,7 +49,17 @@ class _UnscopedContained(ValueError):
 class IdentityService:
     """Maps references to entity IRIs under a loaded, versioned policy."""
 
-    def __init__(self, policy: Optional[PolicyBundle] = None) -> None:
+    def __init__(self, policy: Optional[PolicyBundle] = None,
+                 person_index: Optional["PersonIdentifierIndex"] = None) -> None:
+        # R8b. The index says which person-level identifier a source record
+        # carries. It is an INPUT, not a lookup this service performs, so
+        # resolve() stays a pure function of (request, policy, index) and a
+        # replay with the same three reproduces the same IRIs (DR-401).
+        # Empty by default: nothing merges, which is the conservative outcome.
+        from .person_index import PersonIdentifierIndex
+
+        self.person_index = (person_index if person_index is not None
+                             else PersonIdentifierIndex.empty())
         self.policy = policy if policy is not None else PolicyBundle.load()
         self._iri = self.policy.identity["entity_iri"]
         self._quality = self.policy.identity["quality_identity"]
@@ -341,7 +351,17 @@ class IdentityService:
             system = getattr(candidate, "identifier_system", None)
             value = getattr(candidate, "identifier_value", None)
             if not system or not value:
-                continue
+                # Not on the reference itself. A BSN-style number lives on the
+                # Patient RESOURCE, which this pipeline never sees, so the
+                # index is how it gets here at all (R8b, DR-015).
+                indexed = self.person_index.lookup(
+                    candidate.source_scope.scope_id,
+                    candidate.resource_type,
+                    candidate.resource_id,
+                )
+                if not indexed:
+                    continue
+                system, value = indexed
             if normalise_text(system) not in allow:
                 # Present but not person-identifying: audit detail, not a key.
                 continue
